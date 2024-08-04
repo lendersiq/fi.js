@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../styles/base.css">
+  <title>App 1</title>
+</head>
+<body>
+  <div id="app-container">
+    <div id="run-modal"></div>
+    <div id="results-container"></div>
+  </div>
+
+  <script>
+    // App configuration
+    const appConfig = {
+      formula: 'checking.balance != null && savings.balance != null ? checking.balance + savings.balance : null',
+      unique: 'Portfolio'
+    };
+  </script>
+  <script src="../core/main.js"></script>
+  <script src="../core/ux.js"></script>
+</body>
+</html>
