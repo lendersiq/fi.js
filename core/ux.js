@@ -1,27 +1,39 @@
 // Function to display combined results in a table
 function displayResultsInTable(combinedResults) {
+    console.log('combinedResults', combinedResults)
     const table = document.createElement('table');
     table.className = 'table'; // Apply CSS class
   
     const headerRow = document.createElement('tr');
     
-    // Create a button for the unique ID header
-    const headerUniqueId = document.createElement('th');
-    const uniqueIdButton = document.createElement('button');
-    uniqueIdButton.textContent = 'Portfolio'; // Display as a button
-    uniqueIdButton.className = 'button';
-    uniqueIdButton.addEventListener('click', handleUniqueIdButtonClick);
-    headerUniqueId.appendChild(uniqueIdButton);
-  
-    const headerValue = document.createElement('th');
-    headerValue.textContent = 'Result';
-  
-    headerRow.appendChild(headerUniqueId);
-    headerRow.appendChild(headerValue);
+    if (appConfig.presentation && appConfig.presentation.columns) {
+      appConfig.presentation.columns.forEach(column => {
+        const header = document.createElement('th');
+        header.textContent = column.heading;
+        if (column.field == appConfig.unique) {
+          const mashUpButton = document.createElement('button');
+          mashUpButton.className = 'button';
+          mashUpButton.addEventListener('click', handleUniqueIdButtonClick);
+          header.appendChild(mashUpButton);
+        }
+        headerRow.appendChild(header);
+      });
+    } else {
+      // Default headers if no presentation config is provided
+      const headerUnique = document.createElement('th');
+      const mashUpButton = document.createElement('button');
+      mashUpButton.textContent = appConfig.unique; 
+      mashUpButton.className = 'button';
+      mashUpButton.addEventListener('click', handleUniqueIdButtonClick);
+      headerUnique.appendChild(mashUpButton);
+      const headerResult = document.createElement('th');
+      headerResult.textContent = 'Result';
+      headerRow.appendChild(headerUnique);
+      headerRow.appendChild(headerResult);
+    }
     table.appendChild(headerRow);
   
     const rows = {};
-  
     Object.entries(combinedResults).forEach(([uniqueId, value]) => {
       const row = document.createElement('tr');
   
@@ -68,7 +80,7 @@ function displayResultsInTable(combinedResults) {
           reader.onload = function(event) {
             parseCSV(event.target.result, (data) => {
               const mapping = createUniqueIdMapping(data);
-              updateUniqueIdColumn(mapping);
+              updateUniqueColumns(mapping);
             });
           };
           
@@ -84,20 +96,21 @@ function displayResultsInTable(combinedResults) {
     function createUniqueIdMapping(data) {
       const mapping = {};
       data.forEach(row => {
-        if (row.portfolio && row.name) {
-          mapping[row.portfolio.toString()] = row.name; // Ensure keys are strings
+        const values = Object.values(row);
+        if (values) {
+          mapping[values[0].toString().replace(/'/g, '')] = values[1].toString().replace(/'/g, '');
         }
       });
       return mapping;
     }
   
-    function updateUniqueIdColumn(mapping) {
+    function updateUniqueColumns(mapping) {
       Object.entries(combinedResults).forEach(([uniqueId, _]) => {
         if (mapping[uniqueId]) {
           rows[uniqueId].textContent = mapping[uniqueId];
         }
-      });
-    }
+      })
+    }  
   }
   
   // Function to show the modal with file inputs and run button
@@ -168,4 +181,4 @@ function displayResultsInTable(combinedResults) {
   // Set up the modal on page load
   document.addEventListener('DOMContentLoaded', () => {
     showRunModal();
-  });  
+  });
