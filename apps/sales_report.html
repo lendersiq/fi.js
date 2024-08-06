@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../styles/base.css">
-  <title>App 1</title>
+  <title>Sales Report</title>
 </head>
 <body>
   <div id="app-container">
@@ -14,7 +14,7 @@
   <script>
     // App configuration
     const appConfig = {
-      formula: 'checking.balance != null && savings.balance == null ? checking.balance : null',
+      formula: 'checking.opened < 90 ? checking.balance : null',
       unique: 'Portfolio',
       presentation: {
         columns: [
