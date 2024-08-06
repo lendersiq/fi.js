@@ -5,57 +5,71 @@ function displayResultsInTable(combinedResults) {
     table.className = 'table'; // Apply CSS class
   
     const headerRow = document.createElement('tr');
-    
+    // Default headers if no presentation config is provided
+    const headerUnique = document.createElement('th');
+    const mashUpButton = document.createElement('button');
+    mashUpButton.textContent = appConfig.unique; 
+    mashUpButton.className = 'button';
+    mashUpButton.addEventListener('click', handleUniqueIdButtonClick);
+    headerUnique.appendChild(mashUpButton);
+    headerRow.appendChild(headerUnique);
     if (appConfig.presentation && appConfig.presentation.columns) {
       appConfig.presentation.columns.forEach(column => {
         const header = document.createElement('th');
         header.textContent = column.heading;
-        if (column.field == appConfig.unique) {
-          const mashUpButton = document.createElement('button');
-          mashUpButton.className = 'button';
-          mashUpButton.addEventListener('click', handleUniqueIdButtonClick);
-          header.appendChild(mashUpButton);
-        }
         headerRow.appendChild(header);
       });
-    } else {
-      // Default headers if no presentation config is provided
-      const headerUnique = document.createElement('th');
-      const mashUpButton = document.createElement('button');
-      mashUpButton.textContent = appConfig.unique; 
-      mashUpButton.className = 'button';
-      mashUpButton.addEventListener('click', handleUniqueIdButtonClick);
-      headerUnique.appendChild(mashUpButton);
-      const headerResult = document.createElement('th');
-      headerResult.textContent = 'Result';
-      headerRow.appendChild(headerUnique);
-      headerRow.appendChild(headerResult);
     }
+    const headerResult = document.createElement('th');
+    headerResult.textContent = 'Result';
+    headerRow.appendChild(headerResult);
     table.appendChild(headerRow);
   
     const rows = {};
-    Object.entries(combinedResults).forEach(([uniqueId, value]) => {
+    // Iterate over combined results to construct each row
+    Object.entries(combinedResults).forEach(([uniqueId, data]) => {
       const row = document.createElement('tr');
-  
       const uniqueIdCell = document.createElement('td');
       uniqueIdCell.textContent = uniqueId.toString(); // Ensure unique ID is a string
-  
-      const valueCell = document.createElement('td');
-  
-      // Detect the type of value and format accordingly
-      if (typeof value === 'number') {
-        if (value % 1 !== 0) {
-          // Floating point number
-          valueCell.textContent = value.toFixed(2);
-        } else {
-          // Integer
-          valueCell.textContent = value.toString();
-        }
-      } else {
-        valueCell.textContent = value;
-      }
-  
       row.appendChild(uniqueIdCell);
+      if (appConfig.presentation && appConfig.presentation.columns) {
+        appConfig.presentation.columns.forEach(column => {
+          const cell = document.createElement('td');
+          const field = column.field.toLowerCase(); // Field instead of key
+          // Dynamically access data fields
+          if (field === appConfig.unique.toLowerCase()) {
+            // Display the unique ID based on appConfig.unique
+            cell.textContent = uniqueId.toString();
+          } else if (data[field] !== undefined) {
+            // Format numeric values appropriately
+              if (typeof data[field] === 'number') {
+                // Determine if the number is an integer
+                if (Number.isInteger(data[field])) {
+                    // If it's an integer, set the text content as is
+                    cell.textContent = data[field];
+                } else {
+                  // If it's a floating-point number, format it as currency
+                  cell.textContent = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                }).format(data[field]);
+              }
+            } else {
+                // If it's not a number, set the text content directly
+                cell.textContent = data[field];
+            }
+          } else {
+            cell.textContent = ''; // Provide a default empty string if field is missing
+          }
+          row.appendChild(cell);
+        });
+      } 
+      const valueCell = document.createElement('td');
+      // Access the 'result' property directly
+      valueCell.textContent = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+      }).format(data.result);
       row.appendChild(valueCell);
       table.appendChild(row);
   
