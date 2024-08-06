@@ -22,18 +22,24 @@ function parseCSV(csvContent, callback) {
 }
 
 // AI translation function to map formula fields to CSV headers
-function aiTranslate(source, field) {
-  const headers = source[0] ? Object.keys(source[0]) : [];
-  const headersLower = headers.map(header => header.toLowerCase());
-  const matchingHeader = headersLower.find(header => header.includes(field.toLowerCase()));
+function aiTranslater(headers, field) {
+  // Function to perform basic stemming
+  function stem(word) {
+    // Example stemmer: removes common suffixes for a simple stemming approach
+    return word.replace(/(ing|ed|s|es|er|est|ly)$/i, '');
+  }
+
+  // Create stemmed versions of headers and field
+  const headersLower = headers.map(header => stem(header.toLowerCase()));
+  const stemmedField = stem(field.toLowerCase());
+
+  // Find a matching header based on stemmed forms
+  const matchingHeader = headersLower.find(header => header.includes(stemmedField));
+
+  // Return the original header if a match is found, otherwise return null
   return matchingHeader ? headers[headersLower.indexOf(matchingHeader)] : null;
 }
 
-function aiTranslater(headers, field) {
-  const headersLower = headers.map(header => header.toLowerCase());
-  const matchingHeader = headersLower.find(header => header.includes(field.toLowerCase()));
-  return matchingHeader ? headers[headersLower.indexOf(matchingHeader)] : null;
-}
 
 // Function to extract unique source names from the formula
 function extractSources(formula) {
@@ -48,6 +54,9 @@ function extractSources(formula) {
 
 function processFormula(identifiedSources, formula, uniqueKey, csvData) {
   const results = {};
+  
+  // Get today's date
+  const today = new Date();
 
   // Iterate over each source's data to ensure flexibility with multiple sources
   identifiedSources.forEach(sourceName => {
@@ -66,8 +75,21 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
         const matchingRow = source.find(row => row[uniqueKey] === uniqueId);
 
         // Check if the translated header and matching data exist
-        return matchingRow && translatedHeader && matchingRow[translatedHeader] !== undefined
-          ? `parseFloat(${matchingRow[translatedHeader]})` : 'null';
+        if (matchingRow && translatedHeader && matchingRow[translatedHeader] !== undefined) {
+          const value = matchingRow[translatedHeader];
+
+          // Check if the field is a date and calculate the difference in days
+          if (isDate(value)) {
+            const dateValue = new Date(value);
+            const differenceInTime = today - dateValue;
+            const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24));
+            return differenceInDays; // Return the difference in days
+          } else {
+            return `parseFloat(${value})`; // Return the numeric value
+          }
+        } else {
+          return 'null'; // Default if no matching data
+        }
       });
 
       // Evaluate the translated formula
@@ -98,8 +120,15 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
       }
     });
   });
+
   return results; // Return the final results object containing all evaluated results
 }
+
+// Helper function to check if a value is a valid date
+function isDate(value) {
+  return !isNaN(Date.parse(value));
+}
+
 
 // Function to read files and process data
 function readFilesAndProcess(fileInputs, identifiedSources, appConfig) {
