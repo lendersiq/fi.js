@@ -29,6 +29,12 @@ function aiTranslate(source, field) {
   return matchingHeader ? headers[headersLower.indexOf(matchingHeader)] : null;
 }
 
+function aiTranslater(headers, field) {
+  const headersLower = headers.map(header => header.toLowerCase());
+  const matchingHeader = headersLower.find(header => header.includes(field.toLowerCase()));
+  return matchingHeader ? headers[headersLower.indexOf(matchingHeader)] : null;
+}
+
 // Function to extract unique source names from the formula
 function extractSources(formula) {
   const sourceSet = new Set();
@@ -40,43 +46,59 @@ function extractSources(formula) {
   return Array.from(sourceSet);
 }
 
-// Function to process the formula dynamically across identified sources
 function processFormula(identifiedSources, formula, uniqueKey, csvData) {
   const results = {};
-  const preResult = {};
 
-  // Parse and store data for each identified source
+  // Iterate over each source's data to ensure flexibility with multiple sources
   identifiedSources.forEach(sourceName => {
     const sourceData = csvData[sourceName];
-    preResult[sourceName] = {};
 
     sourceData.forEach(row => {
       const uniqueId = row[uniqueKey];
-      preResult[sourceName][uniqueId] = row;
+
+      // Translate the formula by replacing source.field with actual data
+      const translatedFormula = formula.replace(/(\w+)\.(\w+)/g, (match, sourceName, field) => {
+        const source = csvData[sourceName]; // Get the CSV data for the current source
+        const headers = Object.keys(source[0]);
+        const translatedHeader = aiTranslater(headers, field); // Translate the field using aiTranslater
+
+        // Find the row in the current source that matches the unique ID
+        const matchingRow = source.find(row => row[uniqueKey] === uniqueId);
+
+        // Check if the translated header and matching data exist
+        return matchingRow && translatedHeader && matchingRow[translatedHeader] !== undefined
+          ? `parseFloat(${matchingRow[translatedHeader]})` : 'null';
+      });
+
+      // Evaluate the translated formula
+      const formulaFunction = new Function(`return ${translatedFormula};`);
+
+      // Execute the formula function to calculate the result
+      const result = formulaFunction();
+
+      // Store the evaluation result by unique identifier
+      if (result !== null) { // Only store non-null results
+        if (!results[uniqueId]) {
+          results[uniqueId] = {}; // Initialize the object for this uniqueId if not present
+        }
+        results[uniqueId]['result'] = result.toFixed(2);
+
+        // Populate other fields based on the presentation configuration
+        if (appConfig.presentation && appConfig.presentation.columns) {
+          appConfig.presentation.columns.forEach(column => {
+            identifiedSources.forEach(source => {
+              const headers = Object.keys(csvData[source][0]);
+              const translatedColumn = aiTranslater(headers, column.field);
+              if (translatedColumn) {
+                results[uniqueId][column.field] = row[translatedColumn] ? row[translatedColumn] : 'N/A';
+              }
+            });
+          });
+        }
+      }
     });
   });
-
-  // Process each unique identifier found in the primary source
-  Object.keys(preResult[identifiedSources[0]]).forEach(uniqueId => {
-    // Translate the formula by replacing source.field with actual data
-    const translatedFormula = formula.replace(/(\w+)\.(\w+)/g, (match, sourceName, field) => {
-      const source = csvData[sourceName];
-      const translatedHeader = aiTranslate(source, field);
-      return translatedHeader && preResult[sourceName][uniqueId] && preResult[sourceName][uniqueId][translatedHeader]
-        ? `parseFloat(preResult['${sourceName}']['${uniqueId}']['${translatedHeader}'])` : 'null';
-    });
-
-    // Evaluate the translated formula
-    const formulaFunction = new Function('preResult', `return ${translatedFormula};`);
-    const result = formulaFunction(preResult);
-
-    // Store the evaluation result by unique identifier
-    if (result !== null) { // Only store non-null results
-      results[uniqueId] = result;
-    }
-  });
-
-  return results;
+  return results; // Return the final results object containing all evaluated results
 }
 
 // Function to read files and process data
