@@ -49,7 +49,7 @@ function displayResultsInTable(combinedResults) {
 
     // Create the cell for the unique ID
     const uniqueIdCell = document.createElement('td');
-    uniqueIdCell.textContent = uniqueId.toString(); // Ensure unique ID is a string
+    uniqueIdCell.textContent = `${uniqueId.toString()} (${data.count})`; // Ensure unique ID is a string
     row.appendChild(uniqueIdCell);
 
     // Add cells based on presentation config
