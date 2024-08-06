@@ -1,4 +1,8 @@
 /* base.css */
+body {
+    font-size: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
 
 /* Basic styling for tables */
 .table {
@@ -14,7 +18,7 @@
 .table th {
     background-color: #005753;
     color: white;
-    padding: 12px 15px;
+    padding: 8px 12px;
     border-bottom: 1px solid #ddd;
 }
 
