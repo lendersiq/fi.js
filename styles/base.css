@@ -111,3 +111,7 @@ body {
     background-color: #ccc;
     cursor: not-allowed;
 }
+
+canvas {
+    padding: 20px;
+}
