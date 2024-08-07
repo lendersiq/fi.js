@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Create the canvas for chart rendering
   const chartCanvas = document.createElement('canvas');
   chartCanvas.id = 'chart-canvas';
-  chartCanvas.width = 400;
-  chartCanvas.height = 400;
+  chartCanvas.width = 800; // Adjusted to larger width for more data points
+  chartCanvas.height = 400; // Adjusted height if needed
 
   // Create a legend container
   const legendContainer = document.createElement('div');
@@ -82,6 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const labels = Object.keys(totals);
     const data = Object.values(totals);
 
+    // Adjust canvas size if necessary
+    adjustCanvasSize(chartCanvas, labels.length);
+
     // Plot the chart based on selected type
     plotChart(chartType, labels, data, chartCanvas, selectedField);
 
@@ -102,18 +105,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function plotBarChart(ctx, labels, data, field, canvas) {
     const maxDataValue = Math.max(...data);
-
-    // Define bar properties
-    const barWidth = 40;
-    const barSpacing = 10;
     const chartHeight = canvas.height - 40; // Leave space for labels and value text
+
+    // Define dynamic bar properties
+    const barWidth = Math.max((canvas.width - (labels.length * 10)) / labels.length, 5);
+    const barSpacing = 10;
 
     labels.forEach((label, index) => {
       const x = index * (barWidth + barSpacing);
       const barHeight = (data[index] / maxDataValue) * chartHeight;
       const y = canvas.height - barHeight - 20; // Adjust to start drawing bar
 
-      ctx.fillStyle = getRandomColor(); 
+      ctx.fillStyle = getRandomColor();
       ctx.fillRect(x, y, barWidth, barHeight);
 
       // Add label below the bar
@@ -122,8 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fillText(label, x + (barWidth / 2) - (ctx.measureText(label).width / 2), canvas.height - 5);
 
       // Add total value on top of the bar
-      ctx.fillStyle = '#000';
-      ctx.font = '14px Arial';
       ctx.fillText(data[index], x + (barWidth / 2) - (ctx.measureText(data[index].toString()).width / 2), y - 5);
     });
   }
@@ -177,5 +178,12 @@ document.addEventListener('DOMContentLoaded', () => {
       color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
+  }
+
+  function adjustCanvasSize(canvas, numberOfBars) {
+    // Adjust canvas width based on the number of bars and their width
+    const minCanvasWidth = 800;
+    const newWidth = Math.max(numberOfBars * 50, minCanvasWidth); // 50 is an arbitrary width per bar, adjust as needed
+    canvas.width = newWidth;
   }
 });
