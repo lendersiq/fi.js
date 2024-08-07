@@ -1,6 +1,5 @@
 // Function to display combined results in a table
-// Function to display combined results in a table
-function displayResultsInTable(combinedResults) {
+function displayResultsInTable() {
   console.log('combinedResults', combinedResults);
   const table = document.createElement('table');
   table.className = 'table'; // Apply CSS class
@@ -49,7 +48,7 @@ function displayResultsInTable(combinedResults) {
 
     // Create the cell for the unique ID
     const uniqueIdCell = document.createElement('td');
-    uniqueIdCell.textContent = `${uniqueId.toString()} (${data.count})`; // Ensure unique ID is a string
+    uniqueIdCell.textContent = `${uniqueId.toString()}  (${data.count})`; // Ensure unique ID is a string
     row.appendChild(uniqueIdCell);
 
     // Add cells based on presentation config

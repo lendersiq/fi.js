@@ -71,12 +71,9 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
         const headers = Object.keys(source[0]);
         const translatedHeader = aiTranslater(headers, field); // Translate the field using aiTranslater
 
-        // Find the row in the current source that matches the unique ID
-        const matchingRow = source.find(row => row[uniqueKey] === uniqueId);
-
-        // Check if the translated header and matching data exist
-        if (matchingRow && translatedHeader && matchingRow[translatedHeader] !== undefined) {
-          const value = matchingRow[translatedHeader];
+        // Ensure matchingRow is defined here for each field reference
+        if (translatedHeader) {
+          const value = row[translatedHeader];
 
           // Check if the field is a date and calculate the difference in days
           if (isDate(value)) {
@@ -85,15 +82,14 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
             const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24));
             return differenceInDays; // Return the difference in days
           } else {
-            return `parseFloat(${value})`; // Return the numeric value
+            return `${parseFloat(value)}`; // Return the numeric value as a string
           }
-        } else {
-          return 'null'; // Default if no matching data
         }
+        return 'null'; // Default if no matching data
       });
 
       // Evaluate the translated formula
-      const formulaFunction = new Function(`return ${translatedFormula};`);
+      const formulaFunction = new Function(`return (${translatedFormula});`);
 
       // Execute the formula function to calculate the result
       const result = formulaFunction();
@@ -101,20 +97,19 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
       // Store the evaluation result by unique identifier
       if (result !== null) { // Only store non-null results
         if (!results[uniqueId]) {
-          results[uniqueId] = {}; // Initialize the object for this uniqueId if not present
+          results[uniqueId] = { result: 0, count: 0 }; // Initialize if not present
         }
-        results[uniqueId]['result'] = result.toFixed(2);
+        results[uniqueId]['result'] += result; // Increment the result
+        results[uniqueId]['count'] += 1; // Increment the count
 
         // Populate other fields based on the presentation configuration
         if (appConfig.presentation && appConfig.presentation.columns) {
           appConfig.presentation.columns.forEach(column => {
-            identifiedSources.forEach(source => {
-              const headers = Object.keys(csvData[source][0]);
-              const translatedColumn = aiTranslater(headers, column.field);
-              if (translatedColumn) {
-                results[uniqueId][column.field] = row[translatedColumn] ? row[translatedColumn] : 'N/A';
-              }
-            });
+            const headers = Object.keys(csvData[sourceName][0]);
+            const translatedColumn = aiTranslater(headers, column.field);
+            if (translatedColumn) {
+              results[uniqueId][column.field] = row[translatedColumn] || 'N/A'; // Use the current row
+            }
           });
         }
       }
@@ -126,10 +121,11 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
 
 // Helper function to check if a value is a valid date
 function isDate(value) {
-  return !isNaN(Date.parse(value));
+  return !isNaN(Date.parse(value)) && isNaN(value);
 }
 
 
+let combinedResults = {};
 // Function to read files and process data
 function readFilesAndProcess(fileInputs, identifiedSources, appConfig) {
   const csvData = {};
@@ -155,10 +151,11 @@ function readFilesAndProcess(fileInputs, identifiedSources, appConfig) {
     });
   });
 
+
   // Wait for all files to be read, then process the formula
   Promise.all(promises)
     .then(() => {
-      const combinedResults = processFormula(identifiedSources, appConfig.formula, appConfig.unique, csvData);
+      combinedResults = processFormula(identifiedSources, appConfig.formula, appConfig.unique, csvData);
       displayResultsInTable(combinedResults);
     })
     .catch(error => {
