@@ -35,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Create the plot button
   const plotButton = document.createElement('button');
   plotButton.id = 'plot-button';
-  plotButton.textContent = 'Plot Chart';
+  plotButton.textContent = 'View Chart';
+  plotButton.classList.add("button");
 
   // Create the canvas for chart rendering
   const chartCanvas = document.createElement('canvas');
@@ -125,7 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fillText(label, x + (barWidth / 2) - (ctx.measureText(label).width / 2), canvas.height - 5);
 
       // Add total value on top of the bar
-      ctx.fillText(data[index], x + (barWidth / 2) - (ctx.measureText(data[index].toString()).width / 2), y - 5);
+      topLabel = convertToK(data[index]);
+      ctx.fillText(topLabel, x + (barWidth / 2) - (ctx.measureText(topLabel.toString()).width / 2), y - 5);
     });
   }
 
@@ -157,18 +159,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function createLegend(labels, data, field) {
     legendContainer.innerHTML = ''; // Clear previous legend
+    const table = document.createElement('table');
+    table.className = 'table'; 
+    table.id = 'chart-legend';
+    const headerRow = document.createElement('tr');
+  
+    //chart.js ai button
+    const headerLegend = document.createElement('th');
+    headerLegend.textContent = 'Legend ';
+    const aiButton = document.createElement('button');
+    aiButton.textContent = `${field}`;
+    aiButton.className = 'button';
+    aiButton.addEventListener('click', () => aiTableTranslater(table.id));
+    headerLegend.appendChild(aiButton);
+    headerRow.appendChild(headerLegend);
 
-    // Create legend title
-    const legendTitle = document.createElement('h4');
-    legendTitle.textContent = `Legend: ${field}`;
-    legendContainer.appendChild(legendTitle);
+    const headerResult = document.createElement('th');
+    headerResult.textContent = 'Result';
+    headerRow.appendChild(headerResult);
+    table.appendChild(headerRow);
 
     // Create legend items
+    
     labels.forEach((label, index) => {
-      const legendItem = document.createElement('div');
-      legendItem.textContent = `${label}: ${data[index]}`;
-      legendContainer.appendChild(legendItem);
+      const row = document.createElement('tr');
+      const legendLabel = document.createElement('td');
+      legendLabel.textContent = `${label}`;
+      row.appendChild(legendLabel);
+      const legendValue = document.createElement('td');
+      legendValue.textContent = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(data[index]);
+      row.appendChild(legendValue);
+      table.appendChild(row);
     });
+    legendContainer.appendChild(table);
   }
 
   function getRandomColor() {
@@ -178,6 +204,15 @@ document.addEventListener('DOMContentLoaded', () => {
       color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
+  }
+
+  function convertToK(number) {
+    // Check if the input is a number
+    if (typeof number !== 'number') {
+        return number;
+    }
+    let convertedNumber = number / 1000;
+    return convertedNumber.toFixed(1) + 'k';
   }
 
   function adjustCanvasSize(canvas, numberOfBars) {
