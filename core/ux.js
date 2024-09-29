@@ -1,9 +1,12 @@
 // Function to display combined results in a table
 function displayResultsInTable() {
   console.log('combinedResults', combinedResults);
+  const tableContainer = document.createElement('div');
+  tableContainer.className = 'table-container'; 
   const table = document.createElement('table');
-  table.className = 'table'; // Apply CSS class
-
+  table.className = 'table'; 
+  const thead = document.createElement('thead');
+  
   const headerRow = document.createElement('tr');
 
   // Create a button to handle unique ID mapping
@@ -28,7 +31,8 @@ function displayResultsInTable() {
   const headerResult = document.createElement('th');
   headerResult.textContent = 'Result';
   headerRow.appendChild(headerResult);
-  table.appendChild(headerRow);
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
 
   // Sort combinedResults by 'result' in descending order
   const sortedResults = Object.entries(combinedResults).sort((a, b) => {
@@ -44,64 +48,75 @@ function displayResultsInTable() {
 
   // Iterate over sorted combined results to construct each row
   sortedResults.forEach(([uniqueId, data]) => {
-    const row = document.createElement('tr');
+    if (data.result) {
+      const row = document.createElement('tr');
 
-    // Create the cell for the unique ID
-    const uniqueIdCell = document.createElement('td');
-    uniqueIdCell.textContent = `${uniqueId.toString()}  (${data.count})`; // Ensure unique ID is a string
-    row.appendChild(uniqueIdCell);
+      // Create the cell for the unique ID
+      const uniqueIdCell = document.createElement('td');
+      uniqueIdCell.textContent = `${uniqueId.toString()}  (${data.count})`; // Ensure unique ID is a string
+      row.appendChild(uniqueIdCell);
 
-    // Add cells based on presentation config
-    if (appConfig.presentation && appConfig.presentation.columns) {
-      appConfig.presentation.columns.forEach(column => {
-        const cell = document.createElement('td');
-        const field = column.field.toLowerCase(); // Use field for data access
+      // Add cells based on presentation config
+      if (appConfig.presentation && appConfig.presentation.columns) {
+        appConfig.presentation.columns.forEach(column => {
+          const cell = document.createElement('td');
+          const field = column.field.toLowerCase(); // Use field for data access
 
-        // Access data fields dynamically
-        if (field === appConfig.unique.toLowerCase()) {
-          cell.textContent = uniqueId.toString();
-        } else if (data[field] !== undefined) {
-          // Format numeric values appropriately
-          if (typeof data[field] === 'number') {
-            // Check if the number is an integer
-            if (Number.isInteger(data[field])) {
-              // Display as integer
-              cell.textContent = data[field];
-            } else {
-              // Display as currency
-              cell.textContent = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD'
-              }).format(data[field]);
-            }
+          let values;
+          if (data[field]) {
+              // Ensure data[field] is a string before using split
+              if (typeof data[field] === 'string') {
+                  values = data[field].split(',').map(v => parseFloat(v.trim()));
+              } else {
+                  // If data[field] is already a number or an array of numbers, use it directly
+                  values = Array.isArray(data[field]) ? data[field] : [parseFloat(data[field])];
+              }
           } else {
-            // Display non-numeric data
-            cell.textContent = data[field];
+              values = [];
           }
-        } else {
-          cell.textContent = ''; // Default empty string if field is missing
-        }
 
-        row.appendChild(cell);
+          // Determine the content of the cell based on the values
+          if (field === appConfig.unique.toLowerCase()) {
+              cell.textContent = uniqueId.toString();
+          } else if (values.length > 0) {
+              if (values.every(Number.isInteger) && values.every(v => v <= 9999)) {
+                  // If all values are integers and none are greater than 9999 (beyond typical attribute or classifcation systems), calculate and display the mode
+                  const modeValue = calculateMode(values);
+                  cell.textContent = modeValue;
+              } else {
+                  const sumValue = values.reduce((acc, v) => acc + v, 0);
+                  cell.textContent = new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                  }).format(sumValue);
+              }
+          } else {
+              cell.textContent = ''; // Default empty string if field is missing
+          }
+
+          row.appendChild(cell);
       });
     }
+    
+      // Create the cell for the result
+      const valueCell = document.createElement('td');
+      valueCell.textContent = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(data.result);
+      row.appendChild(valueCell);
 
-    // Create the cell for the result
-    const valueCell = document.createElement('td');
-    valueCell.textContent = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(data.result);
-    row.appendChild(valueCell);
+      table.appendChild(row);
+      rows[uniqueId] = uniqueIdCell; // Store reference for updating
 
-    table.appendChild(row);
-
-    rows[uniqueId] = uniqueIdCell; // Store reference for updating
+    }
   });
-
-  const resultsContainer = document.getElementById('results-container');
-  resultsContainer.innerHTML = ''; // Clear previous results
-  resultsContainer.appendChild(table);
+  tableContainer.appendChild(table);
+  const resultsContainer = document.createElement('div');
+  resultsContainer.id = 'results-container';
+  resultsContainer.appendChild(tableContainer);
+  const appContainer = document.getElementById('app-container');
+  appContainer.appendChild(resultsContainer);
 
   // Function to handle unique ID button click
   function handleUniqueIdButtonClick() {
@@ -146,8 +161,8 @@ function displayResultsInTable() {
   // Function to update unique columns using the mapping
   function updateUniqueColumns(mapping) {
     Object.entries(combinedResults).forEach(([uniqueId, _]) => {
-      if (mapping[uniqueId]) {
-        rows[uniqueId].textContent = mapping[uniqueId];
+      if (mapping[uniqueId] && rows[uniqueId]) {  // mapping (mapping[uniqueId]) is present and table row (rows[uniqueId]) has been rendered
+        rows[uniqueId].textContent = mapping[uniqueId] + ' (' + combinedResults[uniqueId].count + ')';
       }
     });
   }
@@ -164,8 +179,14 @@ function displayResultsInTable() {
     // Render modal content
     const modalHeading = `
             <div class="modal-header">
-                <img src="../JS_box.png" alt="Logo">
-                <h2 id="modalTitle"></h2>
+                 <div class="logo-container" style="--logo-size: 60px;">
+                      <div class="square"></div>
+                      <div class="inner-square"></div>
+                      <div class="innermost-square"></div>
+                      <div class="top-square"></div> 
+                      <div class="logo-text">JS</div>
+                  </div>
+                  <h2 id="modalTitle"></h2>
             </div>
     `;
     modalContent.innerHTML = modalHeading;
@@ -184,24 +205,33 @@ function displayResultsInTable() {
     // Create file inputs for each identified source
     const fileInputs = {};
     identifiedSources.forEach(sourceName => {
+      const step = document.createElement('div');
+      step.style.marginBottom = "10px";
       const label = document.createElement('label');
       label.htmlFor = `${sourceName}-file`;
-      label.textContent = `Choose ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)}:`;
-  
+      label.className = "custom-file-upload";
+      label.innerHTML = `Choose ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)} Source`;
+
       const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.csv';
+      input.type = "file";
+      input.accept = ".csv";
       input.id = `${sourceName}-file`;
-      input.style.display = 'block';
+      input.className = "hidden-file-input";
   
       // Check if all files are selected to enable the run button
       input.addEventListener('change', () => {
+        if (label) {
+          const fileName = input.files[0].name;
+          label.classList.add('completed');
+          label.innerHTML = `${sourceName}: ${fileName}`; 
+        }
         const allFilesSelected = identifiedSources.every(sourceName => fileInputs[sourceName].files.length > 0);
         runButton.disabled = !allFilesSelected;
       });
   
-      fileInputsContainer.appendChild(label);
-      fileInputsContainer.appendChild(input);
+      step.appendChild(label);
+      step.appendChild(input);
+      fileInputsContainer.appendChild(step);
       fileInputs[sourceName] = input;
     });
   
@@ -217,8 +247,49 @@ function displayResultsInTable() {
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
   }
+
+  function showSpinner() {
+    let spinner = document.getElementById('spinner-container');
+    if (!spinner) {
+      // Create spinner container
+      spinner = document.createElement('div');
+      spinner.id = 'spinner-container';
+      spinner.classList.add('spinner-container');
+
+      // Create logo container (spinner itself)
+      const logoContainer = document.createElement('div');
+      logoContainer.classList.add('logo-container');
+      logoContainer.style.setProperty('--logo-size', '80px'); // Set size of the spinner
+      logoContainer.style.backgroundColor = '#fff'; 
+      logoContainer.style.animation = 'spin 3s linear infinite'; 
+      
+      // Create square elements
+      const square = document.createElement('div');
+      square.classList.add('square');
+      const innerSquare = document.createElement('div');
+      innerSquare.classList.add('inner-square');
+      const innermostSquare = document.createElement('div');
+      innermostSquare.classList.add('innermost-square');
+      const topSquare = document.createElement('div');
+      topSquare.classList.add('top-square');
+
+      // Append squares to logo container
+      logoContainer.appendChild(square);
+      logoContainer.appendChild(innerSquare);
+      logoContainer.appendChild(innermostSquare);
+      logoContainer.appendChild(topSquare);
+
+      // Append logo container to spinner container
+      spinner.appendChild(logoContainer);
+
+      // Append spinner container to body
+      document.body.appendChild(spinner);
+    }
+    spinner.style.display = 'flex';
+  }
   
   // Set up the modal on page load
   document.addEventListener('DOMContentLoaded', () => {
     showRunModal();
+    //placeholder for charts
   });

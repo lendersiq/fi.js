@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const plotButton = document.createElement('button');
   plotButton.id = 'plot-button';
   plotButton.textContent = 'View Chart';
-  plotButton.classList.add("button");
+  plotButton.className = 'chart-button';
 
   // Create the canvas for chart rendering
   const chartCanvas = document.createElement('canvas');
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   chartContainer.appendChild(plotButton);
   chartContainer.appendChild(chartCanvas);
   chartContainer.appendChild(legendContainer);
-
+  chartContainer.style.display = 'none';
   // Append the chart container to the app container
   const appContainer = document.getElementById('app-container');
   appContainer.appendChild(chartContainer);
@@ -72,11 +72,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Calculate totals for each unique value in the selected field
     const totals = {};
     Object.entries(combinedResults).forEach(([uniqueId, record]) => {
-      const fieldValue = record[selectedField];
-      if (totals[fieldValue]) {
-        totals[fieldValue] += record.result; // Sum the result values
-      } else {
-        totals[fieldValue] = record.result;
+      if (record.result) {
+        if (typeof record[selectedField] === 'string') {  
+          values = record[selectedField].split(',').map(v => parseFloat(v.trim()));
+        } else {
+            // If data[field] is already a number or an array of numbers, use it directly
+            values = Array.isArray(record[selectedField]) ? record[selectedField] : [parseFloat(record[selectedField])]; 
+        }
+        const fieldValue = calculateMode(values);
+        if (totals[fieldValue]) {
+          totals[fieldValue] += record.result; // Sum the result values
+        } else {
+          totals[fieldValue] = record.result;
+        }
       }
     });
 
@@ -106,57 +114,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function plotBarChart(ctx, labels, data, field, canvas) {
     const maxDataValue = Math.max(...data);
-    const chartHeight = canvas.height - 40; // Leave space for labels and value text
-
+    const minDataValue = Math.min(...data);
+  
+    // Define the height for the legend/zero line with padding
+    const legendHeight = 20; // Adjust as needed for font size and padding
+    const chartHeight = canvas.height - legendHeight - 40; // Space for bars
+  
+    // Define the zero line at the height of the legend
+    const zeroLine = canvas.height - legendHeight - 20;
+  
     // Define dynamic bar properties
     const barWidth = Math.max((canvas.width - (labels.length * 10)) / labels.length, 5);
     const barSpacing = 10;
-
+  
     labels.forEach((label, index) => {
       const x = index * (barWidth + barSpacing);
-      const barHeight = (data[index] / maxDataValue) * chartHeight;
-      const y = canvas.height - barHeight - 20; // Adjust to start drawing bar
-
+      const barHeight = Math.abs(data[index] / (maxDataValue - minDataValue) * chartHeight);
+      const y = data[index] >= 0 ? zeroLine - barHeight : zeroLine;
+  
       ctx.fillStyle = getRandomColor();
       ctx.fillRect(x, y, barWidth, barHeight);
-
-      // Add label below the bar
+  
+      // Add label above the zero line for positive values, below for negative
       ctx.fillStyle = '#000';
       ctx.font = '12px Arial';
-      ctx.fillText(label, x + (barWidth / 2) - (ctx.measureText(label).width / 2), canvas.height - 5);
-
-      // Add total value on top of the bar
-      topLabel = convertToK(data[index]);
-      ctx.fillText(topLabel, x + (barWidth / 2) - (ctx.measureText(topLabel.toString()).width / 2), y - 5);
+  
+      if (data[index] >= 0) {
+        const topLabel = convertToK(data[index]);
+        ctx.fillText(topLabel, x + (barWidth / 2) - (ctx.measureText(topLabel.toString()).width / 2), y - 5);
+      } else {
+        const bottomLabel = convertToK(data[index]);
+        ctx.fillText(bottomLabel, x + (barWidth / 2) - (ctx.measureText(bottomLabel.toString()).width / 2), y + barHeight + 15);
+      }
     });
-  }
-
+  
+    // Draw the legend/zero line
+    ctx.strokeStyle = '#000'; // Legend line color
+    ctx.lineWidth = 1; // Legend line width
+    ctx.beginPath();
+    ctx.moveTo(0, zeroLine);
+    ctx.lineTo(canvas.width, zeroLine);
+    ctx.stroke();
+  
+    // Add legend labels at the zero line
+    labels.forEach((label, index) => {
+      const x = index * (barWidth + barSpacing);
+      ctx.fillText(label, x + (barWidth / 2) - (ctx.measureText(label).width / 2), zeroLine + legendHeight / 2 + 5); // Position the label
+    });
+  }  
+  
   function plotPieChart(ctx, labels, data, canvas) {
-    const total = data.reduce((sum, value) => sum + value, 0);
+    const validData = data.map(value => Math.max(0, value));
+    const total = validData.reduce((sum, value) => sum + value, 0);
     let startAngle = 0;
-
-    data.forEach((value, index) => {
+  
+    validData.forEach((value, index) => {
+      if (value === 0) return;
+  
       const sliceAngle = (value / total) * 2 * Math.PI;
-
-      ctx.fillStyle = getRandomColor(); // Different color for each slice
+  
+      ctx.fillStyle = getRandomColor();
       ctx.beginPath();
       ctx.moveTo(canvas.width / 2, canvas.height / 2);
       ctx.arc(canvas.width / 2, canvas.height / 2, canvas.height / 2, startAngle, startAngle + sliceAngle);
       ctx.closePath();
       ctx.fill();
-
-      startAngle += sliceAngle;
-
-      // Add label with value in white font
-      const midAngle = startAngle - sliceAngle / 2;
-      const labelX = canvas.width / 2 + (canvas.height / 2 / 2) * Math.cos(midAngle);
-      const labelY = canvas.height / 2 + (canvas.height / 2 / 2) * Math.sin(midAngle);
-      ctx.fillStyle = '#FFF'; // White font for better contrast
+  
+      // Adjusting the label positioning
+      const midAngle = startAngle + sliceAngle / 2;
+      const labelRadius = canvas.height / 2 * 0.7; // Position labels slightly closer to the center
+      const labelX = canvas.width / 2 + labelRadius * Math.cos(midAngle);
+      const labelY = canvas.height / 2 + labelRadius * Math.sin(midAngle);
+      ctx.fillStyle = '#FFF';
       ctx.font = '14px Arial';
-      ctx.fillText(`${labels[index]}: ${value}`, labelX, labelY);
+  
+      const valueK = convertToK(value);
+      const labelText = `${labels[index]}: ${valueK}`;
+  
+      // Adjust label position based on slice size
+      if (sliceAngle < Math.PI / 6) {
+        ctx.textAlign = midAngle > Math.PI ? 'right' : 'left';
+      } else {
+        ctx.textAlign = 'center';
+      }
+  
+      ctx.fillText(labelText, labelX, labelY);
+  
+      startAngle += sliceAngle;
     });
-  }
-
+  }  
+  
   function createLegend(labels, data, field) {
     legendContainer.innerHTML = ''; // Clear previous legend
     const table = document.createElement('table');
@@ -169,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     headerLegend.textContent = 'Legend ';
     const aiButton = document.createElement('button');
     aiButton.textContent = `${field}`;
-    aiButton.className = 'button';
+    aiButton.className = 'chart-button';
     aiButton.addEventListener('click', () => aiTableTranslater(table.id));
     headerLegend.appendChild(aiButton);
     headerRow.appendChild(headerLegend);
