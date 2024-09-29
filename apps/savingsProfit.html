@@ -4,17 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../styles/base.css">
-  <title>App 1</title>
+  <title>Savings Profit</title>
 </head>
 <body>
   <div id="app-container"></div>
   <script>
     // App configuration
     const appConfig = {
-      formula: 'checking.balance != null && savings.balance == null ? checking.balance : null',
+      libraries: [
+        'financial',
+        'organization',
+        'https://bankersiq.com/api/trates/'
+      ],
+      formula: 'savings.depositProfit',
       unique: 'Portfolio',
       presentation: {
         columns: [
+          { heading: 'Balance', field: 'balance' },
           { heading: 'Branch', field: 'branch' }
         ],
       }

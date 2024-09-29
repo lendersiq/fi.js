@@ -7,14 +7,15 @@
   <title>Sales Report</title>
 </head>
 <body>
-  <div id="app-container">
-    <div id="run-modal"></div>
-    <div id="results-container"></div>
-  </div>
+  <div id="app-container"></div>
   <script>
     // App configuration
     const appConfig = {
-      formula: 'checking.opened < 90 ? checking.balance : null',
+      libraries: [
+        'financial',
+        'organization'
+      ],
+      formula: 'checking.daysSinceOpen < 90 ? checking.balance : null',
       unique: 'Portfolio',
       presentation: {
         columns: [
@@ -24,9 +25,9 @@
       }
     };
   </script>
+  <script src="../core/ai.js"></script>
   <script src="../core/main.js"></script>
   <script src="../core/ux.js"></script>
   <script src="../core/charts.js"></script>
-  <script src="../core/ai.js"></script>
 </body>
 </html>
