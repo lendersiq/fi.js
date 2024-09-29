@@ -4,38 +4,51 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Basic styling for tables */
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-    font-size: 16px;
-    text-align: left;
-    background-color: #f9f9f9;
+/* Table Container */
+.table-container {
+  width: calc(100% - 40px); /* Adjusted for left and right margins */
+  overflow-y: auto;
+  height: calc(100vh - 50px); /* Adjusted to account for the footer and margins */
+  border: 1px solid #ddd;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  /* top | left and right | bottom */
+  margin: 0.5em auto 4.5em;
+  background-color: white;
 }
 
-/* Table header styling */
-.table th {
-    background-color: #005753;
-    color: white;
-    padding: 8px 12px;
-    border-bottom: 1px solid #ddd;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
 }
 
-/* Table body styling */
-.table td {
-    border: 1px solid #ddd;
-    padding: 12px 15px;
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
 }
 
-/* Zebra striping for table rows */
-.table tr:nth-child(even) {
-    background-color: #f2f2f2;
+th {
+  background-color: #00aaff;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
-/* Hover effect for table rows */
-.table tr:hover {
-    background-color: #ddd;
+tr:nth-child(even) {
+  background-color: #ebf8ff;
+}
+
+tr:hover {
+  background-color: #ebfff2;
+}
+
+td {
+  transition: background-color 0.3s;
 }
 
 /* Modal styling */
@@ -67,7 +80,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, #00e600, #004d00);
+    background: linear-gradient(135deg, #141414, #00aaff);
     color: white;
     padding: 10px 20px;
     border-top-left-radius: 8px;
@@ -91,12 +104,28 @@ body {
 }
 
 /* Button styling */
-.button {
-    background-color: #28a745; 
+.chart-button {
+    background-color: #CC5500; 
     color: white;
-    padding: 10px 20px;
+    padding: 6px 12px;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.chart-button:hover {
+    background-color: #a34400;
+}
+
+.button {
+    background-color: #50C878;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s;
@@ -104,7 +133,7 @@ body {
 }
 
 .button:hover {
-    background-color: #003d40; /* Even darker on hover for a nice effect */
+    background-color: #3b9e63; /* Even darker on hover for a nice effect */
 }
 
 .button:disabled {
@@ -112,6 +141,158 @@ body {
     cursor: not-allowed;
 }
 
+select {
+    width: 25%;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #333;
+    font-size: 16px;
+    appearance: none; /* Remove default arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+select:focus {
+    border-color: #50C878; /* Emerald green */
+    box-shadow: 0 0 5px rgba(80, 200, 120, 0.5);
+}
+
+select:hover {
+    border-color: #00aaff; /* Light blue */
+}
+
+/* Custom arrow */
+select::after {
+    content: '▼';
+    font-size: 12px;
+    color: #333;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
 canvas {
     padding: 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/*Logo*/
+:root {
+    --logo-size: 200px; /* Default size of the logo container */
+}
+
+.logo-container {
+    margin: calc(var(--logo-size) * 0.15);
+    position: relative;
+    width: var(--logo-size);
+    height: var(--logo-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #333; /* Background color for visibility */
+    border: calc(var(--logo-size) * 0.05) solid #50C878;
+}
+
+.square, .inner-square, .innermost-square {
+    position: absolute;
+    border: calc(var(--logo-size) * 0.05) solid #00aaff; /* Light blue */
+    transform: rotate(45deg);
+}
+
+.square {
+    width: 100%;
+    height: 100%;
+}
+
+.inner-square {
+    width: 80%;
+    height: 80%;
+}
+
+.innermost-square {
+    width: 60%;
+    height: 60%;
+}
+
+.top-square {
+    width: 70%; /* Adjust size as needed */
+    height: 70%;
+    border: calc(var(--logo-size) * 0.05) solid #50C878; /* Emerald green, matching the container */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the square */
+}
+
+.logo-text {
+    position: absolute;
+    color: #fff;
+    font-size: calc(var(--logo-size) * 0.4); /* Adjusted for readability */
+    transform: rotate(-45deg);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg); /* Properly center and orient text */
+}
+
+.hidden-file-input {
+    display: none;
+}
+
+.custom-file-upload {
+    padding: 3px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', 'Menlo', 'Monaco', 'Lucida Console', monospace;
+    font-size: 16px;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-width: fit-content;
+    border: 2px solid #007bff;
+    background-color: white;
+    color: #007bff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    animation: border-pulse 2s infinite;
+    width: 75%;
+}
+
+.custom-file-upload.completed {
+    border: 2px solid #ccc;
+    box-shadow: none;
+    animation: none;
+}
+
+@keyframes border-pulse {
+    0% { border-color: #007bff; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
+    50% { border-color: #339bff; box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3); }
+    100% { border-color: #007bff; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
 }
