@@ -136,11 +136,11 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
         results[uniqueId].count += 1;
       }
 
-      console.log('pre formula', formula)
+      //console.log('pre formula', formula)
       // Replace source.field with actual data or function results
       const updatedFormula = formula.replace(new RegExp(`(${sourceName})\\.(\\w+)`, 'g'), (match, source, field) => {
-        console.log('Match found:', match);
-        console.log('Source:', source, 'Field:', field);
+        //console.log('Match found:', match);
+        //console.log('Source:', source, 'Field:', field);
       
         const headers = Object.keys(row);
         const translatedHeader = aiTranslater(headers, field);
@@ -150,7 +150,7 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
       
           if (lib.functions && lib.functions[field] && typeof lib.functions[field].implementation === 'function') {
             const functionDef = lib.functions[field];
-            console.log(`Function detected in library '${libName}': ${field}`);
+            //console.log(`Function detected in library '${libName}': ${field}`);
       
             // Extract function parameter names and determine if they are optional
             let paramInfo = functionDef.implementation
@@ -169,8 +169,7 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
             if (!paramInfo.some(param => param.name === 'source')) {
               paramInfo.push({ name: 'source', isOptional: true });
             }
-      
-            console.log('Function Parameter Info:', paramInfo);
+            //console.log('Function Parameter Info:', paramInfo);
       
             const args = paramInfo.map(info => {
               if (info.name === 'source') {
@@ -224,8 +223,7 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
         return '0';
       });
       
-
-      console.log('Updated Formula:', updatedFormula);
+      //console.log('Updated Formula:', updatedFormula);
       // make sure all components of the formula are resolved before stored in results[uniqueId].formula object
       const resolvedFormula = updatedFormula.replace(/(\w+)\.(\w+)/g, (match) => {
         if (/^\d+(\.\d+)?$/.test(match)) {
@@ -242,7 +240,7 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
       } else {
         results[uniqueId].formula =  resolvedFormula;
       }
-      console.log(`formula by uniqueId: ${uniqueId} = ${results[uniqueId].formula}`);
+      //console.log(`formula by uniqueId: ${uniqueId} = ${results[uniqueId].formula}`);
       // Populate other fields based on the presentation configuration
       if (appConfig.presentation && appConfig.presentation.columns) {
         appConfig.presentation.columns.forEach(column => {
@@ -271,8 +269,7 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
             return `(${group.trim()})${comma === ',' ? ' + ' : ''}`;
         });
 
-        console.log('Final Formula for Evaluation:', finalFormula);
-
+       //console.log('Final Formula for Evaluation (pre-eval):', finalFormula);
         const finalResult = evaluateExpression(finalFormula);
         console.log('Final Formula Evaluation Result:', finalResult);
 

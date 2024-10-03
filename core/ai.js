@@ -126,7 +126,7 @@ function calculateMode(numbers) {
 }
 
 function aiIsBusiness(...args){
-    console.log('...args', args, args.deposits > 6 && args.balance > financial.dictionaries.consumerMaximum.values[args.source]);
+    //console.log('...args', args, args.deposits > 6 && args.balance > financial.dictionaries.consumerMaximum.values[args.source]);
     return (args.deposits > 6 && args.balance > financial.dictionaries.consumerMaximum.values[args.source]) 
     //ai  -- can consider standard deviation or median of all balances by source
 }
