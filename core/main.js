@@ -261,7 +261,7 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
   // After processing all sources, evaluate the complete formula for each uniqueId
   Object.keys(results).forEach(uniqueId => {
     let formula = results[uniqueId].formula.replace(/^,\s*/, '');
-    console.log('Formula before evaluation:', formula);
+    //console.log('Formula before evaluation:', formula);
 
     try {
         // Enclose each comma-delimited section in parentheses and replace commas with "+"
@@ -271,7 +271,7 @@ function processFormula(identifiedSources, formula, uniqueKey, csvData) {
 
        //console.log('Final Formula for Evaluation (pre-eval):', finalFormula);
         const finalResult = evaluateExpression(finalFormula);
-        console.log('Final Formula Evaluation Result:', finalResult);
+        //console.log('Final Formula Evaluation Result:', finalResult);
 
         results[uniqueId].result = finalResult;
     } catch (error) {
