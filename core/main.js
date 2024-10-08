@@ -84,14 +84,18 @@ function parseCSV(csvContent, callback) {
 }
 
 function evaluateExpression(expression) {
-  const sanitizedExpression = expression.replace(/[^0-9+\-*/(). ]/g, '');
+  // Replace 'null' with '0' to prevent evaluation issues
+  const sanitizedExpression = expression.replace(/null/g, '0');
+
+  // Allow numeric, arithmetic, parentheses, comparison operators, and the ternary operator
+  const safeExpression = sanitizedExpression.replace(/[^0-9+\-*/().<>=?: ]/g, '');
+  
   try {
-    // Use a safe subset of JavaScript operators
-    const result = Function(`'use strict'; return (${sanitizedExpression})`)();
+    const result = Function(`'use strict'; return (${safeExpression})`)();
     return result;
   } catch (error) {
-    console.error('Error evaluating expression:', error);
-    return 0;
+    console.error('Error evaluating expression:', error, expression);
+    return 0; // Return 0 in case of any error
   }
 }
 
