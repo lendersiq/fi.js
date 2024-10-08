@@ -169,9 +169,9 @@ const financial = {
          * @returns {number} FTP rate as a decimal.
          */
         calculateFtpRate: {
-            description: "Calculates the funds transfer pricing credit using the discountFTP dictionary and Treasury rates from an external source.",
+            description: "Calculates the funds transfer pricing credit using the discountFTP dictionary and Treasury rates from an external API.",
             implementation: function(expectedLifeMonths, depositType) {
-                // Step 1: Retrieve the Treasury rate from the external source
+                // Step 1: Retrieve the Treasury rate from the external API
                 const treasuryRates = window.libraries.api.trates.values; // Assuming this is an object with rates keyed by months
                 const treasuryRate = treasuryRates[expectedLifeMonths];
                 
@@ -221,56 +221,61 @@ const financial = {
          */
         depositProfit: {
             description: "Calculates the profit of deposit accounts",
-            implementation: function(portfolio, balance, interest=null, rate=null, charges, waived=null, open, source, deposits=null, withdrawals=null) {
+            implementation: function(portfolio, balance, interest=null, rate=null, charges=null, waived=null, open, source, deposits=null, withdrawals=null) {
+                const sourceIndex = aiSynonymKey(source);
+                console.log ('sourceIndex', sourceIndex);
                 //aiIdConsumerSmallBiz  
-                const params = {balance, interest, source, deposits, withdrawals};
+                const params = {balance, interest, sourceIndex, deposits, withdrawals};
                 const isBusiness = aiIsBusiness.apply(this, [params]);  // @ai.js
                 let accountType = "Consumer";
                 if (isBusiness) {
                     accountType = "Business";
                 }
 
-                const creditRate = financial.functions.calculateFtpRate.implementation(12, source);
+                const creditRate = financial.functions.calculateFtpRate.implementation(12, sourceIndex);
                 //const creditRate = window.libraries.api.trates.values[12] * 0.627; // operational risk, regulatory risk, deposit acquisition factor, interest rate risk, and liquidity discount.
-                const creditForFunding = source === 'checking' ? creditRate * balance * (1 - financial.attributes.ddaReserveRequired.value) : creditRate * balance;  
+                const creditForFunding = sourceIndex === 'checking' ? creditRate * balance * (1 - financial.attributes.ddaReserveRequired.value) : creditRate * balance;  
                 
                 let operatingExpense = 100;  //default
                 let fraudLoss = 0;
                 let interestExpense = 0;
-                if (source === 'certificate') {
+                if (sourceIndex === 'certificate') {
                     rate = rate < 1 ? parseFloat(rate) : parseFloat(rate / 100); 
                     interestExpense = balance * rate;
-                    if (financial.dictionaries.annualOperatingExpense[source].value) {
-                        operatingExpense = financial.dictionaries.annualOperatingExpense[source].value;
+                    if (financial.dictionaries.annualOperatingExpense[sourceIndex].value) {
+                        operatingExpense = financial.dictionaries.annualOperatingExpense[sourceIndex].value;
                     } 
                 } else {  //checking and savings
-                    interestExpense = interest * window.analytics[source][aiTranslater(Object.keys(window.analytics[source]), 'interest')].YTDfactor;
-                    if (financial.dictionaries.annualOperatingExpense[source].values[accountType]) {
-                        operatingExpense = financial.dictionaries.annualOperatingExpense[source].values[accountType];
+                    interestExpense = interest * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'interest')].YTDfactor;
+                    if (financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType]) {
+                        operatingExpense = financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType];
                     }
                     fraudLoss = organization.attributes.capitalTarget.value * financial.attributes.fraudLossFactor.value * balance;
                 }
                 
-                const netIncome = waived ? (charges - waived) : charges;
-                const feeIncome = netIncome * window.analytics[source][aiTranslater(Object.keys(window.analytics[source]), 'charges')].YTDfactor;
+                let feeIncome = 0;
+                if (charges) {
+                    const netCharges = waived ? (charges - waived) : charges;
+                    feeIncome = netCharges * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'charges')].YTDfactor;
+                }
 
                 let depositsExpense = 0;
                 if (deposits) {
-                    if (window.analytics[source][aiTranslater(Object.keys(window.analytics[source]), 'deposits')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years
+                    if (window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'deposits')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years
                         const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
                         depositsExpense = deposits ? deposits * financial.attributes.depositUnitExpense.value / yearsSinceOpen  : 0;
                     } else {
-                        depositsExpense = deposits ? deposits * financial.attributes.depositUnitExpense.value * window.analytics[source][aiTranslater(Object.keys(window.analytics[source]), 'deposits')].YTDfactor : 0;
+                        depositsExpense = deposits ? deposits * financial.attributes.depositUnitExpense.value * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'deposits')].YTDfactor : 0;
                     }
                 }
 
                 let withdrawalsExpense = 0;
                 if (withdrawals) {
-                    if (window.analytics[source][aiTranslater(Object.keys(window.analytics[source]), 'withdrawals')].YTDfactor === 1) {
+                    if (window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'withdrawals')].YTDfactor === 1) {
                         const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
                         withdrawalsExpense = withdrawals ? withdrawals * financial.attributes.withdrawalUnitExpense.value / yearsSinceOpen  : 0;
                     } else {
-                        withdrawalsExpense = withdrawals ? withdrawals * financial.attributes.withdrawalUnitExpense.value * window.analytics[source][aiTranslater(Object.keys(window.analytics[source]), 'withdrawals')].YTDfactor : 0;
+                        withdrawalsExpense = withdrawals ? withdrawals * financial.attributes.withdrawalUnitExpense.value * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'withdrawals')].YTDfactor : 0;
                     }
                 }
 
