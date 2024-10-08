@@ -187,7 +187,7 @@ const financial = {
                     const adjustment = financial.dictionaries.discountFTP[adjustmentType];
                     if (!adjustment) return 0;
                 
-                    if (depositType === 'certificates') {
+                    if (depositType === 'certificate') {
                         // Determine term based on expectedLifeMonths
                         const term = expectedLifeMonths <= 12 ? 'shortTerm' : 'longTerm';
                         return adjustment.certificates.values[term] || 0;
@@ -197,10 +197,10 @@ const financial = {
                 }
 
                 // Step 2: Calculate Adjustments using the dictionary
-                const interestRateRiskAdjustment = getAdjustmentFactor('interestRateRisk') * treasuryRate;
-                const liquidityAdjustment = getAdjustmentFactor('liquidity') * treasuryRate; 
-                const operationalRiskAdjustment = getAdjustmentFactor('operationalRisk') * treasuryRate;
-                const depositAcquisitionCost = getAdjustmentFactor('depositAcquisitionCost') * treasuryRate;
+                const interestRateRiskAdjustment = parseFloat(getAdjustmentFactor('interestRateRisk') * treasuryRate);
+                const liquidityAdjustment = parseFloat(getAdjustmentFactor('liquidity') * treasuryRate); 
+                const operationalRiskAdjustment = parseFloat(getAdjustmentFactor('operationalRisk') * treasuryRate);
+                const depositAcquisitionCost = parseFloat(getAdjustmentFactor('depositAcquisitionCost') * treasuryRate);
                 const regulatoryRiskAdjustment = financial.dictionaries.discountFTP.regulatoryRisk.value * treasuryRate || 0; // Same for all
                 
                 // Step 3: Sum all adjustments
@@ -212,7 +212,7 @@ const financial = {
 
                 // Step 4: Calculate FTP Rate
                 const ftpRate = treasuryRate - totalAdjustments;
-                //console.log('FTP log', interestRateRiskAdjustment, liquidityAdjustment, operationalRiskAdjustment, depositAcquisitionCost, regulatoryRiskAdjustment, ftpRate);
+                console.log('FTP log', treasuryRate, interestRateRiskAdjustment.toFixed(4), liquidityAdjustment, operationalRiskAdjustment, depositAcquisitionCost, regulatoryRiskAdjustment, ftpRate);
                 return ftpRate;
             }
         },
@@ -283,7 +283,7 @@ const financial = {
                 const pretaxExpense = interestExpense + depositsExpense + withdrawalsExpense + operatingExpense + fraudLoss; 
                 const pretaxProfit = pretaxIncome - pretaxExpense;
                 const profit = pretaxProfit * (1 - window.libraries.organization.attributes.taxRate.value);
-                console.log(`portfolio: ${portfolio}, account type: ${accountType}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
+                console.log(`portfolio: ${portfolio}, account type: ${accountType}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, rate: ${rate} interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
                 return profit;
             }
         },
@@ -502,8 +502,8 @@ const financial = {
                 },
                 certificates: {
                     values: {
-                        shortTerm: 0.015, // 1.5%
-                        longTerm: 0.01   // 1%
+                        shortTerm: 0.025, // 2.5%
+                        longTerm: 0.015   // 1.5%
                     }
                 }
             },
@@ -513,12 +513,12 @@ const financial = {
                     value: 0.15 // 15%
                 },
                 savings: {
-                    value: 0.08 // 8%
+                    value: 0.075 // 7.5%
                 },
                 certificates: {
                     values: {
-                        shortTerm: 0.05, // 5%
-                        longTerm: 0.04   // 4%
+                        shortTerm: 0.02, // 2%
+                        longTerm: 0.01   // 1%
                     }
                 }
             },
@@ -536,7 +536,7 @@ const financial = {
                 },
                 certificates: {
                     values: {
-                        shortTerm: 0.1, // 10%
+                        shortTerm: 0.05, // 5%
                         longTerm: 0.05   // 5%
                     }
                 }
