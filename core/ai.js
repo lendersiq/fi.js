@@ -5,18 +5,80 @@ const synonymLibrary = {
     'withdrawal': ['check', 'debit'],
     'deposit': ['credit'],
     'certificate': ['cd', 'cod', 'certificate of deposit']
-  };
+};
+
+function stem(word) {
+    word = word.toLowerCase();
+    // Handle irregular forms
+    const irregulars = {
+      'running': 'run',
+      'ran': 'run',
+      'swimming': 'swim',
+      'swam': 'swim',
+      'taking': 'take',
+      'took': 'take',
+      'gone': 'go',
+      'went': 'go',
+      'being': 'be',
+      'was': 'be',
+      'were': 'be',
+      'having': 'have',
+      'had': 'have',
+    };
   
-  // AI translation function to map formula fields to CSV headers
-  function aiTranslater(headers, field) {
-    function stem(word) {
-      return word
-        .replace(/(ing|ed|ly)$/i, '')  // Remove common suffixes like 'ing', 'ed', 'ly'
-        .replace(/(es)$/i, 'e')        // Handle plural forms like 'fees' -> 'fee', and 'boxes' -> 'box'
-        .replace(/(s)$/i, '')          // Handle remaining singular forms like 'cats' -> 'cat'
-        .replace(/(er|est)$/i, '')     // Remove comparative and superlative endings like 'er', 'est'
-        .trim();
+    if (irregulars[word]) {
+      return irregulars[word];
     }
+  
+    // Remove common suffixes
+    const suffixes = [
+      'ational', 'tional', 'enci', 'anci', 'izer', 'bli', 'alli',
+      'entli', 'eli', 'ousli', 'ization', 'ation', 'ator', 'alism',
+      'iveness', 'fulness', 'ousness', 'aliti', 'iviti', 'biliti',
+      'logi', 'ing', 'ed', 'ly', 'es', 's', 'er', 'est', 'ment', 'ness'
+    ];
+  
+    for (const suffix of suffixes) {
+      if (word.endsWith(suffix)) {
+        word = word.slice(0, -suffix.length);
+        break;
+      }
+    }
+  
+    // Handle double consonants (e.g., "hopping" -> "hop")
+    word = word.replace(/(.)\1$/, '$1');
+  
+    // Remove trailing 'e'
+    if (word.endsWith('e') && word.length > 1) {
+      word = word.slice(0, -1);
+    }
+  
+    return word;
+}
+
+function aiSynonymKey(word) {
+    const stemmedWord = stem(word);
+  
+    for (const [key, synonyms] of Object.entries(synonymLibrary)) {
+      const stemmedKey = stem(key);
+  
+      // Check if the stemmed word matches the stemmed key
+      if (stemmedWord === stemmedKey) {
+        return { key, index: -1 }; // -1 indicates the word matches the key itself
+      }
+  
+      // Use findIndex to find the index of the matching stemmed synonym
+      const index = synonyms.findIndex(synonym => stem(synonym) === stemmedWord);
+      if (index !== -1) {
+        return key; //{ key, index };
+      }
+    }
+  
+    return word; // Return word if no match is found
+}
+
+// AI translation function to map formula fields to CSV headers
+function aiTranslater(headers, field) {
     const headersLower = headers.map(header => stem(header.toLowerCase()));
     const stemmedField = stem(field.toLowerCase());
     // First, try to find a direct match
