@@ -212,7 +212,7 @@ const financial = {
 
                 // Step 4: Calculate FTP Rate
                 const ftpRate = treasuryRate - totalAdjustments;
-                console.log('FTP log', treasuryRate, interestRateRiskAdjustment.toFixed(4), liquidityAdjustment, operationalRiskAdjustment, depositAcquisitionCost, regulatoryRiskAdjustment, ftpRate);
+                //console.log('FTP log', treasuryRate, interestRateRiskAdjustment.toFixed(4), liquidityAdjustment, operationalRiskAdjustment, depositAcquisitionCost, regulatoryRiskAdjustment, ftpRate);
                 return ftpRate;
             }
         },
