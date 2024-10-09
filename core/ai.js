@@ -2,7 +2,8 @@
 const synonymLibrary = {
     'fee': ['charge', 'cost', 'duty', 'collection', 'levy'],
     'open': ['origination', 'start', 'create', 'establish', 'setup'],
-    'withdrawal': ['check', 'debit'],
+    'checking': ['dda', 'demand deposit'], 
+    'withdrawal': ['check', 'draft', 'debit'],
     'deposit': ['credit'],
     'certificate': ['cd', 'cod', 'certificate of deposit']
 };
@@ -64,7 +65,7 @@ function aiSynonymKey(word) {
   
       // Check if the stemmed word matches the stemmed key
       if (stemmedWord === stemmedKey) {
-        return { key, index: -1 }; // -1 indicates the word matches the key itself
+        return key; //{ key, index: -1 }; // -1 indicates the word matches the key itself
       }
   
       // Use findIndex to find the index of the matching stemmed synonym
