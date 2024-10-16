@@ -223,7 +223,7 @@ const financial = {
             description: "Calculates the profit of deposit accounts",
             implementation: function(portfolio, balance, interest=null, rate=null, charges=null, waived=null, open, source, deposits=null, withdrawals=null) {
                 const sourceIndex = aiSynonymKey(source);
-                console.log ('sourceIndex', sourceIndex);
+                
                 //aiIdConsumerSmallBiz  
                 const params = {balance, interest, sourceIndex, deposits, withdrawals};
                 const isBusiness = aiIsBusiness.apply(this, [params]);  // @ai.js
@@ -234,8 +234,7 @@ const financial = {
 
                 const creditRate = financial.functions.calculateFtpRate.implementation(12, sourceIndex);
                 //const creditRate = window.libraries.api.trates.values[12] * 0.627; // operational risk, regulatory risk, deposit acquisition factor, interest rate risk, and liquidity discount.
-                const creditForFunding = sourceIndex === 'checking' ? creditRate * balance * (1 - financial.attributes.ddaReserveRequired.value) : creditRate * balance;  
-                
+                const creditForFunding = sourceIndex === 'checking' ? creditRate * balance * (1 - financial.attributes.ddaReserveRequired.value) : creditRate * balance;
                 let operatingExpense = 100;  //default
                 let fraudLoss = 0;
                 let interestExpense = 0;
@@ -283,7 +282,7 @@ const financial = {
                 const pretaxExpense = interestExpense + depositsExpense + withdrawalsExpense + operatingExpense + fraudLoss; 
                 const pretaxProfit = pretaxIncome - pretaxExpense;
                 const profit = pretaxProfit * (1 - window.libraries.organization.attributes.taxRate.value);
-                console.log(`portfolio: ${portfolio}, account type: ${accountType}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, rate: ${rate} interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
+                console.log(`portfolio: ${portfolio}, account type: ${accountType} ${sourceIndex}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, rate: ${rate} interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
                 return profit;
             }
         },
