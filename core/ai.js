@@ -25,6 +25,7 @@ function stem(word) {
       'were': 'be',
       'having': 'have',
       'had': 'have',
+      'fees': 'fee'
     };
   
     if (irregulars[word]) {
@@ -49,8 +50,8 @@ function stem(word) {
     // Handle double consonants (e.g., "hopping" -> "hop")
     word = word.replace(/(.)\1$/, '$1');
   
-    // Remove trailing 'e'
-    if (word.endsWith('e') && word.length > 1) {
+    // Remove trailing 'e' when word is less than 3 characters
+    if (word.endsWith('e') && word.length > 3) {
       word = word.slice(0, -1);
     }
   
