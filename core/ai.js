@@ -189,8 +189,14 @@ function calculateMode(numbers) {
     return mode;
 }
 
-function aiIsBusiness(...args){
+function aiIsBusiness(consumerMax, ...args) {  // starting with simple logic
     //console.log('...args', args, args.deposits > 6 && args.balance > financial.dictionaries.consumerMaximum.values[args.source]);
-    return (args.deposits > 6 && args.balance > financial.dictionaries.consumerMaximum.values[args.source]) 
+    let isBusiness = false;
+    if (args.balance > consumerMax * 1.2) {  //20% over the consumer threshold
+        isBusiness = true;
+    } else if (args.deposits > 6 && args.balance > consumerMax * .8) {
+        isBusiness = true;
+    }
+    return isBusiness;
     //ai  -- can consider standard deviation or median of all balances by source
 }
