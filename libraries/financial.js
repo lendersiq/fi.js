@@ -223,10 +223,9 @@ const financial = {
             description: "Calculates the profit of deposit accounts",
             implementation: function(portfolio, balance, interest=null, rate=null, charges=null, waived=null, open, source, deposits=null, withdrawals=null) {
                 const sourceIndex = aiSynonymKey(source);
-                
                 //aiIdConsumerSmallBiz  
                 const params = {balance, interest, sourceIndex, deposits, withdrawals};
-                const isBusiness = aiIsBusiness.apply(this, [params]);  // @ai.js
+                const isBusiness = aiIsBusiness.apply(financial.dictionaries.consumerMaximum.values[sourceIndex], this, [params]);  // @ai.js
                 let accountType = "Consumer";
                 if (isBusiness) {
                     accountType = "Business";
@@ -448,7 +447,7 @@ const financial = {
         }
     },
     dictionaries: {
-        consumerMax: {
+        consumerMaximum: {
             description: "The dollar threshold that can distinguish a consumer from a business account",
             values: {
                 "checking": 250000,
