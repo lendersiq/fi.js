@@ -224,13 +224,14 @@ const financial = {
             implementation: function(portfolio, balance, interest=null, rate=null, charges=null, waived=null, open, source, deposits=null, withdrawals=null) {
                 const sourceIndex = aiSynonymKey(source);
                 //aiIdConsumerSmallBiz  
-                const params = {balance, interest, sourceIndex, deposits, withdrawals};
-                const isBusiness = aiIsBusiness.apply(financial.dictionaries.consumerMaximum.values[sourceIndex], this, [params]);  // @ai.js
+                const consumerMaximum = financial.dictionaries.consumerMaximum.values[sourceIndex];
+                const params = {balance, interest, sourceIndex, deposits, withdrawals, consumerMaximum};
+                const isBusiness = aiIsBusiness([params]);  // @ai.js
                 let accountType = "Consumer";
                 if (isBusiness) {
                     accountType = "Business";
                 }
-
+		    
                 const creditRate = financial.functions.calculateFtpRate.implementation(12, sourceIndex);
                 //const creditRate = window.libraries.api.trates.values[12] * 0.627; // operational risk, regulatory risk, deposit acquisition factor, interest rate risk, and liquidity discount.
                 const creditForFunding = sourceIndex === 'checking' ? creditRate * balance * (1 - financial.attributes.ddaReserveRequired.value) : creditRate * balance;
