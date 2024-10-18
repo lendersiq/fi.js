@@ -189,14 +189,25 @@ function calculateMode(numbers) {
     return mode;
 }
 
-function aiIsBusiness(consumerMax, ...args) {  // starting with simple logic
-    //console.log('...args', args, args.deposits > 6 && args.balance > financial.dictionaries.consumerMaximum.values[args.source]);
+function aiIsBusiness(...args) {  
+    // Extract the params object from args
+    const params = args[0][0];
+
+    // Initialize isBusiness to false
     let isBusiness = false;
-    if (args.balance > consumerMax * 1.2) {  //20% over the consumer threshold
+
+    // Validation: Check if relevant parameters exist and have valid values
+    if (typeof params.balance !== 'number' || typeof params.consumerMaximum !== 'number' || typeof params.deposits !== 'number') {
+        throw new Error("Invalid or missing parameters. Ensure 'balance', 'consumerMaximum', and 'deposits' are provided as numbers.");
+    }
+
+    // Proceed with the logic if parameters are valid
+    if (params.balance > params.consumerMaximum * 1.2) {  // 20% over the consumer threshold
         isBusiness = true;
-    } else if (args.deposits > 6 && args.balance > consumerMax * .8) {
+    } else if (params.deposits > 6 && params.balance > params.consumerMaximum * 0.8) {  //80% of the consumer threshold
         isBusiness = true;
     }
+
     return isBusiness;
     //ai  -- can consider standard deviation or median of all balances by source
 }
