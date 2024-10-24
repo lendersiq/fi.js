@@ -223,15 +223,6 @@ const financial = {
             description: "Calculates the profit of deposit accounts",
             implementation: function(portfolio, balance, interest=null, rate=null, charges=null, waived=null, open, source, deposits=null, withdrawals=null) {
                 const sourceIndex = aiSynonymKey(source);
-                //aiIdConsumerSmallBiz  
-                const consumerMaximum = financial.dictionaries.consumerMaximum.values[sourceIndex];
-                const params = {balance, interest, sourceIndex, deposits, withdrawals, consumerMaximum};
-                const isBusiness = aiIsBusiness([params]);  // @ai.js
-                let accountType = "Consumer";
-                if (isBusiness) {
-                    accountType = "Business";
-                }
-		    
                 const creditRate = financial.functions.calculateFtpRate.implementation(12, sourceIndex);
                 //const creditRate = window.libraries.api.trates.values[12] * 0.627; // operational risk, regulatory risk, deposit acquisition factor, interest rate risk, and liquidity discount.
                 const creditForFunding = sourceIndex === 'checking' ? creditRate * balance * (1 - financial.attributes.ddaReserveRequired.value) : creditRate * balance;
@@ -245,6 +236,15 @@ const financial = {
                         operatingExpense = financial.dictionaries.annualOperatingExpense[sourceIndex].value;
                     } 
                 } else {  //checking and savings
+		    		//aiIdConsumerSmallBiz  
+					const consumerMaximum = financial.dictionaries.consumerMaximum.values[sourceIndex];
+					const params = {balance, interest, sourceIndex, deposits, withdrawals, consumerMaximum};
+					const isBusiness = aiIsBusiness([params]);  // @ai.js
+					let accountType = "Consumer";
+					if (isBusiness) {
+					    accountType = "Business";
+					}
+					console.log('account type: ${accountType} ${sourceIndex}');
                     interestExpense = interest * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'interest')].YTDfactor;
                     if (financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType]) {
                         operatingExpense = financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType];
@@ -282,7 +282,7 @@ const financial = {
                 const pretaxExpense = interestExpense + depositsExpense + withdrawalsExpense + operatingExpense + fraudLoss; 
                 const pretaxProfit = pretaxIncome - pretaxExpense;
                 const profit = pretaxProfit * (1 - window.libraries.organization.attributes.taxRate.value);
-                console.log(`portfolio: ${portfolio}, account type: ${accountType} ${sourceIndex}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, rate: ${rate} interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
+                console.log(`portfolio: ${portfolio}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, rate: ${rate} interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
                 return profit;
             }
         },
