@@ -1,0 +1,368 @@
+/* base.css */
+body {
+    font-size: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Table Container */
+.table-container {
+  width: calc(100% - 40px); /* Adjusted for left and right margins */
+  overflow-y: auto;
+  height: calc(100vh - 50px); /* Adjusted to account for the footer and margins */
+  border: 1px solid #ddd;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  /* top | left and right | bottom */
+  margin: 0.5em auto 4.5em;
+  background-color: white;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #00aaff;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+tr:nth-child(even) {
+  background-color: #ebf8ff;
+}
+
+tr:hover {
+  background-color: #ebfff2;
+}
+
+td {
+  transition: background-color 0.3s;
+}
+
+/* Modal styling */
+.modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Slightly less opacity for a subtler effect */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #141414, #00aaff);
+    color: white;
+    padding: 10px 20px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    margin: 0;
+}
+
+.modal-header img {
+    height: 40px;
+    width: 40px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+/* Button styling */
+.chart-button {
+    background-color: #CC5500; 
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.chart-button:hover {
+    background-color: #a34400;
+}
+
+.button {
+    background-color: #50C878;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.button:hover {
+    background-color: #3b9e63; /* Even darker on hover for a nice effect */
+}
+
+.button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+select {
+    width: 25%;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #333;
+    font-size: 16px;
+    appearance: none; /* Remove default arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+select:focus {
+    border-color: #50C878; /* Emerald green */
+    box-shadow: 0 0 5px rgba(80, 200, 120, 0.5);
+}
+
+select:hover {
+    border-color: #00aaff; /* Light blue */
+}
+
+/* Custom arrow */
+select::after {
+    content: '▼';
+    font-size: 12px;
+    color: #333;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+canvas {
+    padding: 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/*Logo*/
+:root {
+    --logo-size: 200px; /* Default size of the logo container */
+}
+
+.logo-container {
+    margin: calc(var(--logo-size) * 0.15);
+    position: relative;
+    width: var(--logo-size);
+    height: var(--logo-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #333; /* Background color for visibility */
+    border: calc(var(--logo-size) * 0.05) solid #50C878;
+}
+
+.square, .inner-square, .innermost-square {
+    position: absolute;
+    border: calc(var(--logo-size) * 0.05) solid #00aaff; /* Light blue */
+    transform: rotate(45deg);
+}
+
+.square {
+    width: 100%;
+    height: 100%;
+}
+
+.inner-square {
+    width: 80%;
+    height: 80%;
+}
+
+.innermost-square {
+    width: 60%;
+    height: 60%;
+}
+
+.top-square {
+    width: 70%; /* Adjust size as needed */
+    height: 70%;
+    border: calc(var(--logo-size) * 0.05) solid #50C878; /* Emerald green, matching the container */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the square */
+}
+
+.logo-text {
+    position: absolute;
+    color: #fff;
+    font-size: calc(var(--logo-size) * 0.4); /* Adjusted for readability */
+    transform: rotate(-45deg);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg); /* Properly center and orient text */
+}
+
+.hidden-file-input {
+    display: none;
+}
+
+.custom-file-upload {
+    padding: 3px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', 'Menlo', 'Monaco', 'Lucida Console', monospace;
+    font-size: 16px;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-width: fit-content;
+    border: 2px solid #007bff;
+    background-color: white;
+    color: #007bff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    animation: border-pulse 2s infinite;
+    width: 75%;
+}
+
+.custom-file-upload.completed {
+    border: 2px solid #ccc;
+    box-shadow: none;
+    animation: none;
+}
+
+/* Form Group */
+.form-group {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+/* Label Styling */
+.form-group label {
+    width: 25%; /* Adjust the width as needed */
+    margin-right: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Text Input Styling */
+.form-group input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #333;
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.form-group input[type="text"]:focus {
+    border-color: #50C878; /* Emerald green */
+    box-shadow: 0 0 5px rgba(80, 200, 120, 0.5);
+}
+
+.form-group input[type="text"]:hover {
+    border-color: #00aaff; /* Light blue */
+}
+
+.form-group input[type="text"]::placeholder {
+    color: #999;
+}
+
+.form-group input[type="text"]:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+@keyframes border-pulse {
+    0% { border-color: #007bff; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
+    50% { border-color: #339bff; box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3); }
+    100% { border-color: #007bff; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
+}
+
+@media print {
+  /* Hide unnecessary elements that may not be useful in print */
+  body {
+    overflow: visible;
+  }
+
+  /* Ensure the table takes the full width of the page */
+  table {
+    width: 100%;
+  }
+
+  /* Remove scrolling by setting a height that fits the entire content */
+  .table-container {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  /* Optional: Style adjustments for a better print layout */
+  th, td {
+    page-break-inside: avoid;
+  }
+}
