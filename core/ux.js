@@ -227,14 +227,21 @@ function displayResultsInTable() {
     // Render modal content
     const modalHeading = `
             <div class="modal-header">
-                 <div class="logo-container" style="--logo-size: 60px;">
-                      <div class="square"></div>
-                      <div class="inner-square"></div>
-                      <div class="innermost-square"></div>
-                      <div class="top-square"></div> 
-                      <div class="logo-text">JS</div>
-                  </div>
-                  <h2 id="modalTitle"></h2>
+                <div class="logo-container">
+                  <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" width="25%" height="25%">
+                        <!-- Define filters for shadows -->
+                        <defs>
+                            <filter id="textShadow">
+                                <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="rgba(0, 0, 0, 0.5)" />
+                            </filter>
+                        </defs>
+                        <!-- Blue 'U' -->
+                        <text x="0" y="150" font-size="120" font-family="Arial, sans-serif" font-weight="normal" fill="rgba(0, 123, 255, 0.8)" filter="url(#textShadow)">U</text>
+                        <!-- Green 'U' -->
+                        <text x="28" y="160" font-size="120" font-family="Arial, sans-serif" font-weight="normal" fill="rgba(40, 167, 69, 0.8)" filter="url(#textShadow)">U</text>
+                    </svg>
+                </div>
+                <h2 id="modalTitle"></h2>
             </div>
     `;
     modalContent.innerHTML = modalHeading;
@@ -327,6 +334,11 @@ function displayResultsInTable() {
     modalContent.appendChild(modalBody);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
+    // Get the title content from the <title> tag
+    const titleContent = document.title;
+
+    // Set the title content into the <h2> element with id 'modalTitle'
+    document.getElementById('modalTitle').textContent = titleContent;
   }
 
   function showSpinner() {
