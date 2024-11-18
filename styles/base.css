@@ -82,7 +82,7 @@ td {
     justify-content: space-between;
     background: linear-gradient(135deg, #141414, #00aaff);
     color: white;
-    padding: 10px 20px;
+    padding-left: 20px;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
     margin: 0;
