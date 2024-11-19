@@ -387,6 +387,9 @@ function displayResultsInTable() {
       // Create a group to hold the 'U's
       const group = document.createElementNS(svgNS, 'g');
 
+      // Calculate the movement needed for full overlap
+      const movement = 14; // Half of the distance between the starting x positions
+
       // Create the blue 'U' text element
       const blueU = document.createElementNS(svgNS, 'text');
       blueU.setAttribute('x', '0');
@@ -402,10 +405,10 @@ function displayResultsInTable() {
       const animateBlueU = document.createElementNS(svgNS, 'animateTransform');
       animateBlueU.setAttribute('attributeName', 'transform');
       animateBlueU.setAttribute('type', 'translate');
-      animateBlueU.setAttribute('values', '0,0;28,0;28,0;0,0');
-      animateBlueU.setAttribute('keyTimes', '0;0.4;0.6;1');
       animateBlueU.setAttribute('dur', '3s');
       animateBlueU.setAttribute('repeatCount', 'indefinite');
+      animateBlueU.setAttribute('keyTimes', '0;0.4;0.6;1');
+      animateBlueU.setAttribute('values', `0;${movement};${movement};0`);
 
       // Append animation to blue 'U'
       blueU.appendChild(animateBlueU);
@@ -425,10 +428,10 @@ function displayResultsInTable() {
       const animateGreenU = document.createElementNS(svgNS, 'animateTransform');
       animateGreenU.setAttribute('attributeName', 'transform');
       animateGreenU.setAttribute('type', 'translate');
-      animateGreenU.setAttribute('values', '0,0;-28,0;-28,0;0,0');
-      animateGreenU.setAttribute('keyTimes', '0;0.4;0.6;1');
       animateGreenU.setAttribute('dur', '3s');
       animateGreenU.setAttribute('repeatCount', 'indefinite');
+      animateGreenU.setAttribute('keyTimes', '0;0.4;0.6;1');
+      animateGreenU.setAttribute('values', `0;-${movement};-${movement};0`);
 
       // Append animation to green 'U'
       greenU.appendChild(animateGreenU);
@@ -442,9 +445,6 @@ function displayResultsInTable() {
 
       // Append SVG to the logo container
       logoContainer.appendChild(svg);
-      
-      // Append logo container to spinner container
-      spinner.appendChild(logoContainer);
 
       // Append spinner container to body
       document.body.appendChild(spinner);
