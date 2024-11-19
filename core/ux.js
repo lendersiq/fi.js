@@ -361,10 +361,6 @@ function displayResultsInTable() {
       const logoContainer = document.createElement('div');
       logoContainer.classList.add('logo-container');
 
-      // Set styles for the logo container
-      logoContainer.style.width = '300px'; // Adjust as needed
-      logoContainer.style.height = 'auto';
-
       // Create the SVG element
       const svgNS = 'http://www.w3.org/2000/svg';
       const svg = document.createElementNS(svgNS, 'svg');
@@ -388,6 +384,9 @@ function displayResultsInTable() {
       defs.appendChild(filter);
       svg.appendChild(defs);
 
+      // Create a group to hold the 'U's
+      const group = document.createElementNS(svgNS, 'g');
+
       // Create the blue 'U' text element
       const blueU = document.createElementNS(svgNS, 'text');
       blueU.setAttribute('x', '0');
@@ -403,9 +402,9 @@ function displayResultsInTable() {
       const animateBlueU = document.createElementNS(svgNS, 'animateTransform');
       animateBlueU.setAttribute('attributeName', 'transform');
       animateBlueU.setAttribute('type', 'translate');
-      animateBlueU.setAttribute('values', '0;28;28;0');
+      animateBlueU.setAttribute('values', '0,0;28,0;28,0;0,0');
       animateBlueU.setAttribute('keyTimes', '0;0.4;0.6;1');
-      animateBlueU.setAttribute('dur', '2s');
+      animateBlueU.setAttribute('dur', '3s');
       animateBlueU.setAttribute('repeatCount', 'indefinite');
 
       // Append animation to blue 'U'
@@ -426,21 +425,24 @@ function displayResultsInTable() {
       const animateGreenU = document.createElementNS(svgNS, 'animateTransform');
       animateGreenU.setAttribute('attributeName', 'transform');
       animateGreenU.setAttribute('type', 'translate');
-      animateGreenU.setAttribute('values', '0;-28;-28;0');
+      animateGreenU.setAttribute('values', '0,0;-28,0;-28,0;0,0');
       animateGreenU.setAttribute('keyTimes', '0;0.4;0.6;1');
-      animateGreenU.setAttribute('dur', '2s');
+      animateGreenU.setAttribute('dur', '3s');
       animateGreenU.setAttribute('repeatCount', 'indefinite');
 
       // Append animation to green 'U'
       greenU.appendChild(animateGreenU);
 
-      // Append text elements to SVG
-      svg.appendChild(blueU);
-      svg.appendChild(greenU);
+      // Append the 'U's to the group
+      group.appendChild(blueU);
+      group.appendChild(greenU);
+
+      // Append the group to the SVG
+      svg.appendChild(group);
 
       // Append SVG to the logo container
       logoContainer.appendChild(svg);
-
+      
       // Append logo container to spinner container
       spinner.appendChild(logoContainer);
 
