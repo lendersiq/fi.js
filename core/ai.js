@@ -99,8 +99,7 @@ function aiTranslater(headers, field) {
     return matchingHeader ? headers[headersLower.indexOf(matchingHeader)] : null;
 }
 
-function aiTableTranslater(tableId) {
-    console.log('aiTableTranslater(tableId)', tableId)
+function aiTableTranslater(tableId, header = null) {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.csv';
@@ -113,7 +112,7 @@ function aiTableTranslater(tableId) {
         reader.onload = function(event) {
         parseCSV(event.target.result, (data) => {
             const mapping = createMapping(data);
-            updateTableWithMapping(mapping, tableId);
+            updateTableWithMapping(mapping, tableId, header);
         });
         };
         reader.readAsText(file);
@@ -142,19 +141,33 @@ function createMapping(data) {
     return mapping;
 }
 
-function updateTableWithMapping(mapping, tableId) {
+function updateTableWithMapping(mapping, tableId, header = null) {
     const table = document.getElementById(tableId);
     const rows = table.getElementsByTagName('tr');
+    let column = 0; // Default column index to 0
 
-    for (let i = 1; i < rows.length; i++) { // Start from 1 to skip the header
+    // If header is provided, find the matching column index
+    if (header) {
+        const headerCells = rows[0].getElementsByTagName('th');
+        for (let j = 0; j < headerCells.length; j++) {
+            if (headerCells[j].innerHTML.includes(header)) {
+                column = j;
+                break;
+            }
+        }
+    }
+
+    // Update the table based on the mapping and column index
+    for (let i = 1; i < rows.length; i++) { // Start from 1 to skip the header row
         const cells = rows[i].getElementsByTagName('td');
-        const legendValue = cells[0].textContent.trim();
-        
+        const legendValue = cells[column].textContent.trim();
+
         if (mapping[legendValue]) {
-            cells[0].textContent = mapping[legendValue];
+            cells[column].textContent = `${mapping[legendValue]} (${legendValue})`;
         }
     }
 }
+
 
 // Analyze the column data to determine the format
 function aiAnalyzeColumnData(data, field) {

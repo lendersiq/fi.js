@@ -5,6 +5,7 @@ function displayResultsInTable() {
   tableContainer.className = 'table-container';
   const table = document.createElement('table');
   table.className = 'table';
+  table.id = 'results-table'
   const thead = document.createElement('thead');
 
   const headerRow = document.createElement('tr');
@@ -21,9 +22,13 @@ function displayResultsInTable() {
   // Add headers from presentation config
   if (appConfig.presentation && appConfig.presentation.columns) {
     appConfig.presentation.columns.forEach(column => {
-      const header = document.createElement('th');
-      header.textContent = column.heading;
-      headerRow.appendChild(header);
+      const columnHeader = document.createElement('th');
+      const aiButton = document.createElement('button');
+      aiButton.textContent = column.heading;
+      aiButton.className = 'button';
+      aiButton.addEventListener('click', () => aiTableTranslater(table.id, column.heading));
+      columnHeader.appendChild(aiButton);
+      headerRow.appendChild(columnHeader);
     });
   }
 
