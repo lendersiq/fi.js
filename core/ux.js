@@ -167,6 +167,10 @@ function displayResultsInTable() {
   tableContainer.appendChild(table);
   const resultsContainer = document.createElement('div');
   resultsContainer.id = 'results-container';
+  const resultsTitle = document.createElement('h2');
+  resultsTitle.textContent = document.title;
+  resultsTitle.style.paddingLeft = '1em';
+  resultsContainer.appendChild(resultsTitle);
   resultsContainer.appendChild(tableContainer);
   const appContainer = document.getElementById('app-container');
   appContainer.appendChild(resultsContainer);
@@ -339,11 +343,9 @@ function displayResultsInTable() {
     modalContent.appendChild(modalBody);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
-    // Get the title content from the <title> tag
-    const titleContent = document.title;
 
     // Set the title content into the <h2> element with id 'modalTitle'
-    document.getElementById('modalTitle').textContent = titleContent;
+    document.getElementById('modalTitle').textContent = document.title;
   }
 
   function showSpinner() {
