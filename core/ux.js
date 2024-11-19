@@ -357,27 +357,89 @@ function displayResultsInTable() {
       spinner.classList.add('spinner-container');
 
       // Create logo container (spinner itself)
+      // Create the logo container div
       const logoContainer = document.createElement('div');
       logoContainer.classList.add('logo-container');
-      logoContainer.style.setProperty('--logo-size', '80px'); // Set size of the spinner
-      logoContainer.style.backgroundColor = '#fff'; 
-      logoContainer.style.animation = 'spin 3s linear infinite'; 
-      
-      // Create square elements
-      const square = document.createElement('div');
-      square.classList.add('square');
-      const innerSquare = document.createElement('div');
-      innerSquare.classList.add('inner-square');
-      const innermostSquare = document.createElement('div');
-      innermostSquare.classList.add('innermost-square');
-      const topSquare = document.createElement('div');
-      topSquare.classList.add('top-square');
 
-      // Append squares to logo container
-      logoContainer.appendChild(square);
-      logoContainer.appendChild(innerSquare);
-      logoContainer.appendChild(innermostSquare);
-      logoContainer.appendChild(topSquare);
+      // Set styles for the logo container
+      logoContainer.style.width = '300px'; // Adjust as needed
+      logoContainer.style.height = 'auto';
+
+      // Create the SVG element
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 200 200');
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+
+      // Define filters for shadows
+      const defs = document.createElementNS(svgNS, 'defs');
+      const filter = document.createElementNS(svgNS, 'filter');
+      filter.setAttribute('id', 'textShadow');
+
+      const feDropShadow = document.createElementNS(svgNS, 'feDropShadow');
+      feDropShadow.setAttribute('dx', '2');
+      feDropShadow.setAttribute('dy', '2');
+      feDropShadow.setAttribute('stdDeviation', '2');
+      feDropShadow.setAttribute('flood-color', 'rgba(0, 0, 0, 0.5)');
+
+      filter.appendChild(feDropShadow);
+      defs.appendChild(filter);
+      svg.appendChild(defs);
+
+      // Create the blue 'U' text element
+      const blueU = document.createElementNS(svgNS, 'text');
+      blueU.setAttribute('x', '0');
+      blueU.setAttribute('y', '150');
+      blueU.setAttribute('font-size', '120');
+      blueU.setAttribute('font-family', 'Arial, sans-serif');
+      blueU.setAttribute('font-weight', 'normal');
+      blueU.setAttribute('fill', 'rgba(0, 123, 255, 0.8)');
+      blueU.setAttribute('filter', 'url(#textShadow)');
+      blueU.textContent = 'U';
+
+      // Create animateTransform for blue 'U'
+      const animateBlueU = document.createElementNS(svgNS, 'animateTransform');
+      animateBlueU.setAttribute('attributeName', 'transform');
+      animateBlueU.setAttribute('type', 'translate');
+      animateBlueU.setAttribute('values', '0;28;28;0');
+      animateBlueU.setAttribute('keyTimes', '0;0.4;0.6;1');
+      animateBlueU.setAttribute('dur', '2s');
+      animateBlueU.setAttribute('repeatCount', 'indefinite');
+
+      // Append animation to blue 'U'
+      blueU.appendChild(animateBlueU);
+
+      // Create the green 'U' text element
+      const greenU = document.createElementNS(svgNS, 'text');
+      greenU.setAttribute('x', '28');
+      greenU.setAttribute('y', '160');
+      greenU.setAttribute('font-size', '120');
+      greenU.setAttribute('font-family', 'Arial, sans-serif');
+      greenU.setAttribute('font-weight', 'normal');
+      greenU.setAttribute('fill', 'rgba(40, 167, 69, 0.8)');
+      greenU.setAttribute('filter', 'url(#textShadow)');
+      greenU.textContent = 'U';
+
+      // Create animateTransform for green 'U'
+      const animateGreenU = document.createElementNS(svgNS, 'animateTransform');
+      animateGreenU.setAttribute('attributeName', 'transform');
+      animateGreenU.setAttribute('type', 'translate');
+      animateGreenU.setAttribute('values', '0;-28;-28;0');
+      animateGreenU.setAttribute('keyTimes', '0;0.4;0.6;1');
+      animateGreenU.setAttribute('dur', '2s');
+      animateGreenU.setAttribute('repeatCount', 'indefinite');
+
+      // Append animation to green 'U'
+      greenU.appendChild(animateGreenU);
+
+      // Append text elements to SVG
+      svg.appendChild(blueU);
+      svg.appendChild(greenU);
+
+      // Append SVG to the logo container
+      logoContainer.appendChild(svg);
 
       // Append logo container to spinner container
       spinner.appendChild(logoContainer);
