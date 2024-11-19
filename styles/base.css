@@ -4,6 +4,11 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+h2 {
+    color: #00aaff;
+    text-transform: uppercase;
+}
+
 /* Table Container */
 .table-container {
   width: calc(100% - 40px); /* Adjusted for left and right margins */
