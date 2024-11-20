@@ -31,14 +31,14 @@ const equities = {
                 const data = await response.json();
                 
                 if (data.error) {
-                    displayError(data.error);
+                    equities.functions.displayError(data.error);
                 } else {
                     // Cache the result with symbol and price
                     equities.functions.intrinsicValue.cachedData = { symbol: symbol, price: data.currentPrice, cashflow: data.cashFlow, APIdata: data };
                 }
             } catch (error) {
                 console.error('An error occurred while fetching data:', error);
-                displayError('An error occurred while fetching data.');
+                equities.functions.displayError('An error occurred while fetching data.');
             }
         },
 
