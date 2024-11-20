@@ -445,6 +445,7 @@ function displayResultsInTable() {
 
       // Append SVG to the logo container
       logoContainer.appendChild(svg);
+      spinner.appendChild(logoContainer);
 
       // Append spinner container to body
       document.body.appendChild(spinner);

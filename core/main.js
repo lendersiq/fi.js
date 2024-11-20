@@ -535,60 +535,62 @@ if (appConfig && appConfig.libraries) {
 }
 
 window.processModal = function(fileInputs, identifiedPipes, appConfig) {
-  const digestData = {};
-  const promises = identifiedPipes.sources.map(sourceName => {
-    // Show the spinner before starting the promise
-    showSpinner();
-    return new Promise((resolve, reject) => {
-      const input = fileInputs[sourceName];
-      if (input.files.length > 0) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          parseCSV(event.target.result, (data) => {
-            digestData[sourceName] = data;
-            resolve();
-          });
-        };
-        reader.onerror = function() {
-          reject(new Error(`Failed to read file for ${sourceName}`));
-        };
-        reader.readAsText(file);
-      } else {
-        reject(new Error(`No file selected for ${sourceName}`));
-      }
+  // Show the spinner before starting the promise
+  showSpinner()
+  setTimeout(() => {
+    const digestData = {};
+    const promises = identifiedPipes.sources.map(sourceName => {
+      return new Promise((resolve, reject) => {
+        const input = fileInputs[sourceName];
+        if (input.files.length > 0) {
+          const file = input.files[0];
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            parseCSV(event.target.result, (data) => {
+              digestData[sourceName] = data;
+              resolve();
+            });
+          };
+          reader.onerror = function() {
+            reject(new Error(`Failed to read file for ${sourceName}`));
+          };
+          reader.readAsText(file);
+        } else {
+          reject(new Error(`No file selected for ${sourceName}`));
+        }
+      });
     });
-  });
 
-  if (identifiedPipes.inputs.length > 0) {
-    digestData['input'] = [];
-  }
-  identifiedPipes.inputs.forEach(inputName => {
-    const addInput = {};
-    addInput[inputName] = document.getElementById(inputName).value;
-    digestData['input'].push(addInput);
-  });
-
-  Promise.all(promises)
-    .then(() => {
-      let analytics = {};
-      if (identifiedPipes.sources.length > 0) {  //data sources
-        window.analytics = computeAnalytics(digestData);
-        console.log('Analytics:', window.analytics);
-        document.getElementById('chart-container').style.display = 'block';
-      }
-      combinedResults = processFormula(identifiedPipes, appConfig.formula, appConfig.groupBy, digestData);
-      displayResultsInTable(combinedResults);
-    })
-    .catch(error => {
-      console.error('Error processing files:', error);
-      alert('Error processing files. Please ensure all files are selected and valid.');
-    })
-    .finally(() => {
-      // Hide the spinner after processing
-      hideSpinner();
+    if (identifiedPipes.inputs.length > 0) {
+      digestData['input'] = [];
+    }
+    identifiedPipes.inputs.forEach(inputName => {
+      const addInput = {};
+      addInput[inputName] = document.getElementById(inputName).value;
+      digestData['input'].push(addInput);
     });
-};
+
+    Promise.all(promises)
+      .then(() => {
+        let analytics = {};
+        if (identifiedPipes.sources.length > 0) {  //data sources
+          window.analytics = computeAnalytics(digestData);
+          console.log('Analytics:', window.analytics);
+          document.getElementById('chart-container').style.display = 'block';
+        }
+        combinedResults = processFormula(identifiedPipes, appConfig.formula, appConfig.groupBy, digestData);
+        displayResultsInTable(combinedResults);
+      })
+      .catch(error => {
+        console.error('Error processing files:', error);
+        alert('Error processing files. Please ensure all files are selected and valid.');
+      })
+      .finally(() => {
+        // Hide the spinner after processing
+        hideSpinner();
+      });
+    }, 2000);
+  };  
 
 // Function to hide the spinner
 function hideSpinner() {
