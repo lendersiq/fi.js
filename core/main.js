@@ -24,31 +24,63 @@ function parseCSV(csvContent, callback) {
   let currentField = '';
   let inQuotes = false;
 
-  for (let i = 0; i < csvContent.length; i++) {
-    const char = csvContent[i];
-    const nextChar = csvContent[i + 1];
+  let i = 0; // Track the current position in the string
 
-    if (char === '"' && inQuotes && nextChar === '"') {
-      // Handle escaped quotes
-      currentField += '"';
-      i++;
-    } else if (char === '"' && inQuotes) {
-      // End of quoted field
-      inQuotes = false;
-    } else if (char === '"' && !inQuotes) {
-      // Start of quoted field
-      inQuotes = true;
-    } else if (char === ',' && !inQuotes) {
-      // End of field
-      currentRow.push(currentField.trim());
-      currentField = '';
-    } else if ((char === '\n' || char === '\r') && !inQuotes) {
-      if (currentField || currentRow.length > 0) {
+  function processChunk() {
+    const CHUNK_SIZE = 1000; // Number of characters to process in each chunk
+    const end = Math.min(i + CHUNK_SIZE, csvContent.length);
+
+    for (; i < end; i++) {
+      const char = csvContent[i];
+      const nextChar = csvContent[i + 1];
+
+      if (char === '"' && inQuotes && nextChar === '"') {
+        // Handle escaped quotes
+        currentField += '"';
+        i++;
+      } else if (char === '"' && inQuotes) {
+        // End of quoted field
+        inQuotes = false;
+      } else if (char === '"' && !inQuotes) {
+        // Start of quoted field
+        inQuotes = true;
+      } else if (char === ',' && !inQuotes) {
+        // End of field
         currentRow.push(currentField.trim());
         currentField = '';
+      } else if ((char === '\n' || char === '\r') && !inQuotes) {
+        if (currentField || currentRow.length > 0) {
+          currentRow.push(currentField.trim());
+          currentField = '';
+          if (isHeader) {
+            headers = currentRow;
+            isHeader = false;
+          } else {
+            const rowData = {};
+            for (let j = 0; j < headers.length; j++) {
+              let value = currentRow[j];
+              // Convert to number if applicable
+              if (value && !isNaN(value)) value = parseFloat(value);
+              rowData[headers[j]] = value;
+            }
+            data.push(rowData);
+          }
+          currentRow = [];
+        }
+      } else {
+        currentField += char;
+      }
+    }
+
+    // If there's still content to process, continue processing the next chunk
+    if (i < csvContent.length) {
+      setTimeout(processChunk, 0);
+    } else {
+      // Handle the last line if it doesn't end with a newline
+      if (currentField || currentRow.length > 0) {
+        currentRow.push(currentField.trim());
         if (isHeader) {
           headers = currentRow;
-          isHeader = false;
         } else {
           const rowData = {};
           for (let j = 0; j < headers.length; j++) {
@@ -59,31 +91,14 @@ function parseCSV(csvContent, callback) {
           }
           data.push(rowData);
         }
-        currentRow = [];
       }
-    } else {
-      currentField += char;
+      // Call the callback with the final data
+      callback(data);
     }
   }
 
-  // Handle the last line if it doesn't end with a newline
-  if (currentField || currentRow.length > 0) {
-    currentRow.push(currentField.trim());
-    if (isHeader) {
-      headers = currentRow;
-    } else {
-      const rowData = {};
-      for (let j = 0; j < headers.length; j++) {
-        let value = currentRow[j];
-        // Convert to number if applicable
-        if (value && !isNaN(value)) value = parseFloat(value);
-        rowData[headers[j]] = value;
-      }
-      data.push(rowData);
-    }
-  }
-
-  callback(data);
+  // Start processing the CSV in chunks
+  processChunk();
 }
 
 function isDate(value) {
@@ -176,7 +191,6 @@ function evaluateExpression(expression) {
     return 0;
   }
 }
-
 
 // Helper function to convert a date to the number of days since the date
 function convertDateToDays(dateString) {
