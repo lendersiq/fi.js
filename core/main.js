@@ -24,63 +24,31 @@ function parseCSV(csvContent, callback) {
   let currentField = '';
   let inQuotes = false;
 
-  let i = 0; // Track the current position in the string
+  for (let i = 0; i < csvContent.length; i++) {
+    const char = csvContent[i];
+    const nextChar = csvContent[i + 1];
 
-  function processChunk() {
-    const CHUNK_SIZE = 1000; // Number of characters to process in each chunk
-    const end = Math.min(i + CHUNK_SIZE, csvContent.length);
-
-    for (; i < end; i++) {
-      const char = csvContent[i];
-      const nextChar = csvContent[i + 1];
-
-      if (char === '"' && inQuotes && nextChar === '"') {
-        // Handle escaped quotes
-        currentField += '"';
-        i++;
-      } else if (char === '"' && inQuotes) {
-        // End of quoted field
-        inQuotes = false;
-      } else if (char === '"' && !inQuotes) {
-        // Start of quoted field
-        inQuotes = true;
-      } else if (char === ',' && !inQuotes) {
-        // End of field
-        currentRow.push(currentField.trim());
-        currentField = '';
-      } else if ((char === '\n' || char === '\r') && !inQuotes) {
-        if (currentField || currentRow.length > 0) {
-          currentRow.push(currentField.trim());
-          currentField = '';
-          if (isHeader) {
-            headers = currentRow;
-            isHeader = false;
-          } else {
-            const rowData = {};
-            for (let j = 0; j < headers.length; j++) {
-              let value = currentRow[j];
-              // Convert to number if applicable
-              if (value && !isNaN(value)) value = parseFloat(value);
-              rowData[headers[j]] = value;
-            }
-            data.push(rowData);
-          }
-          currentRow = [];
-        }
-      } else {
-        currentField += char;
-      }
-    }
-
-    // If there's still content to process, continue processing the next chunk
-    if (i < csvContent.length) {
-      setTimeout(processChunk, 0);
-    } else {
-      // Handle the last line if it doesn't end with a newline
+    if (char === '"' && inQuotes && nextChar === '"') {
+      // Handle escaped quotes
+      currentField += '"';
+      i++;
+    } else if (char === '"' && inQuotes) {
+      // End of quoted field
+      inQuotes = false;
+    } else if (char === '"' && !inQuotes) {
+      // Start of quoted field
+      inQuotes = true;
+    } else if (char === ',' && !inQuotes) {
+      // End of field
+      currentRow.push(currentField.trim());
+      currentField = '';
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
       if (currentField || currentRow.length > 0) {
         currentRow.push(currentField.trim());
+        currentField = '';
         if (isHeader) {
           headers = currentRow;
+          isHeader = false;
         } else {
           const rowData = {};
           for (let j = 0; j < headers.length; j++) {
@@ -91,14 +59,31 @@ function parseCSV(csvContent, callback) {
           }
           data.push(rowData);
         }
+        currentRow = [];
       }
-      // Call the callback with the final data
-      callback(data);
+    } else {
+      currentField += char;
     }
   }
 
-  // Start processing the CSV in chunks
-  processChunk();
+  // Handle the last line if it doesn't end with a newline
+  if (currentField || currentRow.length > 0) {
+    currentRow.push(currentField.trim());
+    if (isHeader) {
+      headers = currentRow;
+    } else {
+      const rowData = {};
+      for (let j = 0; j < headers.length; j++) {
+        let value = currentRow[j];
+        // Convert to number if applicable
+        if (value && !isNaN(value)) value = parseFloat(value);
+        rowData[headers[j]] = value;
+      }
+      data.push(rowData);
+    }
+  }
+
+  callback(data);
 }
 
 function isDate(value) {
@@ -112,11 +97,8 @@ function evaluateExpression(expression) {
   let conditionLocked = false; // Initialize within the function to ensure it resets each time
   console.log('Original Expression:', expression);
 
-  const ternaryCount = (expression.match(/\?/g) || []).length;
   // Step 1: Wrap each ternary operation with parentheses, but avoid including surrounding operators
-  if (ternaryCount > 1) {
-    expression = expression.replace(/(\{\{[^{}]+\}\}|\S+\s*==\s*\S+)\s*\?\s*[^:]+:\s*[^+]+/g, '($&)');
-  }
+  expression = expression.replace(/(\{\{[^{}]+\}\}\s*\?\s*[^:]+:\s*[^+]+)/g, '($&)');
   console.log('Expression after wrapping ternary operations:', expression);
 
   // Regex to match conditions inside double curly braces {{ }}
@@ -194,6 +176,7 @@ function evaluateExpression(expression) {
     return 0;
   }
 }
+
 
 // Helper function to convert a date to the number of days since the date
 function convertDateToDays(dateString) {
@@ -412,7 +395,6 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
           }
         });
       }
-      console.log('results', results)
     });
   
   });
@@ -539,62 +521,60 @@ if (appConfig && appConfig.libraries) {
 }
 
 window.processModal = function(fileInputs, identifiedPipes, appConfig) {
-  // Show the spinner before starting the promise
-  showSpinner()
-  setTimeout(() => {
-    const digestData = {};
-    const promises = identifiedPipes.sources.map(sourceName => {
-      return new Promise((resolve, reject) => {
-        const input = fileInputs[sourceName];
-        if (input.files.length > 0) {
-          const file = input.files[0];
-          const reader = new FileReader();
-          reader.onload = function(event) {
-            parseCSV(event.target.result, (data) => {
-              digestData[sourceName] = data;
-              resolve();
-            });
-          };
-          reader.onerror = function() {
-            reject(new Error(`Failed to read file for ${sourceName}`));
-          };
-          reader.readAsText(file);
-        } else {
-          reject(new Error(`No file selected for ${sourceName}`));
-        }
-      });
+  const digestData = {};
+  const promises = identifiedPipes.sources.map(sourceName => {
+    // Show the spinner before starting the promise
+    showSpinner();
+    return new Promise((resolve, reject) => {
+      const input = fileInputs[sourceName];
+      if (input.files.length > 0) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          parseCSV(event.target.result, (data) => {
+            digestData[sourceName] = data;
+            resolve();
+          });
+        };
+        reader.onerror = function() {
+          reject(new Error(`Failed to read file for ${sourceName}`));
+        };
+        reader.readAsText(file);
+      } else {
+        reject(new Error(`No file selected for ${sourceName}`));
+      }
     });
+  });
 
-    if (identifiedPipes.inputs.length > 0) {
-      digestData['input'] = [];
-    }
-    identifiedPipes.inputs.forEach(inputName => {
-      const addInput = {};
-      addInput[inputName] = document.getElementById(inputName).value;
-      digestData['input'].push(addInput);
+  if (identifiedPipes.inputs.length > 0) {
+    digestData['input'] = [];
+  }
+  identifiedPipes.inputs.forEach(inputName => {
+    const addInput = {};
+    addInput[inputName] = document.getElementById(inputName).value;
+    digestData['input'].push(addInput);
+  });
+
+  Promise.all(promises)
+    .then(() => {
+      let analytics = {};
+      if (identifiedPipes.sources.length > 0) {  //data sources
+        window.analytics = computeAnalytics(digestData);
+        console.log('Analytics:', window.analytics);
+        document.getElementById('chart-container').style.display = 'block';
+      }
+      combinedResults = processFormula(identifiedPipes, appConfig.formula, appConfig.groupBy, digestData);
+      displayResultsInTable(combinedResults);
+    })
+    .catch(error => {
+      console.error('Error processing files:', error);
+      alert('Error processing files. Please ensure all files are selected and valid.');
+    })
+    .finally(() => {
+      // Hide the spinner after processing
+      hideSpinner();
     });
-
-    Promise.all(promises)
-      .then(() => {
-        let analytics = {};
-        if (identifiedPipes.sources.length > 0) {  //data sources
-          window.analytics = computeAnalytics(digestData);
-          console.log('Analytics:', window.analytics);
-          document.getElementById('chart-container').style.display = 'block';
-        }
-        combinedResults = processFormula(identifiedPipes, appConfig.formula, appConfig.groupBy, digestData);
-        displayResultsInTable(combinedResults);
-      })
-      .catch(error => {
-        console.error('Error processing files:', error);
-        alert('Error processing files. Please ensure all files are selected and valid.');
-      })
-      .finally(() => {
-        // Hide the spinner after processing
-        hideSpinner();
-      });
-    }, 2000);
-  };  
+};
 
 // Function to hide the spinner
 function hideSpinner() {
