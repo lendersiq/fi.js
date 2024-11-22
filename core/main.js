@@ -112,8 +112,11 @@ function evaluateExpression(expression) {
   let conditionLocked = false; // Initialize within the function to ensure it resets each time
   console.log('Original Expression:', expression);
 
+  const ternaryCount = (expression.match(/\?/g) || []).length;
   // Step 1: Wrap each ternary operation with parentheses, but avoid including surrounding operators
-  expression = expression.replace(/(\{\{[^{}]+\}\}\s*\?\s*[^:]+:\s*[^+]+)/g, '($&)');
+  if (ternaryCount > 1) {
+    expression = expression.replace(/(\{\{[^{}]+\}\}|\S+\s*==\s*\S+)\s*\?\s*[^:]+:\s*[^+]+/g, '($&)');
+  }
   console.log('Expression after wrapping ternary operations:', expression);
 
   // Regex to match conditions inside double curly braces {{ }}
@@ -409,6 +412,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
           }
         });
       }
+      console.log('results', results)
     });
   
   });
