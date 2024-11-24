@@ -94,10 +94,15 @@ function isDate(value) {
 }
 
 function evaluateExpression(expression) {
+  if (expression.length === 0) return 0;
   let conditionLocked = false; // Initialize within the function to ensure it resets each time
   console.log('Original Expression:', expression);
 
-  // Step 1: Wrap each ternary operation with parentheses, but avoid including surrounding operators
+  // Step 1: Replace conditions where 'null' is the first part of the condition with 'false'
+  expression = expression.replace(/\{\{\s*null\s*[!=><]=?\s*[^}]+\}\}/g, '{{ false }}');
+  console.log('Expression after replacing conditions starting with null:', expression);
+
+  // Step 2: Wrap each ternary operation with parentheses, but avoid including surrounding operators
   expression = expression.replace(/(\{\{[^{}]+\}\}\s*\?\s*[^:]+:\s*[^+]+)/g, '($&)');
   console.log('Expression after wrapping ternary operations:', expression);
 
@@ -108,6 +113,7 @@ function evaluateExpression(expression) {
   // First pass: Evaluate conditions inside double curly braces and determine if any are true
   while ((match = conditionRegex.exec(expression)) !== null) {
     let condition = match[1]; // Extract the condition inside {{ }}
+    console.log('')
 
     // Convert any dates within the condition to day difference values
     condition = condition.replace(/(['"]?\b\d{4}[-/\.]\d{2}[-/\.]\d{2}\b['"]?|\b\d{2}[-/\.]\d{2}[-/\.]\d{4}\b|\b\d{2}[-/\.]\d{2}[-/\.]\d{2}\b)/g, (value) => {
@@ -138,6 +144,7 @@ function evaluateExpression(expression) {
       // console.log('Found Date Value:', value); // Log each date identified by regex
       return isDate(value) ? convertDateToDays(value) : value;
     });
+
     // Step 2: Process any conditions within double curly braces (if present)
     expression = expression.replace(/\{\{([\s\S]+?)\}\}/g, (match, condition) => {
       try { 
@@ -169,6 +176,7 @@ function evaluateExpression(expression) {
   try {
     // Use includes function in evaluation
     const result = Function('includes', `'use strict'; return (${safeExpression})`)(includes);
+    if (logger) console.log(`Final Expression ${safeExpression}`);
     if (logger) console.log('Final Evaluated Result:', result);
     return result;
   } catch (error) {
@@ -278,24 +286,21 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
         results[uniqueId].count += 1;
       }
 
-      console.log('pre formula', formula)
       // remove input parameters
       const scrubbedFormula = formula.replace(/(input\.\w+)\([^)]*\)/g, '$1');
       console.log('scrubbed formula', scrubbedFormula)
       // Replace source.field with actual data or function results
-      const updatedFormula = scrubbedFormula.replace(new RegExp(`(${resourceName})\\.(\\w+)`, 'g'), (match, source, functionName) => {
+      const updatedFormula = scrubbedFormula.replace(new RegExp(`(${resourceName})\\.(\\w+)`, 'g'), (match, source, sourceObject) => {
         console.log('Match found:', match);
-        console.log('Source:', source, 'functionName:', functionName);
+        console.log('Source:', source, 'sourceObject:', sourceObject);  //sourceObjects can be functions or data field in pipe
       
-        //@_@ const headers = Object.keys(row);
-        const translatedHeader = aiTranslater(headers, functionName);
-      
+        //if libraries are present verify sourceObject against library functions
         for (const libName in window.libraries) {
           const lib = window.libraries[libName];
       
-          if (lib.functions && lib.functions[functionName] && typeof lib.functions[functionName].implementation === 'function') {
-            const functionDef = lib.functions[functionName];
-            console.log(`Function detected in library '${libName}': ${functionName}`);
+          if (lib.functions && lib.functions[sourceObject] && typeof lib.functions[sourceObject].implementation === 'function') {
+            const functionDef = lib.functions[sourceObject];
+            console.log(`Function detected in library '${libName}': ${sourceObject}`);
       
             // Extract function parameter names and determine if they are optional
             let paramInfo = functionDef.implementation
@@ -349,7 +354,9 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
           }
         }
       
-        console.log('Translated Header:', translatedHeader);
+        //if data sourced from pipe
+        const translatedHeader = aiTranslater(headers, sourceObject);
+        console.log(`headers: ${headers} -- translated header: ${translatedHeader}`);
         if (translatedHeader) {
           const value = row[translatedHeader];
           console.log('Field Value:', value);
@@ -370,15 +377,15 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
             // If match is already a number, leave it as is
             return match;
         } else {
-            console.log(`Unresolved part found: ${match}, setting it to 0.`);
-            return '0';  // Replace unresolved functions with 0
+          console.log(`Unresolved part found: ${match}, setting it to null.`);
+          return null;
         }
       });
-
+      
       if (results[uniqueId].formula) {
         results[uniqueId].formula = `${results[uniqueId].formula}, ${resolvedFormula}`;
       } else {
-        results[uniqueId].formula =  resolvedFormula;
+          results[uniqueId].formula = resolvedFormula;
       }
       //console.log(`formula by uniqueId: ${uniqueId} = ${results[uniqueId].formula}`);
       // Populate other fields based on the presentation configuration
@@ -483,7 +490,7 @@ function loadLibraryScripts(filePaths, callback) {
     } else {
       // Handle local JS file
       const script = document.createElement('script');
-      script.src = '../libraries/' + filePath + '.js';
+      script.src = '../../libraries/' + filePath + '.js';
       script.type = 'text/javascript';
       script.async = false; // Ensure scripts are loaded in order
 

@@ -141,7 +141,7 @@ function createMapping(data) {
     return mapping;
 }
 
-function updateTableWithMapping(mapping, tableId, header = null) {
+function updateTableWithMapping(mapping, tableId, header = null) {  
     const table = document.getElementById(tableId);
     const rows = table.getElementsByTagName('tr');
     let column = 0; // Default column index to 0
@@ -160,14 +160,33 @@ function updateTableWithMapping(mapping, tableId, header = null) {
     // Update the table based on the mapping and column index
     for (let i = 1; i < rows.length; i++) { // Start from 1 to skip the header row
         const cells = rows[i].getElementsByTagName('td');
-        const legendValue = cells[column].textContent.trim();
+        let legendValue = cells[column].textContent.trim();
 
+        // Normalize the legendValue to match the format in the mapping
+        // Extract the first 5 digits if it's in ZIP+4 format
+        const zipCodeMatch = legendValue.match(/^\d{5}/);
+        if (zipCodeMatch) {
+            legendValue = zipCodeMatch[0];
+        }
+
+        // Remove leading zeros to match the mapping key format
+        legendValue = legendValue.replace(/^0+/, '');
+
+        // Remove quotes if they exist
+        legendValue = legendValue.replace(/['"]/g, '');
+
+        // Ensure legendValue is properly converted to a number if numeric
+        if (!isNaN(legendValue) && legendValue !== "") {
+            legendValue = Number(legendValue);
+        }
+
+        console.log('legendValue', legendValue)
+        // Check if the normalized legendValue exists in the mapping
         if (mapping[legendValue]) {
             cells[column].textContent = `${mapping[legendValue]} (${legendValue})`;
         }
     }
 }
-
 
 // Analyze the column data to determine the format
 function aiAnalyzeColumnData(data, field) {

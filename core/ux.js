@@ -225,236 +225,193 @@ function displayResultsInTable() {
   }
 }
   
-  // Function to show the modal with file inputs and run button
-  function showRunModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.id = 'run-modal'; 
-  
-    const modalContent = document.createElement('div');
-    modalContent.className = 'modal-content';
-    // Render modal content
-    const modalHeading = `
-            <div class="modal-header">
-                <div class="logo-container">
-                  <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" width="25%" height="25%">
-                        <!-- Define filters for shadows -->
-                        <defs>
-                            <filter id="textShadow">
-                                <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="rgba(0, 0, 0, 0.5)" />
-                            </filter>
-                        </defs>
-                        <!-- Blue 'U' -->
-                        <text x="0" y="150" font-size="120" font-family="Arial, sans-serif" font-weight="normal" fill="rgba(0, 123, 255, 0.8)" filter="url(#textShadow)">U</text>
-                        <!-- Green 'U' -->
-                        <text x="28" y="160" font-size="120" font-family="Arial, sans-serif" font-weight="normal" fill="rgba(40, 167, 69, 0.8)" filter="url(#textShadow)">U</text>
-                    </svg>
-                </div>
-                <h2 id="modalTitle"></h2>
-            </div>
-    `;
-    modalContent.innerHTML = modalHeading;
-    const modalBody = document.createElement('div');
-    modalBody.className = 'modal-body';
-  
-    const inputsContainer = document.createElement('div');
-    const runButton = document.createElement('button');
-    runButton.textContent = 'Run';
-    runButton.className = 'button';
-    runButton.disabled = true; // Disable the run button initially
-  
-    // Identify sources and inputs from the formula
-    const identifiedPipes = extractPipes(appConfig.formula);
-    // Create file inputs for each identified source
-    const fileInputs = {};
-    identifiedPipes.sources.forEach(sourceName => {
-      const sourceDiv = document.createElement('div');
-      sourceDiv.style.marginBottom = "10px";
-      const label = document.createElement('label');
-      label.htmlFor = `${sourceName}-file`;
-      label.className = "custom-file-upload";
-      label.innerHTML = `Choose ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)} Source`;
+// Function to show the modal with file inputs and run button
+function showRunModal() {
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'run-modal'; 
 
-      const input = document.createElement('input');
-      input.type = "file";
-      input.accept = ".csv";
-      input.id = `${sourceName}-file`;
-      input.className = "hidden-file-input";
-  
-      // Check if all files are selected to enable the run button
-      input.addEventListener('change', () => {
-        if (label) {
-          const fileName = input.files[0].name;
-          label.classList.add('completed');
-          label.innerHTML = `${sourceName}: ${fileName}`; 
-        }
-        const allFilesSelected = identifiedPipes.sources.every(sourceName => fileInputs[sourceName].files.length > 0);
-        runButton.disabled = !allFilesSelected;
-      });
-  
-      sourceDiv.appendChild(label);
-      sourceDiv.appendChild(input);
-      inputsContainer.appendChild(sourceDiv);
-      fileInputs[sourceName] = input;
-    });
+  const modalContent = document.createElement('div');
+  modalContent.className = 'modal-content';
+  // Render modal content
+  const modalHeading = `
+          <div class="modal-header">
+              <div class="logo-container">
+                <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" width="35%" height="35%">
+                      <!-- Define filters for shadows -->
+                      <defs>
+                          <filter id="textShadow">
+                              <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="rgba(0, 0, 0, 0.5)" />
+                          </filter>
+                      </defs>
+                      <!-- Blue 'U' -->
+                      <text x="0" y="150" font-size="120" font-family="Arial, sans-serif" font-weight="normal" fill="rgba(0, 123, 255, 0.8)" filter="url(#textShadow)">U</text>
+                      <!-- Green 'U' -->
+                      <text x="28" y="160" font-size="120" font-family="Arial, sans-serif" font-weight="normal" fill="rgba(40, 167, 69, 0.8)" filter="url(#textShadow)">U</text>
+                  </svg>
+              </div>
+              <h3 id="modalTitle"></h3>
+          </div>
+  `;
+  modalContent.innerHTML = modalHeading;
+  const modalBody = document.createElement('div');
+  modalBody.className = 'modal-body';
 
-    identifiedPipes.inputs.forEach(inputName => {
-      const inputDiv = document.createElement('div');
-      inputDiv.classList.add('form-group');
-      inputDiv.style.marginBottom = "10px";
-      const label = document.createElement('label');
-      label.innerHTML = `${inputName.charAt(0).toUpperCase() + inputName.slice(1)}`;
+  const inputsContainer = document.createElement('div');
+  const runButton = document.createElement('button');
+  runButton.textContent = 'Run';
+  runButton.className = 'button';
+  runButton.disabled = true; // Disable the run button initially
 
-      const input = document.createElement('input');
-      input.type = "text";
-      input.id = inputName;
+  // Identify sources and inputs from the formula
+  const identifiedPipes = extractPipes(appConfig.formula);
+  // Create file inputs for each identified source
+  const fileInputs = {};
+  identifiedPipes.sources.forEach(sourceName => {
+    const sourceDiv = document.createElement('div');
+    sourceDiv.style.marginBottom = "10px";
+    const label = document.createElement('label');
+    label.htmlFor = `${sourceName}-file`;
+    label.className = "custom-file-upload";
+    label.innerHTML = `Choose ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)} Source`;
 
-       // Event listener to check if all inputs are filled
-      input.addEventListener('input', () => {
-        let allFilled = true;
+    const input = document.createElement('input');
+    input.type = "file";
+    input.accept = ".csv";
+    input.id = `${sourceName}-file`;
+    input.className = "hidden-file-input";
 
-        // Iterate over all inputs to check their values
-        identifiedPipes.inputs.forEach(name => {
-            const inputElement = document.getElementById(name);
-            if (!inputElement.value.trim()) {
-                allFilled = false;
-            }
-        });
-        runButton.disabled = !allFilled
-      });
-      inputDiv.appendChild(label);
-      inputDiv.appendChild(input);
-      inputsContainer.appendChild(inputDiv);
-    });
-  
-    // Handle file selection and process formula
-    runButton.addEventListener('click', () => {
-      processModal(fileInputs, identifiedPipes, appConfig);
-      if (identifiedPipes.sources.length > 0) {
-        document.body.removeChild(modal);
+    // Check if all files are selected to enable the run button
+    input.addEventListener('change', () => {
+      if (label) {
+        const fileName = input.files[0].name;
+        label.classList.add('completed');
+        label.innerHTML = `${sourceName}: ${fileName}`; 
       }
+      const allFilesSelected = identifiedPipes.sources.every(sourceName => fileInputs[sourceName].files.length > 0);
+      runButton.disabled = !allFilesSelected;
     });
-    const outputContainer = document.createElement('div');
-    outputContainer.id = 'outputElement';
 
-    modalBody.appendChild(inputsContainer);
-    modalBody.appendChild(outputContainer);
-    modalBody.appendChild(runButton);
-    modalContent.appendChild(modalBody);
-    modal.appendChild(modalContent);
-    document.body.appendChild(modal);
+    sourceDiv.appendChild(label);
+    sourceDiv.appendChild(input);
+    inputsContainer.appendChild(sourceDiv);
+    fileInputs[sourceName] = input;
+  });
 
-    // Set the title content into the <h2> element with id 'modalTitle'
-    document.getElementById('modalTitle').textContent = document.title;
-  }
+  identifiedPipes.inputs.forEach(inputName => {
+    const inputDiv = document.createElement('div');
+    inputDiv.classList.add('form-group');
+    inputDiv.style.marginBottom = "10px";
+    const label = document.createElement('label');
+    label.innerHTML = `${inputName.charAt(0).toUpperCase() + inputName.slice(1)}`;
 
-  function showSpinner() {
-    let spinner = document.getElementById('spinner-container');
-    if (!spinner) {
+    const input = document.createElement('input');
+    input.type = "text";
+    input.id = inputName;
+
+      // Event listener to check if all inputs are filled
+    input.addEventListener('input', () => {
+      let allFilled = true;
+
+      // Iterate over all inputs to check their values
+      identifiedPipes.inputs.forEach(name => {
+          const inputElement = document.getElementById(name);
+          if (!inputElement.value.trim()) {
+              allFilled = false;
+          }
+      });
+      runButton.disabled = !allFilled
+    });
+    inputDiv.appendChild(label);
+    inputDiv.appendChild(input);
+    inputsContainer.appendChild(inputDiv);
+  });
+
+  // Handle file selection and process formula
+  runButton.addEventListener('click', () => {
+    processModal(fileInputs, identifiedPipes, appConfig);
+    if (identifiedPipes.sources.length > 0) {
+      document.body.removeChild(modal);
+    }
+  });
+  const outputContainer = document.createElement('div');
+  outputContainer.id = 'outputElement';
+
+  modalBody.appendChild(inputsContainer);
+  modalBody.appendChild(outputContainer);
+  modalBody.appendChild(runButton);
+  modalContent.appendChild(modalBody);
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+
+  // Set the title content into the <h2> element with id 'modalTitle'
+  document.getElementById('modalTitle').textContent = document.title;
+}
+
+function showSpinner() {
+  let spinner = document.getElementById('spinner-container');
+  if (!spinner) {
       // Create spinner container
       spinner = document.createElement('div');
       spinner.id = 'spinner-container';
       spinner.classList.add('spinner-container');
 
-      // Create logo container (spinner itself)
-      // Create the logo container div
-      const logoContainer = document.createElement('div');
-      logoContainer.classList.add('logo-container');
+      // Create the spinner element itself
+      const spinnerElement = document.createElement('div');
+      spinnerElement.classList.add('spinner');
 
-      // Create the SVG element
-      const svgNS = 'http://www.w3.org/2000/svg';
-      const svg = document.createElementNS(svgNS, 'svg');
-      svg.setAttribute('viewBox', '0 0 200 200');
-      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-      svg.setAttribute('width', '100%');
-      svg.setAttribute('height', '100%');
-
-      // Define filters for shadows
-      const defs = document.createElementNS(svgNS, 'defs');
-      const filter = document.createElementNS(svgNS, 'filter');
-      filter.setAttribute('id', 'textShadow');
-
-      const feDropShadow = document.createElementNS(svgNS, 'feDropShadow');
-      feDropShadow.setAttribute('dx', '2');
-      feDropShadow.setAttribute('dy', '2');
-      feDropShadow.setAttribute('stdDeviation', '2');
-      feDropShadow.setAttribute('flood-color', 'rgba(0, 0, 0, 0.5)');
-
-      filter.appendChild(feDropShadow);
-      defs.appendChild(filter);
-      svg.appendChild(defs);
-
-      // Create a group to hold the 'U's
-      const group = document.createElementNS(svgNS, 'g');
-
-      // Calculate the movement needed for full overlap
-      const movement = 14; // Half of the distance between the starting x positions
-
-      // Create the blue 'U' text element
-      const blueU = document.createElementNS(svgNS, 'text');
-      blueU.setAttribute('x', '0');
-      blueU.setAttribute('y', '150');
-      blueU.setAttribute('font-size', '120');
-      blueU.setAttribute('font-family', 'Arial, sans-serif');
-      blueU.setAttribute('font-weight', 'normal');
-      blueU.setAttribute('fill', 'rgba(0, 123, 255, 0.8)');
-      blueU.setAttribute('filter', 'url(#textShadow)');
-      blueU.textContent = 'U';
-
-      // Create animateTransform for blue 'U'
-      const animateBlueU = document.createElementNS(svgNS, 'animateTransform');
-      animateBlueU.setAttribute('attributeName', 'transform');
-      animateBlueU.setAttribute('type', 'translate');
-      animateBlueU.setAttribute('dur', '3s');
-      animateBlueU.setAttribute('repeatCount', 'indefinite');
-      animateBlueU.setAttribute('keyTimes', '0;0.4;0.6;1');
-      animateBlueU.setAttribute('values', `0;${movement};${movement};0`);
-
-      // Append animation to blue 'U'
-      blueU.appendChild(animateBlueU);
-
-      // Create the green 'U' text element
-      const greenU = document.createElementNS(svgNS, 'text');
-      greenU.setAttribute('x', '28');
-      greenU.setAttribute('y', '160');
-      greenU.setAttribute('font-size', '120');
-      greenU.setAttribute('font-family', 'Arial, sans-serif');
-      greenU.setAttribute('font-weight', 'normal');
-      greenU.setAttribute('fill', 'rgba(40, 167, 69, 0.8)');
-      greenU.setAttribute('filter', 'url(#textShadow)');
-      greenU.textContent = 'U';
-
-      // Create animateTransform for green 'U'
-      const animateGreenU = document.createElementNS(svgNS, 'animateTransform');
-      animateGreenU.setAttribute('attributeName', 'transform');
-      animateGreenU.setAttribute('type', 'translate');
-      animateGreenU.setAttribute('dur', '3s');
-      animateGreenU.setAttribute('repeatCount', 'indefinite');
-      animateGreenU.setAttribute('keyTimes', '0;0.4;0.6;1');
-      animateGreenU.setAttribute('values', `0;-${movement};-${movement};0`);
-
-      // Append animation to green 'U'
-      greenU.appendChild(animateGreenU);
-
-      // Append the 'U's to the group
-      group.appendChild(blueU);
-      group.appendChild(greenU);
-
-      // Append the group to the SVG
-      svg.appendChild(group);
-
-      // Append SVG to the logo container
-      logoContainer.appendChild(svg);
-      spinner.appendChild(logoContainer);
+      // Append the spinner element to the spinner container
+      spinner.appendChild(spinnerElement);
 
       // Append spinner container to body
       document.body.appendChild(spinner);
-    }
-    spinner.style.display = 'flex';
   }
-  
-  // Set up the modal on page load
-  document.addEventListener('DOMContentLoaded', () => {
-    showRunModal();
-    //placeholder for charts
+
+  // Display the spinner
+  spinner.style.display = 'flex';
+}
+
+// Set up the modal on page load
+document.addEventListener('DOMContentLoaded', () => {
+  showRunModal();
+});
+
+function configureUX() {
+  // Create a favicon
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; // Favicon size
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+
+  // Draw blue "U" (drawn first, so it is underneath)
+  ctx.font = 'bold 60px Arial';
+  ctx.fillStyle = 'rgba(0, 123, 255, 0.8)';
+  ctx.fillText('U', 8, 50); // Adjust positions for the overlapping effect
+
+  // Draw green "U" (drawn second, so it is on top)
+  ctx.fillStyle = 'rgba(40, 167, 69, 0.8)';
+  ctx.fillText('U', 20, 58);
+
+  const faviconUrl = canvas.toDataURL('image/png');
+  let link = document.querySelector('link[rel="icon"]');
+  if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+  }
+  link.href = faviconUrl;
+
+  // Change the title before printing and revert after printing
+  const originalTitle = document.title;
+
+  window.addEventListener('beforeprint', function () {
+    document.title = originalTitle + ' Trwth';
   });
+
+  window.addEventListener('afterprint', function () {
+    document.title = originalTitle;
+  });
+}
+
+// Generate the favicon, and setup print header/footer when the page loads
+window.onload = configureUX;
