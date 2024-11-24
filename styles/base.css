@@ -4,7 +4,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
-h2 {
+h2, h3 {
     color: #00aaff;
     text-transform: uppercase;
 }
@@ -87,7 +87,7 @@ td {
     justify-content: space-between;
     background: linear-gradient(135deg, #141414, #00aaff);
     color: white;
-    padding-left: 20px;
+    padding: 0px 20px;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
     margin: 0;
@@ -201,12 +201,24 @@ canvas {
 
 .spinner-container {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+}
+  
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
 .hidden-file-input {
@@ -292,26 +304,30 @@ canvas {
 }
 
 @media print {
-  /* Hide unnecessary elements that may not be useful in print */
-  body {
-    overflow: visible;
-  }
+    /* Hide unnecessary elements that may not be useful in print */
+    body {
+        overflow: visible;
+    }
 
-  /* Ensure the table takes the full width of the page */
-  table {
-    width: 100%;
-  }
+    /* Ensure the table takes the full width of the page */
+    table {
+        width: 100%;
+    }
 
-  /* Remove scrolling by setting a height that fits the entire content */
-  .table-container {
-    height: auto !important;
-    overflow: visible !important;
-  }
+    thead {
+        display: table-header-group;
+    }
+
+    /* Remove scrolling by setting a height that fits the entire content */
+    .table-container {
+        height: auto !important;
+        overflow: visible !important;
+    }
   
-  /* Optional: Style adjustments for a better print layout */
-  th, td {
-    page-break-inside: avoid;
-  }
+    /* Optional: Style adjustments for a better print layout */
+    th, td {
+        page-break-inside: avoid;
+    }
 }
 
 .logo-container {
