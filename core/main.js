@@ -141,7 +141,7 @@ function evaluateExpression(expression) {
     // Evaluate all conditions normally if none are locked
     // Step 1: Replace dates with integer expression of days since the date
     expression = expression.replace(/(['"]?\b\d{4}[-/.]\d{2}[-/.]\d{2}\b['"]?|['"]?\b\d{2}[-/.]\d{2}[-/.]\d{4}\b['"]?|['"]?\b\d{2}[-/.]\d{2}[-/.]\d{2}\b['"]?)/g, (value) => {
-      // console.log('Found Date Value:', value); // Log each date identified by regex
+      if (logger) console.log('Found Date Value:', value); // Log each date identified by regex
       return isDate(value) ? convertDateToDays(value) : value;
     });
 
@@ -201,11 +201,11 @@ console.log('Translated Header:', translatedHeader);
 //console.log('evaluateExpression:', evaluateExpression('2021-10-31' > '2020-10-31'))
 
 // extract unique source and input names from the formula
-function extractPipes(formula) {
+function extractPipes(formula, presentation) {
   const sourceSet = new Set();
   const inputSet = new Set();
   
-  // Regex to match {source}.function format, excluding 'input'
+  // Regex to match {source}.{function or object} format, excluding 'input'
   const sourceRegex = /\b(?!input\b)(\w+)\.\w+/g;
   
   // Regex to match input.function(args) format
@@ -213,7 +213,7 @@ function extractPipes(formula) {
   
   let match;
 
-  // Extract sources from {source}.function notation
+  // Extract sources from {source}.{function or object} notation
   while ((match = sourceRegex.exec(formula)) !== null) {
     sourceSet.add(match[1]);
   }
@@ -224,6 +224,16 @@ function extractPipes(formula) {
     args.forEach(arg => {
       if (arg) {
         inputSet.add(arg);
+      }
+    });
+  }
+
+  // Extract sources from presentation columns
+  if (presentation && Array.isArray(presentation.columns)) {
+    presentation.columns.forEach(column => {
+      if (column.field.includes('.')) {
+        const source = column.field.split('.')[0];
+        sourceSet.add(source);
       }
     });
   }
