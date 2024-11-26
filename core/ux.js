@@ -264,7 +264,8 @@ function showRunModal() {
   runButton.disabled = true; // Disable the run button initially
 
   // Identify sources and inputs from the formula
-  const identifiedPipes = extractPipes(appConfig.formula);
+  const identifiedPipes = extractPipes(appConfig.formula, appConfig.presentation);
+  console.log('identifiedPipes', identifiedPipes)
   // Create file inputs for each identified source
   const fileInputs = {};
   identifiedPipes.sources.forEach(sourceName => {
