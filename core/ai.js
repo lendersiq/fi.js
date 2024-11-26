@@ -84,8 +84,23 @@ function aiSynonymKey(word) {
 
 // AI translation function to map formula fields to CSV headers
 function aiTranslater(headers, field) {
+    //extract field from source.field, if neccessary
+    let cleanField;
+
+    // Check if the field contains a dot, indicating it's in the '{source}.{function or object}' format
+    if (field.includes('.')) {
+      // Extract everything after the dot
+      cleanField = field.split('.')[1];
+    } else {
+      // Otherwise, keep the field as it is
+      cleanField = field;
+    }
+  
+    // Remove any special characters and trim whitespace
+    cleanField = cleanField.replace(/[^a-zA-Z0-9]/g, '').trim();
+
     const headersLower = headers.map(header => stem(header.toLowerCase()));
-    const stemmedField = stem(field.toLowerCase());
+    const stemmedField = stem(cleanField.toLowerCase());
     // First, try to find a direct match
     let matchingHeader = headersLower.find(header => header.includes(stemmedField));
     // If no direct match, check the synonym library
