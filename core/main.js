@@ -251,7 +251,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
   console.log('Starting formula processing...');
   console.log('Identified Pipes:', identifiedPipes);
   console.log('Formula:', formula);
-  console.log('Group Key:', groupKey);
+  //console.log('Group Key:', groupKey);
   console.log('Digested Data:', digestData);
 
   // Iterate over each source's data to ensure flexibility with multiple sources
@@ -287,8 +287,9 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
     console.log('resource Data:', resourceData);
 
     const headers = resourceData.length > 0 ? Object.keys(resourceData[0]) : [];
+    const translatedGroupKey = aiTranslater(headers, groupKey);
     resourceData.forEach(row => {
-      const uniqueId = row[groupKey];
+      const uniqueId = row[translatedGroupKey];
       console.log('Processing row:', row);
       if (!results[uniqueId]) {
         results[uniqueId] = { result: 0, count: 1, formula: '' };
