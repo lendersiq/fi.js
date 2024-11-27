@@ -17,7 +17,7 @@
         'organization'
       ],
       formula: 'loan.open > "2020-10-31" & loan.open < "2024-11-03" ?  loan.principal : null',
-      groupBy: 'Portfolio',
+      groupBy: 'portfolio',
       presentation: {
         columns: [
           { heading: 'Branch', field: 'branch' },
