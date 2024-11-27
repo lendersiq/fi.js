@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="img-src 'self' data:; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://bankersiq.com; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="img-src 'self' data:; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://trwth.com; object-src 'none';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../../styles/base.css">
   <title>Personas Report</title>
@@ -14,7 +14,7 @@
     const appConfig = {
       libraries: [
       ],
-      formula: '{{ customer.zip != "NULL" }} ? loan.principal : null', 
+      formula: 'loan.principal', 
       groupBy: 'Portfolio',
       presentation: {
         columns: [
@@ -22,7 +22,7 @@
           { heading: 'Type', field: 'class' },
           { heading: 'Zip', field: 'zip' },
           { heading: 'Officer', field: 'resp' },
-          { heading: 'Gender', field: 'gender' }
+          { heading: 'Gender', field: 'customer.gender' }
         ],
       }
     };
