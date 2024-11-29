@@ -94,8 +94,9 @@ function isDate(value) {
 }
 
 function evaluateExpression(expression) {
-  if (expression.length === 0) return 0;
+  if (expression.length === 0) return { result: 0, nonNullCount: 0 };
   let conditionLocked = false; // Initialize within the function to ensure it resets each time
+  let nonNullCount = 0; // Initialize a counter for non-null values
   console.log('Original Expression:', expression);
 
   // Step 1: Replace conditions where 'null' is the first part of the condition with 'false'
@@ -174,17 +175,28 @@ function evaluateExpression(expression) {
   const safeExpression = sanitizedExpression.replace(/[^a-zA-Z0-9_+.\\\-*/%(),<>=!?:|& \n\r\t'"\[\]]+/g, '');
 
   try {
+    // Split the expression by '+' to evaluate each subexpression
+    const subexpressions = safeExpression.split('+');
+    subexpressions.forEach(subexpr => {
+      try {
+        const result = Function('includes', `'use strict'; return (${subexpr.trim()})`)(includes);
+        if (result !== null && result !== 0) {
+          nonNullCount++;
+        }
+      } catch (error) {
+        console.error('Error evaluating subexpression:', error, subexpr);
+      }
+    });
     // Use includes function in evaluation
-    const result = Function('includes', `'use strict'; return (${safeExpression})`)(includes);
+    const finalResult = Function('includes', `'use strict'; return (${safeExpression})`)(includes);
     if (logger) console.log(`Final Expression ${safeExpression}`);
     if (logger) console.log('Final Evaluated Result:', result);
-    return result;
+    return { result: finalResult, nonNullCount };
   } catch (error) {
     console.error('Error evaluating expression:', error, safeExpression);
-    return 0;
+    return { result: 0, nonNullCount };
   }
 }
-
 
 // Helper function to convert a date to the number of days since the date
 function convertDateToDays(dateString) {
