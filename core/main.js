@@ -304,9 +304,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
       const uniqueId = row[translatedGroupKey];
       console.log('Processing row:', row);
       if (!results[uniqueId]) {
-        results[uniqueId] = { result: 0, count: 1, formula: '' };
-      } else {
-        results[uniqueId].count += 1;
+        results[uniqueId] = { result: 0, count: 0, formula: '' };
       }
 
       // remove input parameters
@@ -451,10 +449,14 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
           }
         });
         console.log('Final Formula for Evaluation (pre-eval):', finalFormula);
-        const finalResult = evaluateExpression(finalFormula);
+        
+        const finalEvaluation = evaluateExpression(finalFormula);
+        const finalResult = finalEvaluation.result;
+        const finalCount = finalEvaluation.nonNullCount;
         console.log('Final Formula Evaluation Result:', finalResult);
 
         results[uniqueId].result = finalResult;
+        results[uniqueId].result = finalCount;
     } catch (error) {
         console.error('Error evaluating final formula:', error);
         results[uniqueId].result = 0;
