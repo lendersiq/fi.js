@@ -13,15 +13,14 @@
     // App configuration
     const appConfig = {
       libraries: [
-        'financial',
-        'organization'
+        'financial'
       ],
-      formula: 'loan.open > "2020-10-31" & loan.open < "2024-11-03" ?  loan.principal : null',
+      formula: 'loan.open > "2020-10-31" & loan.open < "2024-11-03" ?  loan.averageBalance : null',
       groupBy: 'portfolio',
       presentation: {
         columns: [
           { heading: 'Branch', field: 'branch' },
-          { heading: 'Principal', field: 'principal' }
+          { heading: 'Officer', field: 'owner' }
         ],
       }
     };
