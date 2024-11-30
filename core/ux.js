@@ -63,7 +63,8 @@ function displayResultsInTable() {
         }
       }
 
-      if (Array.isArray(data[field])) {
+      //if (Array.isArray(data[field])) {
+      if (Array.isArray(values)) {
         if (values.every(Number.isInteger) && values.every(v => v <= 9999)) {
           columnFormat[index].integerCount += values.length;
         } else if (typeof data[field] !== 'string') {
