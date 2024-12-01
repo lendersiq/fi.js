@@ -456,7 +456,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
         console.log('Final Formula Evaluation Result:', finalResult);
 
         results[uniqueId].result = finalResult;
-        results[uniqueId].result = finalCount;
+        results[uniqueId].count = finalCount;
     } catch (error) {
         console.error('Error evaluating final formula:', error);
         results[uniqueId].result = 0;
