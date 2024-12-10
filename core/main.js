@@ -6,7 +6,7 @@ if (typeof appConfig === 'undefined') {
 }
 
 // if logger is true, select console.logs will log
-let logger = false; 
+let logger = true; 
 
 /**
 * Extracts unique source names from the formula.
@@ -103,14 +103,9 @@ function evaluateExpression(expression) {
   expression = expression.replace(/\{\{\s*null\s*[!=><]=?\s*[^}]+\}\}/g, '{{ false }}');
   console.log('Expression after replacing conditions starting with null:', expression);
 
-  // Step 2: Wrap each ternary operation with parentheses, but avoid including surrounding operators
-  expression = expression.replace(/(\{\{[^{}]+\}\}\s*\?\s*[^:]+:\s*[^+]+)/g, '($&)');
-  console.log('Expression after wrapping ternary operations:', expression);
-
   // Regex to match conditions inside double curly braces {{ }}
   const conditionRegex = /\{\{([\s\S]+?)\}\}/g;
   let match;
-
   // First pass: Evaluate conditions inside double curly braces and determine if any are true
   while ((match = conditionRegex.exec(expression)) !== null) {
     let condition = match[1]; // Extract the condition inside {{ }}
@@ -157,29 +152,34 @@ function evaluateExpression(expression) {
       }
     });
   }
-  if (logger) console.log('Expression after processing:', expression);
+  if (logger) console.log('Expression after double truth processing:', expression);
 
-  // **New step to convert 'x in [a, b, c]' syntax to array membership checks**
-  expression = expression.replace(/(\S+)\s+in\s+\[([^\]]+)\]/g, 'includes([$2], $1)');
 
-  // Define includes function within scope for array membership checks
-  function includes(array, value) {
-    return array.some(element => element == value);
-  }
+  // Replace 'x in [a, b, c]' with 'true' or 'false' based on membership
+  expression = expression.replace(/(\S+)\s+in\s+\[([^\]]+)\]/g, (match, value, array) => {
+    // Split the array into elements and trim spaces
+    const parsedArray = array.split(',').map(item => item.trim());
+    // Check if the value exists in the array
+    const isMember = parsedArray.includes(value.trim());
+    // Replace the match with 'true' or 'false'
+    return isMember ? 'true' : 'false';
+  });
 
+  console.log('Expression after membership evaluation:', expression);
+  
   // Replace 'null' with '0' to prevent evaluation issues
   const sanitizedExpression = expression.replace(/null/g, '0');
 
   // Allow letters, numbers, underscores, dots, arithmetic operators, parentheses,
   // comparison operators, ternary operators, logical operators, whitespace, and quotes
   const safeExpression = sanitizedExpression.replace(/[^a-zA-Z0-9_+.\\\-*/%(),<>=!?:|& \n\r\t'"\[\]]+/g, '');
-
+  if (logger) console.log(`Safe Expression ${safeExpression}`);
   try {
     // Split the expression by '+' to evaluate each subexpression
     const subexpressions = safeExpression.split('+');
     subexpressions.forEach(subexpr => {
       try {
-        const result = Function('includes', `'use strict'; return (${subexpr.trim()})`)(includes);
+        const result = eval(`'use strict'; (${subexpr.trim()})`);
         if (result !== null && result !== 0) {
           nonNullCount++;
         }
@@ -188,9 +188,9 @@ function evaluateExpression(expression) {
       }
     });
     // Use includes function in evaluation
-    const finalResult = Function('includes', `'use strict'; return (${safeExpression})`)(includes);
+    const finalResult = eval(`'use strict'; (${safeExpression})`);
     if (logger) console.log(`Final Expression ${safeExpression}`);
-    if (logger) console.log('Final Evaluated Result:', result);
+    //if (logger) console.log('Final Evaluated Result:', result);
     return { result: finalResult, nonNullCount };
   } catch (error) {
     console.error('Error evaluating expression:', error, safeExpression);
@@ -211,6 +211,7 @@ const translatedHeader = aiTranslater(headers, 'fees');
 console.log('Translated Header:', translatedHeader);
 //console.log('yearToDateFactor Testing', yearToDateFactor('PMTD'));
 //console.log('evaluateExpression:', evaluateExpression('2021-10-31' > '2020-10-31'))
+console.log(`Testing Stemmer: stem class = ${stem('class')} and type = ${stem('type')}`)
 
 // extract unique source and input names from the formula
 function extractPipes(formula, presentation) {
@@ -256,10 +257,9 @@ function extractPipes(formula, presentation) {
   };
 }
 
-
 function processFormula(identifiedPipes, formula, groupKey, digestData) {
   const results = {};
-
+  const dateRegex = /"?\d{4}-\d{2}-\d{2}"?/g;
   console.log('Starting formula processing...');
   console.log('Identified Pipes:', identifiedPipes);
   console.log('Formula:', formula);
@@ -310,8 +310,15 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
       // remove input parameters
       const scrubbedFormula = formula.replace(/(input\.\w+)\([^)]*\)/g, '$1');
       console.log('scrubbed formula', scrubbedFormula)
+
+      const DateToDaysFormula = scrubbedFormula.replace(dateRegex, match => {
+        // Remove quotes if present and convert the date
+        const dateString = match.replace(/"/g, '');
+        return convertDateToDays(dateString);
+      });
+    
       // Replace source.field with actual data or function results
-      const updatedFormula = scrubbedFormula.replace(new RegExp(`(${resourceName})\\.(\\w+)`, 'g'), (match, source, sourceObject) => {
+      const updatedFormula = DateToDaysFormula.replace(new RegExp(`(${resourceName})\\.(\\w+)`, 'g'), (match, source, sourceObject) => {
         console.log('Match found:', match);
         console.log('Source:', source, 'sourceObject:', sourceObject);  //sourceObjects can be functions or data field in pipe
       
@@ -377,16 +384,16 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
       
         //if data sourced from pipe
         const translatedHeader = aiTranslater(headers, sourceObject);
-        console.log(`headers: ${headers} -- translated header: ${translatedHeader}`);
+        //console.log(`headers: ${headers} -- translated header: ${translatedHeader}`);
         if (translatedHeader) {
           const value = row[translatedHeader];
           console.log('Field Value:', value);
-      
           if (isDate(value)) {
             return convertDateToDays(value); 
           } else {
             return isNaN(value) ? `"${value}"` : `${parseFloat(value)}`;
           }
+          
         }
         return '0';
       });
@@ -404,9 +411,9 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
       });
       
       if (results[uniqueId].formula) {
-        results[uniqueId].formula = `${results[uniqueId].formula}, ${resolvedFormula}`;
+        results[uniqueId].formula = `${results[uniqueId].formula} + ( ${resolvedFormula} )`;
       } else {
-          results[uniqueId].formula = resolvedFormula;
+          results[uniqueId].formula = `( ${resolvedFormula} )`;
       }
       //console.log(`formula by uniqueId: ${uniqueId} = ${results[uniqueId].formula}`);
       // Populate other fields based on the presentation configuration
@@ -430,33 +437,16 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
   // After processing all sources, evaluate the complete formula for each uniqueId
   Object.keys(results).forEach(uniqueId => {
     let formula = results[uniqueId].formula.replace(/^,\s*/, '');
-    //console.log('Formula before evaluation:', formula);
+    console.log('Formula before evaluation:', formula);
 
     try {
-        // Enclose each comma-delimited section in parentheses and replace commas with "+"
-        let bracketDepth = 0;
-        const finalFormula = formula.replace(/([^,\[\]]+)|([,\[\]])/g, (match, group, symbol) => {
-          if (symbol === '[') {
-            bracketDepth++;
-            return symbol;
-          } else if (symbol === ']') {
-            bracketDepth--;
-            return symbol;
-          } else if (symbol === ',' && bracketDepth === 0) {
-            return ' + ';
-          } else {
-            return match;
-          }
-        });
-        console.log('Final Formula for Evaluation (pre-eval):', finalFormula);
-        
-        const finalEvaluation = evaluateExpression(finalFormula);
-        const finalResult = finalEvaluation.result;
-        const finalCount = finalEvaluation.nonNullCount;
-        console.log('Final Formula Evaluation Result:', finalResult);
+      const finalEvaluation = evaluateExpression(formula);
+      const finalResult = finalEvaluation.result;
+      const finalCount = finalEvaluation.nonNullCount;
+      console.log('Final Formula Evaluation Result:', finalResult);
 
-        results[uniqueId].result = finalResult;
-        results[uniqueId].count = finalCount;
+      results[uniqueId].result = finalResult;
+      results[uniqueId].count = finalCount;
     } catch (error) {
         console.error('Error evaluating final formula:', error);
         results[uniqueId].result = 0;

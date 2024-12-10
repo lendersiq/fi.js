@@ -262,6 +262,7 @@ function showRunModal() {
   const runButton = document.createElement('button');
   runButton.textContent = 'Run';
   runButton.className = 'button';
+  runButton.style.margin = "10px 0";
   runButton.disabled = true; // Disable the run button initially
 
   // Identify sources and inputs from the formula
@@ -342,6 +343,35 @@ function showRunModal() {
   modalBody.appendChild(inputsContainer);
   modalBody.appendChild(outputContainer);
   modalBody.appendChild(runButton);
+
+  const accordionDiv = document.createElement('div');
+  accordionDiv.classList.add('accordion');
+  const mainHeader = document.createElement('div');
+  mainHeader.classList.add('accordion-header');
+  mainHeader.id = 'accordion-header';
+  mainHeader.textContent = ' Container';
+  const mainCaret = document.createElement('div');
+  mainCaret.classList.add('caret');
+  mainCaret.id = 'caret';
+  mainHeader.appendChild(mainCaret);
+  const mainContent = document.createElement('div');
+  mainContent.classList.add('accordion-content');
+  mainContent.id = 'accordion-content';
+  accordionDiv.appendChild(mainHeader);
+  accordionDiv.appendChild(mainContent);
+
+  for (const key in appConfig) {
+    const accordionItem = createAccordionItem(key, appConfig[key]);
+    mainContent.appendChild(accordionItem);
+  }
+
+  mainHeader.addEventListener('click', () => {
+    const isVisible = mainContent.style.display === 'block';
+    mainContent.style.display = isVisible ? 'none' : 'block';
+    mainCaret.classList.toggle('open', !isVisible);
+  });
+
+  modalBody.appendChild(accordionDiv);
   modalContent.appendChild(modalBody);
   modal.appendChild(modalContent);
   document.body.appendChild(modal);
@@ -349,6 +379,73 @@ function showRunModal() {
   // Set the title content into the <h2> element with id 'modalTitle'
   document.getElementById('modalTitle').textContent = document.title;
 }
+
+function createAccordionItem(key, value) {
+  const item = document.createElement('div');
+  const header = document.createElement('div');
+  const content = document.createElement('div');
+  const caret = document.createElement('span');
+
+  header.className = 'accordion-header';
+  content.className = 'accordion-content';
+  caret.className = 'caret';
+
+  const headerText = document.createElement('span');
+  headerText.textContent = key;
+  header.appendChild(headerText);
+  header.appendChild(caret);
+
+  if (Array.isArray(value)) {
+    const list = document.createElement('ul');
+    value.forEach(item => {
+      const listItem = document.createElement('li');
+      listItem.textContent = JSON.stringify(item);
+      list.appendChild(listItem);
+    });
+    content.appendChild(list);
+  } else if (typeof value === 'object' && value !== null) {
+    for (const subKey in value) {
+      if (subKey === 'columns') {
+        const subItemHeader = document.createElement('div');
+        subItemHeader.className = 'accordion-header';
+        subItemHeader.textContent = subKey;
+        const subItemContent = document.createElement('div');
+        subItemContent.className = 'accordion-content';
+        const list = document.createElement('ul');
+        value[subKey].forEach(column => {
+          const listItem = document.createElement('li');
+          listItem.textContent = JSON.stringify(column);
+          list.appendChild(listItem);
+        });
+        subItemContent.appendChild(list);
+
+        subItemHeader.addEventListener('click', () => {
+          const isVisible = subItemContent.style.display === 'block';
+          subItemContent.style.display = isVisible ? 'none' : 'block';
+        });
+
+        content.appendChild(subItemHeader);
+        content.appendChild(subItemContent);
+      } else {
+        const subItem = createAccordionItem(subKey, value[subKey]);
+        content.appendChild(subItem);
+      }
+    }
+  } else {
+    content.textContent = value;
+  }
+
+  header.addEventListener('click', () => {
+    const isVisible = content.style.display === 'block';
+    content.style.display = isVisible ? 'none' : 'block';
+    caret.classList.toggle('open', !isVisible);
+  });
+
+  item.appendChild(header);
+  item.appendChild(content);
+  return item;
+}
+
 
 function showSpinner() {
   let spinner = document.getElementById('spinner-container');

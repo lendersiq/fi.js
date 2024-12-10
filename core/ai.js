@@ -7,57 +7,80 @@ const synonymLibrary = {
     'deposit': ['credit'],
     'certificate': ['cd', 'cod', 'certificate of deposit'],
     'own': ['responsibility'],
-    'typ': ['classification', 'class']
+    'typ': ['classification', 'class'],
+    'class': ['type']
 };
 
 function stem(word) {
     word = word.toLowerCase();
+
     // Handle irregular forms
     const irregulars = {
-      'running': 'run',
-      'ran': 'run',
-      'swimming': 'swim',
-      'swam': 'swim',
-      'taking': 'take',
-      'took': 'take',
-      'gone': 'go',
-      'went': 'go',
-      'being': 'be',
-      'was': 'be',
-      'were': 'be',
-      'having': 'have',
-      'had': 'have',
-      'fees': 'fee',
-      'responsibility' : 'resp'
+        'running': 'run',
+        'ran': 'run',
+        'swimming': 'swim',
+        'swam': 'swim',
+        'taking': 'take',
+        'took': 'take',
+        'gone': 'go',
+        'went': 'go',
+        'being': 'be',
+        'was': 'be',
+        'were': 'be',
+        'having': 'have',
+        'had': 'have',
+        'fees': 'fee',
+        'responsibility': 'resp'
     };
-  
+
     if (irregulars[word]) {
-      return irregulars[word];
+        return irregulars[word];
     }
-  
+
+    // Function to measure the structure of a word
+    function measure(stem) {
+        return stem.replace(/[^aeiouy]+/g, 'C').replace(/[aeiouy]+/g, 'V').match(/VC/g)?.length || 0;
+    }
+
     // Remove common suffixes
     const suffixes = [
-      'ational', 'tional', 'enci', 'anci', 'izer', 'bli', 'alli',
-      'entli', 'eli', 'ousli', 'ization', 'ation', 'ator', 'alism',
-      'iveness', 'fulness', 'ousness', 'aliti', 'iviti', 'biliti',
-      'logi', 'ing', 'ed', 'ly', 'es', 's', 'er', 'est', 'ment', 'ness'
+        'ational', 'tional', 'enci', 'anci', 'izer', 'bli', 'alli',
+        'entli', 'eli', 'ousli', 'ization', 'ation', 'ator', 'alism',
+        'iveness', 'fulness', 'ousness', 'aliti', 'iviti', 'biliti',
+        'logi', 'ing', 'ed', 'ly', 'es', 'er', 'est', 'ment', 'ness'
     ];
-  
+
     for (const suffix of suffixes) {
-      if (word.endsWith(suffix)) {
-        word = word.slice(0, -suffix.length);
-        break;
-      }
+        if (word.endsWith(suffix)) {
+            const potentialStem = word.slice(0, -suffix.length);
+
+            // Ensure meaningful stems by checking measure
+            if (measure(potentialStem) > 0) {
+                word = potentialStem;
+            }
+            break;
+        }
     }
-  
-    // Handle double consonants (e.g., "hopping" -> "hop")
-    word = word.replace(/(.)\1$/, '$1');
-  
-    // Remove trailing 'e' when word is less than 3 characters
-    if (word.endsWith('e') && word.length > 3) {
-      word = word.slice(0, -1);
+
+    // Remove trailing 'e' when it doesn't violate rules
+    if (word.endsWith('e') && word.length > 4 && measure(word.slice(0, -1)) > 0) {
+        word = word.slice(0, -1);
     }
-  
+
+    // Remove 's' only when conditions are met
+    if (
+        word.endsWith('s') &&               // Ends with "s"
+        !word.endsWith('ss') &&            // Does not end with "ss"
+        measure(word.slice(0, -1)) > 0 &&  // Valid measure after removing "s"
+        word.slice(0, -1).length >= 3      // Stem length remains meaningful
+    ) {
+        word = word.slice(0, -1);
+    } else {
+        // Handle double consonants more selectively
+        if (/(.)\1$/.test(word) && !/ss$/.test(word)) {
+            word = word.replace(/(.)\1$/, '$1');
+        }
+    }
     return word;
 }
 
