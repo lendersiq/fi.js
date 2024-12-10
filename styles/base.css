@@ -338,3 +338,81 @@ canvas {
     margin: 0 -0.02em 0 0;
     position: relative;
 }
+
+.custom-file-upload {
+    padding: 3px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', 'Menlo', 'Monaco', 'Lucida Console', monospace;
+    font-size: 16px;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+    display: flex;
+    align-items: center;
+    position: relative;
+    min-width: fit-content;
+    border: 2px solid #007bff;
+    background-color: white;
+    color: #007bff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    animation: border-pulse 2s infinite;
+    width: 75%;
+}
+
+.accordion {
+    cursor: pointer;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', 'Menlo', 'Monaco', 'Lucida Console', monospace;
+    font-size: 16px;
+    border: 2px solid #4a94c1;
+    background-color: white;
+    color: #4a94c1;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    width: 75%;
+  }
+
+  .accordion-header {
+    background-color: #f7f7f7;
+    cursor: pointer;
+    padding: 3px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .accordion-content {
+    display: none;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    background-color: #fff;
+    overflow: hidden;
+  }
+
+  .accordion-header:hover {
+    background-color: #eaeaea;
+  }
+
+  .caret {
+    font-size: 10px;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-left: 3px solid #4a94c1;
+    border-bottom: 3px solid #4a94c1;
+    transform: rotate(45deg);
+    transition: transform 0.3s ease;
+  }
+
+  .caret.open {
+    transform: rotate(-135deg);
+  }
+
+  .accordion-content ul {
+    padding-left: 20px;
+    margin: 0;
+  }
+
+  .accordion-content li {
+    list-style: none;
+    word-wrap: break-word; /* Ensures long text wraps */
+  }
