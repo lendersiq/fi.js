@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://trwth.com; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="img-src 'self' data:; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://trwth.com; object-src 'none';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../../styles/base.css">
   <title>Campaign Performance</title>
 </head>
 <body>
@@ -12,12 +12,12 @@
   <script>
     // App configuration
     const appConfig = {
+      destcription: 'Report the principal totals of all loans closed type or class which aligns with the campaign time period (remember to lag your dates in the formula based on campaign start date)',
       libraries: [
         'financial',
         'organization'
       ],
-      // loans of the marketed type or class which aligns with the campaign time period (remember to lag your dates in the formula based on campaign start date)
-      formula: 'loan.class in [1, 20] & loan.open > "2020-10-31" & loan.open < "2024-11-03" ?  loan.principal : null',
+      formula: 'loan.class in [1, 20] & loan.open > "2024-01-01" & loan.open < "2024-11-03" ?  loan.principal : null',
       groupBy: 'Portfolio',
       presentation: {
         columns: [
