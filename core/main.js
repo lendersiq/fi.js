@@ -6,7 +6,7 @@ if (typeof appConfig === 'undefined') {
 }
 
 // if logger is true, select console.logs will log
-let logger = true; 
+let logger = false; 
 
 /**
 * Extracts unique source names from the formula.
@@ -304,12 +304,14 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
       const uniqueId = row[translatedGroupKey];
       console.log('Processing row:', row);
       if (!results[uniqueId]) {
-        results[uniqueId] = { result: 0, count: 0, formula: '' };
+        results[uniqueId] = { result: 0, units: 1, tally: 0, expression: '' };
+      } else {
+        results[uniqueId].units++;
       }
 
       // remove input parameters
       const scrubbedFormula = formula.replace(/(input\.\w+)\([^)]*\)/g, '$1');
-      console.log('scrubbed formula', scrubbedFormula)
+      if (logger) console.log('scrubbed formula', scrubbedFormula);
 
       const DateToDaysFormula = scrubbedFormula.replace(dateRegex, match => {
         // Remove quotes if present and convert the date
@@ -410,12 +412,12 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
         }
       });
       
-      if (results[uniqueId].formula) {
-        results[uniqueId].formula = `${results[uniqueId].formula} + ( ${resolvedFormula} )`;
+      if (results[uniqueId].expression) {
+        results[uniqueId].expression = `${results[uniqueId].expression} + ( ${resolvedFormula} )`;
       } else {
-          results[uniqueId].formula = `( ${resolvedFormula} )`;
+          results[uniqueId].expression = `( ${resolvedFormula} )`;
       }
-      //console.log(`formula by uniqueId: ${uniqueId} = ${results[uniqueId].formula}`);
+
       // Populate other fields based on the presentation configuration
       if (appConfig.presentation && appConfig.presentation.columns) {
         appConfig.presentation.columns.forEach(column => {
@@ -434,26 +436,33 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
   
   });
 
-  // After processing all sources, evaluate the complete formula for each uniqueId
+  // After processing all sources, evaluate the entire expression for each uniqueId
   Object.keys(results).forEach(uniqueId => {
-    let formula = results[uniqueId].formula.replace(/^,\s*/, '');
-    console.log('Formula before evaluation:', formula);
+    let prePropertiesExpression = results[uniqueId].expression;
+    Object.entries(results[uniqueId]).forEach(([properties, value]) => { 
+      const regex = new RegExp(properties, 'g');
+      prePropertiesExpression = prePropertiesExpression.replace(regex, value);
+    });
+
+    let finalExpression = prePropertiesExpression;  //replace(/^,\s*/, '');
+    console.log('Final expression before evaluation:', finalExpression);
 
     try {
-      const finalEvaluation = evaluateExpression(formula);
+      const finalEvaluation = evaluateExpression(finalExpression);
       const finalResult = finalEvaluation.result;
       const finalCount = finalEvaluation.nonNullCount;
-      console.log('Final Formula Evaluation Result:', finalResult);
+      if (logger) console.log('Final Expression Evaluation Result:', finalResult);
 
       results[uniqueId].result = finalResult;
-      results[uniqueId].count = finalCount;
+      results[uniqueId].tally = finalCount;
     } catch (error) {
-        console.error('Error evaluating final formula:', error);
+        console.error('Error evaluating final expression:', error);
         results[uniqueId].result = 0;
     }
   });
 
-  console.log('Final Results:', results);
+
+  if (logger) console.log('Final Results:', results);
   return results;
 }
 
@@ -542,7 +551,7 @@ if (appConfig && appConfig.libraries) {
   console.warn('no libraries defined')
 }
 
-window.processModal = function(fileInputs, identifiedPipes, appConfig) {
+window.processModal = function(fileInputs, identifiedPipes, appConfig, formula) {
   const digestData = {};
   const promises = identifiedPipes.sources.map(sourceName => {
     // Show the spinner before starting the promise
@@ -585,7 +594,8 @@ window.processModal = function(fileInputs, identifiedPipes, appConfig) {
         console.log('Analytics:', window.analytics);
         document.getElementById('chart-container').style.display = 'block';
       }
-      combinedResults = processFormula(identifiedPipes, appConfig.formula, appConfig.groupBy, digestData);
+      const cleanFormula = formula.replace(/!/g, '! '); //may be other cleaning required
+      combinedResults = processFormula(identifiedPipes, cleanFormula, appConfig.groupBy, digestData);
       displayResultsInTable(combinedResults);
     })
     .catch(error => {

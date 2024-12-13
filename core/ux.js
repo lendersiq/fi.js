@@ -85,10 +85,10 @@ function displayResultsInTable() {
     if (data.result) {
       const row = document.createElement('tr');
       const uniqueIdCell = document.createElement('td');
-      uniqueIdCell.textContent = `${uniqueId.toString()} (${data.count})`;
+      uniqueIdCell.textContent = `${uniqueId.toString()} (${data.tally})`;
       row.appendChild(uniqueIdCell);
 
-      totalCount += data.count;
+      totalCount += data.tally;
 
       appConfig.presentation.columns.forEach((column, index) => {
         const cell = document.createElement('td');
@@ -220,7 +220,7 @@ function displayResultsInTable() {
   function updateUniqueColumns(mapping) {
     Object.entries(combinedResults).forEach(([uniqueId, _]) => {
       if (mapping[uniqueId] && rows[uniqueId]) {
-        rows[uniqueId].textContent = mapping[uniqueId] + ' (' + combinedResults[uniqueId].count + ')';
+        rows[uniqueId].textContent = mapping[uniqueId] + ' (' + combinedResults[uniqueId].tally + ')';
       }
     });
   }
@@ -332,7 +332,8 @@ function showRunModal() {
 
   // Handle file selection and process formula
   runButton.addEventListener('click', () => {
-    processModal(fileInputs, identifiedPipes, appConfig);
+    const formula = document.getElementById('formula').textContent.trim();
+    processModal(fileInputs, identifiedPipes, appConfig, formula);
     if (identifiedPipes.sources.length > 0) {
       document.body.removeChild(modal);
     }
@@ -388,6 +389,12 @@ function createAccordionItem(key, value) {
 
   header.className = 'accordion-header';
   content.className = 'accordion-content';
+  if (key === 'formula') {
+    content.classList.add('code-container');
+    content.setAttribute('contenteditable', 'true');
+    content.setAttribute('spellcheck', 'false');
+    content.id = 'formula';
+  }
   caret.className = 'caret';
 
   const headerText = document.createElement('span');
@@ -470,9 +477,43 @@ function showSpinner() {
   spinner.style.display = 'flex';
 }
 
-// Set up the modal on page load
 document.addEventListener('DOMContentLoaded', () => {
-  showRunModal();
+  showRunModal(); // Set up the modal on page load
+  const appConfigElements = document.querySelectorAll('.code-container');
+  appConfigElements.forEach(appConfigElement => {
+      let highlightedText = appConfigElement.textContent;
+      
+      // Highlight double curly braces first to ensure they are not affected by other replacements
+      highlightedText = highlightedText
+          .replace(/\{\{/g, '<span class="highlight-double-curly">{{</span>')
+          .replace(/\}\}/g, '<span class="highlight-double-curly">}}</span>');
+
+      // Use a function to handle highlighting source.object pairs
+      const sourceObjectRegex = /\b([a-zA-Z_][a-zA-Z0-9_]*)\.(\b[a-zA-Z_][a-zA-Z0-9_]*\b)/g;
+      highlightedText = highlightedText.replace(sourceObjectRegex, (match, source, object) => {
+          //console.log("Match found:", match, "| Source:", source, "| Object:", object);
+          return `<span class="highlight-source">${source}</span><span class="highlight-dot">.</span><span class="highlight-object">${object}</span>`;
+      });
+
+      // Highlight keywords and specific elements after handling source.object pairs
+      highlightedText = highlightedText
+          .replace(/\bconst\b/g, '<span class="highlight-const">const</span>')
+          .replace(/\bappConfig\b/g, '<span class="highlight-appConfig">appConfig</span>')
+          .replace(/(?<!\{)\{(?!\{)/g, '<span class="highlight-curly">{</span>')
+          .replace(/(?<!\})\}(?!\})/g, '<span class="highlight-curly">}</span>')
+          .replace(/\(/g, '<span class="highlight-parentheses">(</span>')
+          .replace(/\)/g, '<span class="highlight-parentheses">)</span>')
+          .replace(/\[/g, '<span class="highlight-brackets">[</span>')
+          .replace(/\]/g, '<span class="highlight-brackets">]</span>')
+          .replace(/\b(null)\b/g, '<span class="highlight-null">$1</span>')
+          .replace(/(\b[a-zA-Z_][a-zA-Z0-9_]*\b)(?=\s*:)/g, '<span class="highlight-key">$1</span>');
+
+      // Highlight all text after // to the end of the line in hunter green
+      highlightedText = highlightedText.replace(/\/\/.*$/gm, '<span class="highlight-comment">$&</span>');
+
+      // Set the final highlighted text back to the HTML element
+      appConfigElement.innerHTML = highlightedText;
+  });
 });
 
 function configureUX() {
