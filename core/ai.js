@@ -124,7 +124,8 @@ function aiTranslater(headers, field) {
     // Remove any special characters and trim whitespace
     cleanField = cleanField.replace(/[^a-zA-Z0-9]/g, '').trim();
 
-    const headersLower = headers.map(header => stem(header.toLowerCase()));
+    //const headersLower = headers.map(header => stem(header.toLowerCase()));  //depr stemmed headers
+    const headersLower = headers.map(header => header.toLowerCase());
     const stemmedField = stem(cleanField.toLowerCase());
     // First, try to find a direct match
     let matchingHeader = headersLower.find(header => header.includes(stemmedField));

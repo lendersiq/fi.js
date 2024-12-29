@@ -33,10 +33,10 @@ let logger = true;
               
               // System Tests 
               // Test the aiTranslater function
-              const headers = ['Portfolio', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges'];
-              const translatedHeader = aiTranslater(headers, 'fees');
-              console.log('Translated Header:', translatedHeader);
-              console.log(`Testing Stemmer: stem class = ${stem('class')} and type = ${stem('type')}`)
+              const headers = ['Portfolio', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
+              console.log('Translated header testing (pay):', aiTranslater(headers, 'pay'));
+              console.log('Translated header testing (fees):', aiTranslater(headers, 'fees'));
+              console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} and type = ${stem('type')}`)
               
               loadUX();
               loadCharts();

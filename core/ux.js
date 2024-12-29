@@ -246,7 +246,7 @@ function showRunModal() {
   modalHeader.className = 'modal-header';
   // LoFi Indicator
   const lightIndicator = document.createElement('div');
-  lightIndicator.className = 'light-indicator waiting'; // Default to 'waiting' state
+  lightIndicator.className = 'light-indicator online'; // Default to 'waiting' state
   lightIndicator.id = "LoFiIndicator";
   lightIndicator.title = 'Waiting for Signal';
   modalHeader.appendChild(lightIndicator);
@@ -416,7 +416,7 @@ function createAccordionItem(key, value) {
     content.classList.add('code-container');
     content.setAttribute('contenteditable', 'true');
     content.setAttribute('spellcheck', 'false');
-    content.style.padding = '1em 0';
+    content.style.padding = '2em 0';
     content.id = 'formula';
   }
   caret.className = 'caret';
