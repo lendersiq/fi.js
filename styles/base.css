@@ -1,7 +1,17 @@
 /* base.css */
 body {
-    font-size: 16px;
-    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    background: #fdfdfd;
+    color: #333;
+    padding: 2rem;
+}
+
+h1, h2, h3 {
+    font-weight: 300;
+    letter-spacing: 1px;
+    color: #333;
+    margin: 0 0 1rem 0;
 }
 
 /* Table Container */
@@ -30,7 +40,7 @@ th, td {
 }
 
 th {
-  background-color: #00aaff;
+  background-color: #4682B4;
   color: white;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -51,58 +61,6 @@ td {
   transition: background-color 0.3s;
 }
 
-/* Modal styling */
-.modal {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4); /* Slightly less opacity for a subtler effect */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 0;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 600px;
-    border-radius: 8px;
-    position: relative;
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(135deg, #141414, #00aaff);
-    color: white;
-    padding: 10px 20px;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    margin: 0;
-}
-
-.modal-header img {
-    height: 40px;
-    width: 40px;
-}
-
-.modal-header h2 {
-    margin: 0;
-    flex-grow: 1;
-    text-align: center;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
 /* Button styling */
 .chart-button {
     background-color: #CC5500; 
@@ -121,19 +79,19 @@ td {
 }
 
 .button {
-    background-color: #50C878;
+    background-color: #B49C46;
     color: white;
-    padding: 6px 12px;
+    padding: 6px 8px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s ease;
     margin-top: 10px;
 }
 
 .button:hover {
-    background-color: #3b9e63; /* Even darker on hover for a nice effect */
+    background-color: #8F7C36; /* Even darker on hover for a nice effect */
 }
 
 .button:disabled {
@@ -196,70 +154,24 @@ canvas {
 
 .spinner-container {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/*Logo*/
-:root {
-    --logo-size: 200px; /* Default size of the logo container */
-}
-
-.logo-container {
-    margin: calc(var(--logo-size) * 0.15);
-    position: relative;
-    width: var(--logo-size);
-    height: var(--logo-size);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #333; /* Background color for visibility */
-    border: calc(var(--logo-size) * 0.05) solid #50C878;
-}
-
-.square, .inner-square, .innermost-square {
-    position: absolute;
-    border: calc(var(--logo-size) * 0.05) solid #00aaff; /* Light blue */
-    transform: rotate(45deg);
-}
-
-.square {
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
 }
-
-.inner-square {
-    width: 80%;
-    height: 80%;
-}
-
-.innermost-square {
-    width: 60%;
-    height: 60%;
-}
-
-.top-square {
-    width: 70%; /* Adjust size as needed */
-    height: 70%;
-    border: calc(var(--logo-size) * 0.05) solid #50C878; /* Emerald green, matching the container */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); /* Center the square */
-}
-
-.logo-text {
-    position: absolute;
-    color: #fff;
-    font-size: calc(var(--logo-size) * 0.4); /* Adjusted for readability */
-    transform: rotate(-45deg);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-45deg); /* Properly center and orient text */
+  
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-top: 5px solid #00aaff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
 .hidden-file-input {
@@ -291,8 +203,267 @@ canvas {
     animation: none;
 }
 
+/* Form Group */
+.form-group {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+/* Label Styling */
+.form-group label {
+    width: 25%; /* Adjust the width as needed */
+    margin-right: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Text Input Styling */
+.form-group input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #333;
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.form-group input[type="text"]:focus {
+    border-color: #50C878; /* Emerald green */
+    box-shadow: 0 0 5px rgba(80, 200, 120, 0.5);
+}
+
+.form-group input[type="text"]:hover {
+    border-color: #00aaff; /* Light blue */
+}
+
+.form-group input[type="text"]::placeholder {
+    color: #999;
+}
+
+.form-group input[type="text"]:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
 @keyframes border-pulse {
     0% { border-color: #007bff; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
     50% { border-color: #339bff; box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3); }
     100% { border-color: #007bff; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
+}
+
+@media print {
+    /* Hide unnecessary elements that may not be useful in print */
+    body {
+        overflow: visible;
+    }
+
+    /* Ensure the table takes the full width of the page */
+    table {
+        width: 100%;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    /* Remove scrolling by setting a height that fits the entire content */
+    .table-container {
+        height: auto !important;
+        overflow: visible !important;
+    }
+  
+    /* Optional: Style adjustments for a better print layout */
+    th, td {
+        page-break-inside: avoid;
+    }
+}
+
+.code-container {
+    background-color: #282c34;
+    color: #abb2bf;
+    padding: 10px 15px;
+    margin: 2px 0;
+    border-radius: 5px;
+    font-family: 'Roboto Mono', Courier, monospace;
+    font-size: 13px;
+    white-space: pre;
+    overflow-x: auto;
+    overflow-y: hidden;
+    line-height: 1.3;
+    text-align: left;
+}
+
+.highlight-brackets {
+    color: #c678dd;
+}
+
+.highlight-curly {
+    color: #e06c75;
+}
+
+.highlight-parentheses {
+    color: #61afef;
+}
+
+.highlight-key {
+    color: #d19a66;
+}
+
+.highlight-null {
+    color: red;
+}
+
+.highlight-source {
+    color: #98c379;
+}
+
+.highlight-object {
+    color: #61afef;
+}
+
+.highlight-const {
+    color: #56b6c2;
+}
+
+.highlight-appConfig {
+    color: #e5c07b;
+    font-weight: bold;
+}
+
+.highlight-dot {
+    color: #abb2bf;
+}
+
+.highlight-double-curly {
+    color: #ffd700;
+}
+
+.highlight-comment {
+    color: #355e3b;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal {
+    background: #fff;
+    border-radius: 4px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    box-sizing: border-box;
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto; /* Allows vertical scroll when content exceeds boundary */
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    cursor: pointer;
+    color: #333;
+}
+
+.run-btn {
+    margin-top: 1rem;
+    display: inline-block;
+    background: rgba(0, 122, 204, 0.8);
+    color: #fff;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.run-btn:hover {
+    background: rgba(0, 122, 204, 0.6);
+}
+
+/* Accordion Styles */
+.accordion {
+    margin-top: 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.accordion-item {
+    border-bottom: 1px solid #eee;
+}
+
+.accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 0.75rem 0;
+}
+
+.accordion-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+.accordion-header .caret {
+    font-size: 1.0rem;
+    transition: transform 0.3s ease;
+    color: rgba(0, 122, 204, 0.8);
+}
+
+.accordion-header:hover h3 {
+    color: #4682B4;
+}
+
+.accordion-content {
+    display: none;
+    padding: 0.5rem 0;
+}
+
+.caret.open {
+    transform: rotate(180deg);
+}
+
+.accordion-content ul {
+    list-style: none;
+    padding: 0;
+}  
+  
+.accordion-content ul li {
+    position: relative;
+    padding-left: 20px;
+  }
+  
+.accordion-content ul li::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background-color: #4682B4;
+    border-radius: 3px; /* Rounded corners for a modern look */
 }
