@@ -1,3 +1,5 @@
+//ai.js
+
 // Synonym library to map common synonyms to their respective headers
 const synonymLibrary = {
     'fee': ['charge', 'cost', 'duty', 'collection', 'levy'],
@@ -5,56 +7,82 @@ const synonymLibrary = {
     'checking': ['dda', 'demand deposit'], 
     'withdrawal': ['check', 'draft', 'debit'],
     'deposit': ['credit'],
-    'certificate': ['cd', 'cod', 'certificate of deposit']
+    'certificate': ['cd', 'cod', 'certificate of deposit'],
+    'own': ['responsibility'],
+    'typ': ['classification', 'class'],
+    'class': ['type']
 };
 
 function stem(word) {
     word = word.toLowerCase();
+
     // Handle irregular forms
     const irregulars = {
-      'running': 'run',
-      'ran': 'run',
-      'swimming': 'swim',
-      'swam': 'swim',
-      'taking': 'take',
-      'took': 'take',
-      'gone': 'go',
-      'went': 'go',
-      'being': 'be',
-      'was': 'be',
-      'were': 'be',
-      'having': 'have',
-      'had': 'have',
-      'fees': 'fee'
+        'running': 'run',
+        'ran': 'run',
+        'swimming': 'swim',
+        'swam': 'swim',
+        'taking': 'take',
+        'took': 'take',
+        'gone': 'go',
+        'went': 'go',
+        'being': 'be',
+        'was': 'be',
+        'were': 'be',
+        'having': 'have',
+        'had': 'have',
+        'fees': 'fee',
+        'responsibility': 'resp'
     };
-  
+
     if (irregulars[word]) {
-      return irregulars[word];
+        return irregulars[word];
     }
-  
+
+    // Function to measure the structure of a word
+    function measure(stem) {
+        return stem.replace(/[^aeiouy]+/g, 'C').replace(/[aeiouy]+/g, 'V').match(/VC/g)?.length || 0;
+    }
+
     // Remove common suffixes
     const suffixes = [
-      'ational', 'tional', 'enci', 'anci', 'izer', 'bli', 'alli',
-      'entli', 'eli', 'ousli', 'ization', 'ation', 'ator', 'alism',
-      'iveness', 'fulness', 'ousness', 'aliti', 'iviti', 'biliti',
-      'logi', 'ing', 'ed', 'ly', 'es', 's', 'er', 'est', 'ment', 'ness'
+        'ational', 'tional', 'enci', 'anci', 'izer', 'bli', 'alli',
+        'entli', 'eli', 'ousli', 'ization', 'ation', 'ator', 'alism',
+        'iveness', 'fulness', 'ousness', 'aliti', 'iviti', 'biliti',
+        'logi', 'ing', 'ed', 'ly', 'es', 'er', 'est', 'ment', 'ness'
     ];
-  
+
     for (const suffix of suffixes) {
-      if (word.endsWith(suffix)) {
-        word = word.slice(0, -suffix.length);
-        break;
-      }
+        if (word.endsWith(suffix)) {
+            const potentialStem = word.slice(0, -suffix.length);
+
+            // Ensure meaningful stems by checking measure
+            if (measure(potentialStem) > 0) {
+                word = potentialStem;
+            }
+            break;
+        }
     }
-  
-    // Handle double consonants (e.g., "hopping" -> "hop")
-    word = word.replace(/(.)\1$/, '$1');
-  
-    // Remove trailing 'e' when word is less than 3 characters
-    if (word.endsWith('e') && word.length > 3) {
-      word = word.slice(0, -1);
+
+    // Remove trailing 'e' when it doesn't violate rules
+    if (word.endsWith('e') && word.length > 4 && measure(word.slice(0, -1)) > 0) {
+        word = word.slice(0, -1);
     }
-  
+
+    // Remove 's' only when conditions are met
+    if (
+        word.endsWith('s') &&               // Ends with "s"
+        !word.endsWith('ss') &&            // Does not end with "ss"
+        measure(word.slice(0, -1)) > 0 &&  // Valid measure after removing "s"
+        word.slice(0, -1).length >= 3      // Stem length remains meaningful
+    ) {
+        word = word.slice(0, -1);
+    } else {
+        // Handle double consonants more selectively
+        if (/(.)\1$/.test(word) && !/ss$/.test(word)) {
+            word = word.replace(/(.)\1$/, '$1');
+        }
+    }
     return word;
 }
 
@@ -81,8 +109,23 @@ function aiSynonymKey(word) {
 
 // AI translation function to map formula fields to CSV headers
 function aiTranslater(headers, field) {
+    //extract field from source.field, if neccessary
+    let cleanField;
+
+    // Check if the field contains a dot, indicating it's in the '{source}.{function or object}' format
+    if (field.includes('.')) {
+      // Extract everything after the dot
+      cleanField = field.split('.')[1];
+    } else {
+      // Otherwise, keep the field as it is
+      cleanField = field;
+    }
+  
+    // Remove any special characters and trim whitespace
+    cleanField = cleanField.replace(/[^a-zA-Z0-9]/g, '').trim();
+
     const headersLower = headers.map(header => stem(header.toLowerCase()));
-    const stemmedField = stem(field.toLowerCase());
+    const stemmedField = stem(cleanField.toLowerCase());
     // First, try to find a direct match
     let matchingHeader = headersLower.find(header => header.includes(stemmedField));
     // If no direct match, check the synonym library
@@ -96,8 +139,7 @@ function aiTranslater(headers, field) {
     return matchingHeader ? headers[headersLower.indexOf(matchingHeader)] : null;
 }
 
-function aiTableTranslater(tableId) {
-    console.log('aiTableTranslater(tableId)', tableId)
+function aiTableTranslater(tableId, header = null) {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.csv';
@@ -110,7 +152,7 @@ function aiTableTranslater(tableId) {
         reader.onload = function(event) {
         parseCSV(event.target.result, (data) => {
             const mapping = createMapping(data);
-            updateTableWithMapping(mapping, tableId);
+            updateTableWithMapping(mapping, tableId, header);
         });
         };
         reader.readAsText(file);
@@ -139,16 +181,49 @@ function createMapping(data) {
     return mapping;
 }
 
-function updateTableWithMapping(mapping, tableId) {
+function updateTableWithMapping(mapping, tableId, header = null) {  
     const table = document.getElementById(tableId);
     const rows = table.getElementsByTagName('tr');
+    let column = 0; // Default column index to 0
 
-    for (let i = 1; i < rows.length; i++) { // Start from 1 to skip the header
+    // If header is provided, find the matching column index
+    if (header) {
+        const headerCells = rows[0].getElementsByTagName('th');
+        for (let j = 0; j < headerCells.length; j++) {
+            if (headerCells[j].innerHTML.includes(header)) {
+                column = j;
+                break;
+            }
+        }
+    }
+
+    // Update the table based on the mapping and column index
+    for (let i = 1; i < rows.length; i++) { // Start from 1 to skip the header row
         const cells = rows[i].getElementsByTagName('td');
-        const legendValue = cells[0].textContent.trim();
-        
+        let legendValue = cells[column].textContent.trim();
+
+        // Normalize the legendValue to match the format in the mapping
+        // Extract the first 5 digits if it's in ZIP+4 format
+        const zipCodeMatch = legendValue.match(/^\d{5}/);
+        if (zipCodeMatch) {
+            legendValue = zipCodeMatch[0];
+        }
+
+        // Remove leading zeros to match the mapping key format
+        legendValue = legendValue.replace(/^0+/, '');
+
+        // Remove quotes if they exist
+        legendValue = legendValue.replace(/['"]/g, '');
+
+        // Ensure legendValue is properly converted to a number if numeric
+        if (!isNaN(legendValue) && legendValue !== "") {
+            legendValue = Number(legendValue);
+        }
+
+        console.log('legendValue', legendValue)
+        // Check if the normalized legendValue exists in the mapping
         if (mapping[legendValue]) {
-            cells[0].textContent = mapping[legendValue];
+            cells[column].textContent = `${mapping[legendValue]} (${legendValue})`;
         }
     }
 }
@@ -197,14 +272,18 @@ function aiIsBusiness(...args) {
     let isBusiness = false;
 
     // Validation: Check if relevant parameters exist and have valid values
-    if (typeof params.balance !== 'number' || typeof params.consumerMaximum !== 'number' || typeof params.deposits !== 'number') {
+    if (typeof params.balance !== 'number' || typeof params.consumerMaximum !== 'number' || typeof params.annualDeposits !== 'number') {
         throw new Error("Invalid or missing parameters. Ensure 'balance', 'consumerMaximum', and 'deposits' are provided as numbers.");
     }
-
+    const threeStandardDeviations = window.analytics[params.sourceIndex][aiTranslater(Object.keys(window.analytics[params.sourceIndex]), 'balance')].threeStdDeviations[1];
+    const twoStandardDeviations = window.analytics[params.sourceIndex][aiTranslater(Object.keys(window.analytics[params.sourceIndex]), 'balance')].twoStdDeviations[1];
+    
+    const highThreshold = threeStandardDeviations > params.consumerMaximum * 1.2  ?  threeStandardDeviations : params.consumerMaximum * 1.2; // 20% over the consumer threshold
+    const lowThreshold = twoStandardDeviations > params.consumerMaximum * .8  ?  twoStandardDeviations : params.consumerMaximum * .8; // 20% under the consumer threshold
     // Proceed with the logic if parameters are valid
-    if (params.balance > params.consumerMaximum * 1.2) {  // 20% over the consumer threshold
+    if (params.balance > highThreshold) {  
         isBusiness = true;
-    } else if (params.deposits > 6 && params.balance > params.consumerMaximum * 0.8) {  //80% of the consumer threshold
+    } else if (params.annualDeposits > 72 && params.balance > lowThreshold) {  
         isBusiness = true;
     }
 

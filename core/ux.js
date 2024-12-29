@@ -1,29 +1,36 @@
+// ux.js
+
 // Function to display combined results in a table
 function displayResultsInTable() {
   console.log('combinedResults', combinedResults);
   const tableContainer = document.createElement('div');
-  tableContainer.className = 'table-container'; 
+  tableContainer.className = 'table-container';
   const table = document.createElement('table');
-  table.className = 'table'; 
+  table.className = 'table';
+  table.id = 'results-table'
   const thead = document.createElement('thead');
-  
+
   const headerRow = document.createElement('tr');
 
-  // Create a button to handle unique ID mapping
-  const headerUnique = document.createElement('th');
+  // Create a button to handle Group ID mapping
+  const groupHeader = document.createElement('th');
   const mashUpButton = document.createElement('button');
-  mashUpButton.textContent = appConfig.unique;
+  mashUpButton.textContent = appConfig.groupBy;
   mashUpButton.className = 'button';
-  mashUpButton.addEventListener('click', handleUniqueIdButtonClick);
-  headerUnique.appendChild(mashUpButton);
-  headerRow.appendChild(headerUnique);
+  mashUpButton.addEventListener('click', handleGroupIdButtonClick);
+  groupHeader.appendChild(mashUpButton);
+  headerRow.appendChild(groupHeader);
 
   // Add headers from presentation config
   if (appConfig.presentation && appConfig.presentation.columns) {
     appConfig.presentation.columns.forEach(column => {
-      const header = document.createElement('th');
-      header.textContent = column.heading;
-      headerRow.appendChild(header);
+      const columnHeader = document.createElement('th');
+      const aiButton = document.createElement('button');
+      aiButton.textContent = column.heading;
+      aiButton.className = 'button';
+      aiButton.addEventListener('click', () => aiTableTranslater(table.id, column.heading));
+      columnHeader.appendChild(aiButton);
+      headerRow.appendChild(columnHeader);
     });
   }
 
@@ -34,71 +41,91 @@ function displayResultsInTable() {
   thead.appendChild(headerRow);
   table.appendChild(thead);
 
-  // Sort combinedResults by 'result' in descending order
+  // Determine column format based on values in each row
+  const columnFormat = appConfig.presentation.columns.map(() => ({ isCurrency: false, integerCount: 0, currencyCount: 0 }));
+  const columnSums = Array(appConfig.presentation.columns.length).fill(0);
+  let totalCount = 0;
+  let resultSum = 0;
+
+  // First pass to determine the dominant format for each column
   const sortedResults = Object.entries(combinedResults).sort((a, b) => {
     return parseFloat(b[1].result) - parseFloat(a[1].result);
   });
 
-  // Sort combinedResults by 'result' in ascending order
-  /*const sortedResults = Object.entries(combinedResults).sort((a, b) => {
-    return parseFloat(a[1].result) - parseFloat(b[1].result);
-  });*/
+  sortedResults.forEach(([_, data]) => {
+    appConfig.presentation.columns.forEach((column, index) => {
+      const field = column.field.toLowerCase();
+      let values = [];
 
+      if (data[field]) {
+        if (typeof data[field] === 'string') {
+          values = data[field].includes(',') ? values = data[field].split(',').map(v => parseFloat(v.trim())) : data[field];
+        } else {
+          values = Array.isArray(data[field]) ? data[field] : [parseFloat(data[field])];
+        }
+      }
+
+      //if (Array.isArray(data[field])) {
+      if (Array.isArray(values)) {
+        if (values.every(Number.isInteger) && values.every(v => v <= 9999)) {
+          columnFormat[index].integerCount += values.length;
+        } else if (typeof data[field] !== 'string') {
+          columnFormat[index].currencyCount += values.length;
+          columnFormat[index].isCurrency = true; // Flag as currency if any value suggests it
+        }
+      }
+    });
+  });
+
+  columnFormat.forEach((format, index) => {
+    format.isCurrency = format.currencyCount > format.integerCount;  //if more currency than integer column is currency
+  });
+
+  // Second pass to render each row with consistent formatting
   const rows = {};
-
-  // Iterate over sorted combined results to construct each row
   sortedResults.forEach(([uniqueId, data]) => {
     if (data.result) {
       const row = document.createElement('tr');
-
-      // Create the cell for the unique ID
       const uniqueIdCell = document.createElement('td');
-      uniqueIdCell.textContent = `${uniqueId.toString()}  (${data.count})`; // Ensure unique ID is a string
+      uniqueIdCell.textContent = `${uniqueId.toString()} (${data.tally})`;
       row.appendChild(uniqueIdCell);
 
-      // Add cells based on presentation config
-      if (appConfig.presentation && appConfig.presentation.columns) {
-        appConfig.presentation.columns.forEach(column => {
-          const cell = document.createElement('td');
-          const field = column.field.toLowerCase(); // Use field for data access
+      totalCount += data.tally;
 
-          let values;
-          if (data[field]) {
-              // Ensure data[field] is a string before using split
-              if (typeof data[field] === 'string') {
-                  values = data[field].split(',').map(v => parseFloat(v.trim()));
-              } else {
-                  // If data[field] is already a number or an array of numbers, use it directly
-                  values = Array.isArray(data[field]) ? data[field] : [parseFloat(data[field])];
-              }
+      appConfig.presentation.columns.forEach((column, index) => {
+        const cell = document.createElement('td');
+        const field = column.field.toLowerCase();
+        let values = [];
+
+        if (data[field]) {
+          if (typeof data[field] === 'string') {
+            values = data[field].includes(',') ? data[field].split(',').map(v => parseFloat(v.trim())) : data[field];
           } else {
-              values = [];
+            values = Array.isArray(data[field]) ? data[field] : [parseFloat(data[field])];
           }
+        }
 
-          // Determine the content of the cell based on the values
-          if (field === appConfig.unique.toLowerCase()) {
-              cell.textContent = uniqueId.toString();
-          } else if (values.length > 0) {
-              if (values.every(Number.isInteger) && values.every(v => v <= 9999)) {
-                  // If all values are integers and none are greater than 9999 (beyond typical attribute or classifcation systems), calculate and display the mode
-                  const modeValue = calculateMode(values);
-                  cell.textContent = modeValue;
-              } else {
-                  const sumValue = values.reduce((acc, v) => acc + v, 0);
-                  cell.textContent = new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                  }).format(sumValue);
-              }
+        if (Array.isArray(values)) {
+          if (!columnFormat[index].isCurrency) {
+            const modeValue = calculateMode(values);
+            cell.textContent = modeValue;
           } else {
-              cell.textContent = ''; // Default empty string if field is missing
+            const sumValue = values.reduce((acc, v) => acc + v, 0);
+            cell.textContent = new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD'
+            }).format(sumValue);
+            columnSums[index] += sumValue;
           }
+        } else if (values.length > 0) {
+          cell.textContent = values;
+        } else {
+          cell.textContent = '';
+        }
 
-          row.appendChild(cell);
+        row.appendChild(cell);
       });
-    }
-    
-      // Create the cell for the result
+
       const valueCell = document.createElement('td');
       valueCell.textContent = new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -106,20 +133,53 @@ function displayResultsInTable() {
       }).format(data.result);
       row.appendChild(valueCell);
 
-      table.appendChild(row);
-      rows[uniqueId] = uniqueIdCell; // Store reference for updating
+      resultSum += data.result;
 
+      table.appendChild(row);
+      rows[uniqueId] = uniqueIdCell;
     }
   });
+
+  // Add totals row at the end of the table
+  const totalRow = document.createElement('tr');
+  const totalLabelCell = document.createElement('td');
+  totalLabelCell.textContent = `Total Count: ${totalCount}`;
+  totalRow.appendChild(totalLabelCell);
+
+  appConfig.presentation.columns.forEach((_, index) => {
+    const totalCell = document.createElement('td');
+    if (columnFormat[index].isCurrency) {
+      totalCell.textContent = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(columnSums[index]);
+    } else {
+      totalCell.textContent = ''; // Blank if the column isn't currency
+    }
+    totalRow.appendChild(totalCell);
+  });
+
+  const resultTotalCell = document.createElement('td');
+  resultTotalCell.textContent = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(resultSum);
+  totalRow.appendChild(resultTotalCell);
+  table.appendChild(totalRow);
+
   tableContainer.appendChild(table);
   const resultsContainer = document.createElement('div');
   resultsContainer.id = 'results-container';
+  const resultsTitle = document.createElement('h2');
+  resultsTitle.textContent = document.title;
+  resultsTitle.style.paddingLeft = '1em';
+  resultsContainer.appendChild(resultsTitle);
   resultsContainer.appendChild(tableContainer);
   const appContainer = document.getElementById('app-container');
   appContainer.appendChild(resultsContainer);
 
   // Function to handle unique ID button click
-  function handleUniqueIdButtonClick() {
+  function handleGroupIdButtonClick() {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.csv';
@@ -161,135 +221,353 @@ function displayResultsInTable() {
   // Function to update unique columns using the mapping
   function updateUniqueColumns(mapping) {
     Object.entries(combinedResults).forEach(([uniqueId, _]) => {
-      if (mapping[uniqueId] && rows[uniqueId]) {  // mapping (mapping[uniqueId]) is present and table row (rows[uniqueId]) has been rendered
-        rows[uniqueId].textContent = mapping[uniqueId] + ' (' + combinedResults[uniqueId].count + ')';
+      if (mapping[uniqueId] && rows[uniqueId]) {
+        rows[uniqueId].textContent = mapping[uniqueId] + ' (' + combinedResults[uniqueId].tally + ')';
       }
     });
   }
 }
   
-  // Function to show the modal with file inputs and run button
-  function showRunModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.id = 'run-modal'; 
-  
-    const modalContent = document.createElement('div');
-    modalContent.className = 'modal-content';
-    // Render modal content
-    const modalHeading = `
-            <div class="modal-header">
-                 <div class="logo-container" style="--logo-size: 60px;">
-                      <div class="square"></div>
-                      <div class="inner-square"></div>
-                      <div class="innermost-square"></div>
-                      <div class="top-square"></div> 
-                      <div class="logo-text">JS</div>
-                  </div>
-                  <h2 id="modalTitle"></h2>
-            </div>
-    `;
-    modalContent.innerHTML = modalHeading;
-    const modalBody = document.createElement('div');
-    modalBody.className = 'modal-body';
-  
-    const fileInputsContainer = document.createElement('div');
-    const runButton = document.createElement('button');
-    runButton.textContent = 'Run';
-    runButton.className = 'button';
-    runButton.disabled = true; // Disable the run button initially
-  
-    // Identify sources from the formula
-    const identifiedSources = extractSources(appConfig.formula);
-  
-    // Create file inputs for each identified source
-    const fileInputs = {};
-    identifiedSources.forEach(sourceName => {
-      const step = document.createElement('div');
-      step.style.marginBottom = "10px";
-      const label = document.createElement('label');
-      label.htmlFor = `${sourceName}-file`;
-      label.className = "custom-file-upload";
-      label.innerHTML = `Choose ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)} Source`;
+// Function to show the modal with file inputs and starting button
+function showRunModal() {
+  const modalOverlay = document.createElement('div');
+  modalOverlay.className = 'modal-overlay';
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  const closeButton = document.createElement('button');
+  closeButton.className = 'close-btn';
+  closeButton.id = 'close-modal-btn';
+  closeButton.setAttribute('aria-label', 'Close Modal');
+  closeButton.innerHTML = '&times;';
+  closeButton.addEventListener('click', function() {
+    modalOverlay.style.display = 'none';
+  });
+  modal.appendChild(closeButton);
+  const modalHeader = document.createElement('span');
+  modalHeader.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 200 200">
+      <!-- Bottom rotated square -->
+      <g transform="rotate(45, 100, 100)">
+        <rect x="35" y="35" width="130" height="130" fill="#007acc" opacity="0.8" />
+        <text x="100" y="135" font-family="Arial, sans-serif" font-size="90" fill="#ffffff" text-anchor="middle" >
+          JS
+        </text>
+      </g>
+      <!-- Top square -->
+      <g>
+        <rect x="35" y="35" width="130" height="130" fill="#4caf50" opacity="0.75" />
+        <text x="100" y="130" font-family="Arial, sans-serif" font-size="80" fill="#ffffff" text-anchor="middle">
+          FI
+        </text>
+      </g>
+    </svg>`;
+  modal.appendChild(modalHeader)
+  const instructions = document.createElement('p');
+  instructions.textContent = 'Select data from the secure source.';
+  modal.appendChild(instructions);
+  const inputsContainer = document.createElement('div');
+  const startButton = document.createElement('button');
+  startButton.textContent = 'Run ' + document.title;
+  startButton.className = 'btn run-btn';
+  startButton.disabled = true; // Disable the run button initially
 
-      const input = document.createElement('input');
-      input.type = "file";
-      input.accept = ".csv";
-      input.id = `${sourceName}-file`;
-      input.className = "hidden-file-input";
-  
-      // Check if all files are selected to enable the run button
-      input.addEventListener('change', () => {
-        if (label) {
-          const fileName = input.files[0].name;
-          label.classList.add('completed');
-          label.innerHTML = `${sourceName}: ${fileName}`; 
-        }
-        const allFilesSelected = identifiedSources.every(sourceName => fileInputs[sourceName].files.length > 0);
-        runButton.disabled = !allFilesSelected;
+  // Identify sources and inputs from the formula
+  const identifiedPipes = extractPipes(appConfig.formula, appConfig.presentation);
+  console.log('identifiedPipes', identifiedPipes)
+  // Create file inputs for each identified source
+  const fileInputs = {};
+  identifiedPipes.sources.forEach(sourceName => {
+    const sourceDiv = document.createElement('div');
+    sourceDiv.style.marginBottom = "10px";
+    const label = document.createElement('label');
+    label.htmlFor = `${sourceName}-file`;
+    label.className = "custom-file-upload";
+    label.innerHTML = `Choose ${sourceName.charAt(0).toUpperCase() + sourceName.slice(1)} Source`;
+
+    const input = document.createElement('input');
+    input.type = "file";
+    input.accept = ".csv";
+    input.id = `${sourceName}-file`;
+    input.className = "hidden-file-input";
+
+    // Check if all files are selected to enable the run button
+    input.addEventListener('change', () => {
+      if (label) {
+        const fileName = input.files[0].name;
+        label.classList.add('completed');
+        label.innerHTML = `${sourceName}: ${fileName}`; 
+      }
+      const allFilesSelected = identifiedPipes.sources.every(sourceName => fileInputs[sourceName].files.length > 0);
+      startButton.disabled = !allFilesSelected;
+    });
+
+    sourceDiv.appendChild(label);
+    sourceDiv.appendChild(input);
+    inputsContainer.appendChild(sourceDiv);
+    fileInputs[sourceName] = input;
+  });
+
+  identifiedPipes.inputs.forEach(inputName => {
+    const inputDiv = document.createElement('div');
+    inputDiv.classList.add('form-group');
+    inputDiv.style.marginBottom = "10px";
+    const label = document.createElement('label');
+    label.innerHTML = `${inputName.charAt(0).toUpperCase() + inputName.slice(1)}`;
+    const input = document.createElement('input');
+    input.type = "text";
+    input.id = inputName;
+
+      // Event listener to check if all inputs are filled
+    input.addEventListener('input', () => {
+      let allFilled = true;
+
+      // Iterate over all inputs to check their values
+      identifiedPipes.inputs.forEach(name => {
+          const inputElement = document.getElementById(name);
+          if (!inputElement.value.trim()) {
+              allFilled = false;
+          }
       });
-  
-      step.appendChild(label);
-      step.appendChild(input);
-      fileInputsContainer.appendChild(step);
-      fileInputs[sourceName] = input;
+      startButton.disabled = !allFilled
     });
-  
-    // Handle file selection and process formula
-    runButton.addEventListener('click', () => {
-      readFilesAndProcess(fileInputs, identifiedSources, appConfig);
-      document.body.removeChild(modal);
-    });
-  
-    modalBody.appendChild(fileInputsContainer);
-    modalBody.appendChild(runButton);
-    modalContent.appendChild(modalBody);
-    modal.appendChild(modalContent);
-    document.body.appendChild(modal);
+    inputDiv.appendChild(label);
+    inputDiv.appendChild(input);
+    inputsContainer.appendChild(inputDiv);
+  });
+
+  // Handle file selection and process formula
+  startButton.addEventListener('click', () => {
+    const formula = document.getElementById('formula').textContent.trim();
+    processModal(fileInputs, identifiedPipes, appConfig, formula);
+    if (identifiedPipes.sources.length > 0) {
+      document.body.removeChild(modalOverlay);
+    }
+  });
+  const outputContainer = document.createElement('div');
+  outputContainer.id = 'outputElement';
+  modal.appendChild(inputsContainer);
+  modal.appendChild(outputContainer);
+  modal.appendChild(startButton);
+
+  const accordionDiv = document.createElement('div');
+  accordionDiv.classList.add('accordion');
+  const mainHeader = document.createElement('div');
+  mainHeader.classList.add('accordion-header');
+  mainHeader.id = 'accordion-header';
+  mainHeader.textContent = ' Container';
+  const mainCaret = document.createElement('div');
+  mainCaret.classList.add('caret');
+  mainCaret.innerHTML = '&#x25BC;';
+  mainHeader.appendChild(mainCaret);
+  const mainContent = document.createElement('div');
+  mainContent.classList.add('accordion-content');
+  mainContent.id = 'accordion-content';
+  accordionDiv.appendChild(mainHeader);
+  accordionDiv.appendChild(mainContent);
+
+  for (const key in appConfig) {
+    const accordionItem = createAccordionItem(key, appConfig[key]);
+    mainContent.appendChild(accordionItem);
   }
 
-  function showSpinner() {
-    let spinner = document.getElementById('spinner-container');
-    if (!spinner) {
+  mainHeader.addEventListener('click', () => {
+    const isVisible = mainContent.style.display === 'block';
+    mainContent.style.display = isVisible ? 'none' : 'block';
+    mainCaret.classList.toggle('open', !isVisible);
+  });
+
+  modal.appendChild(accordionDiv);
+  modalOverlay.appendChild(modal);
+  document.body.appendChild(modalOverlay);
+}
+
+function createAccordionItem(key, value) {
+  const item = document.createElement('div');
+  const header = document.createElement('div');
+  const content = document.createElement('div');
+  const caret = document.createElement('span');
+  item.className = 'accordion-item';
+  header.className = 'accordion-header';
+  header.setAttribute('aria-expanded', 'false');
+  content.className = 'accordion-content';
+  if (key === 'formula') {
+    content.classList.add('code-container');
+    content.setAttribute('contenteditable', 'true');
+    content.setAttribute('spellcheck', 'false');
+    content.style.padding = '1em 0';
+    content.id = 'formula';
+  }
+  caret.className = 'caret';
+  caret.innerHTML = '&#x25BC;';
+  const headerText = document.createElement('h3');
+  headerText.textContent = key;
+  header.appendChild(headerText);
+  header.appendChild(caret);
+
+  if (Array.isArray(value)) {
+    const list = document.createElement('ul');
+    value.forEach(item => {
+      const listItem = document.createElement('li');
+      listItem.textContent = JSON.stringify(item);
+      list.appendChild(listItem);
+    });
+    content.appendChild(list);
+  } else if (typeof value === 'object' && value !== null) {
+    for (const subKey in value) {
+      if (subKey === 'columns') {
+        const subItemHeader = document.createElement('div');
+        subItemHeader.className = 'accordion-header';
+        subItemHeader.textContent = subKey;
+        subItemHeader.style.textDecoration = "underline";
+        const subItemContent = document.createElement('div');
+        subItemContent.className = 'accordion-content';
+        const list = document.createElement('ul');
+        value[subKey].forEach(column => {
+          const listItem = document.createElement('li');
+          listItem.textContent = JSON.stringify(column);
+          list.appendChild(listItem);
+        });
+        subItemContent.appendChild(list);
+
+        subItemHeader.addEventListener('click', () => {
+          const isVisible = subItemContent.style.display === 'block';
+          subItemContent.style.display = isVisible ? 'none' : 'block';
+        });
+
+        content.appendChild(subItemHeader);
+        content.appendChild(subItemContent);
+      } else {
+        const subItem = createAccordionItem(subKey, value[subKey]);
+        content.appendChild(subItem);
+      }
+    }
+  } else {
+    content.textContent = value;
+  }
+
+  header.addEventListener('click', () => {
+    const isVisible = content.style.display === 'block';
+    content.style.display = isVisible ? 'none' : 'block';
+    caret.classList.toggle('open', !isVisible);
+  });
+
+  item.appendChild(header);
+  item.appendChild(content);
+  return item;
+}
+
+function showSpinner() {
+  let spinner = document.getElementById('spinner-container');
+  if (!spinner) {
       // Create spinner container
       spinner = document.createElement('div');
       spinner.id = 'spinner-container';
       spinner.classList.add('spinner-container');
 
-      // Create logo container (spinner itself)
-      const logoContainer = document.createElement('div');
-      logoContainer.classList.add('logo-container');
-      logoContainer.style.setProperty('--logo-size', '80px'); // Set size of the spinner
-      logoContainer.style.backgroundColor = '#fff'; 
-      logoContainer.style.animation = 'spin 3s linear infinite'; 
-      
-      // Create square elements
-      const square = document.createElement('div');
-      square.classList.add('square');
-      const innerSquare = document.createElement('div');
-      innerSquare.classList.add('inner-square');
-      const innermostSquare = document.createElement('div');
-      innermostSquare.classList.add('innermost-square');
-      const topSquare = document.createElement('div');
-      topSquare.classList.add('top-square');
+      // Create the spinner element itself
+      const spinnerElement = document.createElement('div');
+      spinnerElement.classList.add('spinner');
 
-      // Append squares to logo container
-      logoContainer.appendChild(square);
-      logoContainer.appendChild(innerSquare);
-      logoContainer.appendChild(innermostSquare);
-      logoContainer.appendChild(topSquare);
-
-      // Append logo container to spinner container
-      spinner.appendChild(logoContainer);
+      // Append the spinner element to the spinner container
+      spinner.appendChild(spinnerElement);
 
       // Append spinner container to body
       document.body.appendChild(spinner);
-    }
-    spinner.style.display = 'flex';
   }
-  
-  // Set up the modal on page load
-  document.addEventListener('DOMContentLoaded', () => {
-    showRunModal();
-    //placeholder for charts
+  // Display the spinner
+  spinner.style.display = 'flex';
+}
+
+function loadUX() {
+  showRunModal(); // Set up the modal on page load
+  const appConfigElements = document.querySelectorAll('.code-container');
+  appConfigElements.forEach(appConfigElement => {
+      let highlightedText = appConfigElement.textContent;
+      
+      // Highlight double curly braces first to ensure they are not affected by other replacements
+      highlightedText = highlightedText
+          .replace(/\{\{/g, '<span class="highlight-double-curly">{{</span>')
+          .replace(/\}\}/g, '<span class="highlight-double-curly">}}</span>');
+
+      // Use a function to handle highlighting source.object pairs
+      const sourceObjectRegex = /\b([a-zA-Z_][a-zA-Z0-9_]*)\.(\b[a-zA-Z_][a-zA-Z0-9_]*\b)/g;
+      highlightedText = highlightedText.replace(sourceObjectRegex, (match, source, object) => {
+          //console.log("Match found:", match, "| Source:", source, "| Object:", object);
+          return `<span class="highlight-source">${source}</span><span class="highlight-dot">.</span><span class="highlight-object">${object}</span>`;
+      });
+
+      // Highlight keywords and specific elements after handling source.object pairs
+      highlightedText = highlightedText
+          .replace(/\bconst\b/g, '<span class="highlight-const">const</span>')
+          .replace(/\bappConfig\b/g, '<span class="highlight-appConfig">appConfig</span>')
+          .replace(/(?<!\{)\{(?!\{)/g, '<span class="highlight-curly">{</span>')
+          .replace(/(?<!\})\}(?!\})/g, '<span class="highlight-curly">}</span>')
+          .replace(/\(/g, '<span class="highlight-parentheses">(</span>')
+          .replace(/\)/g, '<span class="highlight-parentheses">)</span>')
+          .replace(/\[/g, '<span class="highlight-brackets">[</span>')
+          .replace(/\]/g, '<span class="highlight-brackets">]</span>')
+          .replace(/\b(null)\b/g, '<span class="highlight-null">$1</span>')
+          .replace(/(\b[a-zA-Z_][a-zA-Z0-9_]*\b)(?=\s*:)/g, '<span class="highlight-key">$1</span>');
+
+      // Highlight all text after // to the end of the line in hunter green
+      highlightedText = highlightedText.replace(/\/\/.*$/gm, '<span class="highlight-comment">$&</span>');
+
+      // Set the final highlighted text back to the HTML element
+      appConfigElement.innerHTML = highlightedText;
   });
+
+  renderFavicon();
+  
+  // Change the title before printing and revert after printing
+  const originalTitle = document.title;
+
+  window.addEventListener('beforeprint', function () {
+    document.title = originalTitle + ' on FI.js';
+  });
+
+  window.addEventListener('afterprint', function () {
+    document.title = originalTitle;
+  });
+};
+
+function renderFavicon() {
+  console.log('Rendering the UI...')
+  const canvas = document.createElement('canvas'); 
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+
+  // Define the SVG as a string
+  const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 200 200">
+    <!-- Bottom rotated square -->
+    <g transform="rotate(45, 100, 100)">
+      <rect x="35" y="35" width="130" height="130" fill="none" stroke="#007acc" stroke-width="4"/>
+    </g>
+    <!-- Top square -->
+    <g>
+      <rect x="35" y="35" width="130" height="130" fill="#4caf50" opacity="0.8" />
+      <text x="100" y="130" font-family="Arial, sans-serif" font-size="100" fill="#ffffff" text-anchor="middle">
+        FI
+      </text>
+    </g>
+  </svg>`;
+
+  // Create an image from the SVG
+  const img = new Image();
+  img.onload = function () {
+    // Draw the SVG onto the canvas
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // Generate the favicon
+    const faviconUrl = canvas.toDataURL('image/png');
+    let favicon = document.querySelector('link[rel="icon"]');
+    if (!favicon) {
+      favicon = document.createElement('link');
+      favicon.rel = 'icon';
+      document.head.appendChild(favicon);
+    }
+    favicon.href = faviconUrl;
+  };
+  img.src = `data:image/svg+xml;base64,${btoa(svg)}`;
+}

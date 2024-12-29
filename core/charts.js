@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
+// charts.js
+
+function loadCharts() {
   // Create and render the chart container
   const chartContainer = document.createElement('div');
   chartContainer.id = 'chart-container';
@@ -206,6 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
   
   function createLegend(labels, data, field) {
     legendContainer.innerHTML = ''; // Clear previous legend
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'table-container';
     const table = document.createElement('table');
     table.className = 'table'; 
     table.id = 'chart-legend';
@@ -241,7 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
       row.appendChild(legendValue);
       table.appendChild(row);
     });
-    legendContainer.appendChild(table);
+    tableContainer.appendChild(table);
+    legendContainer.appendChild(tableContainer);
   }
 
   function getRandomColor() {
@@ -268,4 +273,4 @@ document.addEventListener('DOMContentLoaded', () => {
     const newWidth = Math.max(numberOfBars * 50, minCanvasWidth); // 50 is an arbitrary width per bar, adjust as needed
     canvas.width = newWidth;
   }
-});
+};
