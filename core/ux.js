@@ -227,6 +227,14 @@ function displayResultsInTable() {
     });
   }
 }
+
+function setIndicatorState(state, tooltip = null) {
+  const LoFiIndicator = document.getElementById('LoFiIndicator');
+  LoFiIndicator.className = `light-indicator ${state}`;
+  if (tooltip) {
+    LoFiIndicator.title = tooltip;
+  }
+}
   
 // Function to show the modal with file inputs and starting button
 function showRunModal() {
@@ -234,6 +242,15 @@ function showRunModal() {
   modalOverlay.className = 'modal-overlay';
   const modal = document.createElement('div');
   modal.className = 'modal';
+  const modalHeader = document.createElement('div');
+  modalHeader.className = 'modal-header';
+  // LoFi Indicator
+  const lightIndicator = document.createElement('div');
+  lightIndicator.className = 'light-indicator waiting'; // Default to 'waiting' state
+  lightIndicator.id = "LoFiIndicator";
+  lightIndicator.title = 'Waiting for Signal';
+  modalHeader.appendChild(lightIndicator);
+
   const closeButton = document.createElement('button');
   closeButton.className = 'close-btn';
   closeButton.id = 'close-modal-btn';
@@ -242,9 +259,13 @@ function showRunModal() {
   closeButton.addEventListener('click', function() {
     modalOverlay.style.display = 'none';
   });
-  modal.appendChild(closeButton);
-  const modalHeader = document.createElement('span');
-  modalHeader.innerHTML = `
+  modalHeader.appendChild(closeButton);
+  modal.appendChild(modalHeader);
+
+  const modalContent = document.createElement('div');
+  modalContent.className = 'modal-content';
+  const modalHero = document.createElement('span');
+  modalHero.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 200 200">
       <!-- Bottom rotated square -->
       <g transform="rotate(45, 100, 100)">
@@ -261,10 +282,10 @@ function showRunModal() {
         </text>
       </g>
     </svg>`;
-  modal.appendChild(modalHeader)
+  modalContent.appendChild(modalHero);
   const instructions = document.createElement('p');
   instructions.textContent = 'Select data from the secure source.';
-  modal.appendChild(instructions);
+  modalContent.appendChild(instructions);
   const inputsContainer = document.createElement('div');
   const startButton = document.createElement('button');
   startButton.textContent = 'Run ' + document.title;
@@ -345,16 +366,16 @@ function showRunModal() {
   });
   const outputContainer = document.createElement('div');
   outputContainer.id = 'outputElement';
-  modal.appendChild(inputsContainer);
-  modal.appendChild(outputContainer);
-  modal.appendChild(startButton);
+  modalContent.appendChild(inputsContainer);
+  modalContent.appendChild(outputContainer);
+  modalContent.appendChild(startButton);
 
   const accordionDiv = document.createElement('div');
   accordionDiv.classList.add('accordion');
   const mainHeader = document.createElement('div');
   mainHeader.classList.add('accordion-header');
   mainHeader.id = 'accordion-header';
-  mainHeader.textContent = ' Container';
+  mainHeader.textContent = 'Configuration';
   const mainCaret = document.createElement('div');
   mainCaret.classList.add('caret');
   mainCaret.innerHTML = '&#x25BC;';
@@ -376,7 +397,8 @@ function showRunModal() {
     mainCaret.classList.toggle('open', !isVisible);
   });
 
-  modal.appendChild(accordionDiv);
+  modalContent.appendChild(accordionDiv);
+  modal.appendChild(modalContent);
   modalOverlay.appendChild(modal);
   document.body.appendChild(modalOverlay);
 }

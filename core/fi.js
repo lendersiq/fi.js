@@ -8,7 +8,7 @@ if (typeof appConfig === 'undefined') {
 // if logger is true, select console.logs will log
 let logger = true;
 
-//load ai, ux (user exprience), and charts supporting scripts
+//load ai, ux (user exprience), charts supporting scripts, and kickoff the app
 (function() {
   const loadScript = (src, callback) => {
       const script = document.createElement('script');
@@ -40,6 +40,22 @@ let logger = true;
               
               loadUX();
               loadCharts();
+
+              // Load libraries 
+              if (appConfig && appConfig.libraries) {
+                // Load the specified library files
+                loadLibraryScripts(appConfig.libraries, () => {
+                  console.log('All libraries loaded:', window.libraries);
+              
+                  // Example usage: Call a function from the loaded libraries
+                  if (window.libraries.financial && window.libraries.financial.functions.interestIncome) {
+                    const result = window.libraries.financial.functions.interestIncome.implementation(1000, 0.05);
+                    console.log('Example usage: Interest Income Result:', result);
+                  }
+                });
+              } else {
+                console.warn('no libraries defined')
+              }
           });
       });
   });
@@ -568,26 +584,31 @@ function loadLibraryScripts(filePaths, callback) {
         if (navigator.onLine) {
           if (result && now - result.timestamp < 24 * 60 * 60 * 1000) {
             console.log(`Using cached data for ${storeName}`);
+            setIndicatorState('offline', `Using cached data for ${storeName}`);
             callback(result.data);
           } else {
             fetch(filePath)
               .then(response => response.json())
               .then(data => {
                 console.log(`Fetched API data for ${storeName}`);
+                setIndicatorState('online', `Using cached data for ${storeName}`);
                 accessIndexedDB(storeName, { id: storeName, data, timestamp: now }, 'readwrite');
                 callback(data);
               })
               .catch(error => {
                 console.error(`Failed to load API from ${filePath}:`, error);
+                setIndicatorState('waiting', `Failed to load API from ${filePath}:`, error);
                 scriptLoaded();
               });
           }
         } else {
           if (result) {
             console.log(`Using offline cached data for ${storeName}`);
+            setIndicatorState('offline', `Using offline cached data for ${storeName}`);
             callback(result.data);
           } else {
             console.error(`No cached data available for ${storeName} and device is offline.`);
+            setIndicatorState('waiting', `No cached data available for ${storeName} and device is offline.`);
             scriptLoaded();
           }
         }
@@ -632,36 +653,6 @@ function loadLibraryScripts(filePaths, callback) {
       scriptLoaded();
     }
   });
-}
-
-if (appConfig && appConfig.libraries) {
-  // Load the specified library files
-  loadLibraryScripts(appConfig.libraries, () => {
-    console.log('All libraries loaded:', window.libraries);
-
-    // Example usage: Call a function from the loaded libraries
-    if (window.libraries.financial && window.libraries.financial.functions.interestIncome) {
-      const result = window.libraries.financial.functions.interestIncome.implementation(1000, 0.05);
-      console.log('Example usage: Interest Income Result:', result);
-    }
-  });
-} else {
-  console.warn('No libraries defined');
-}
-
-if (appConfig && appConfig.libraries) {
-  // Load the specified library files
-  loadLibraryScripts(appConfig.libraries, () => {
-    console.log('All libraries loaded:', window.libraries);
-
-    // Example usage: Call a function from the loaded libraries
-    if (window.libraries.financial && window.libraries.financial.functions.interestIncome) {
-      const result = window.libraries.financial.functions.interestIncome.implementation(1000, 0.05);
-      console.log('Example usage: Interest Income Result:', result);
-    }
-  });
-} else {
-  console.warn('no libraries defined')
 }
 
 window.processModal = function(fileInputs, identifiedPipes, appConfig, formula) {
