@@ -20,7 +20,7 @@ The FI.js Apps are in the /apps directory
 - Edit the JavaScript files located in the extracted directory as needed.
 
 ### Run the Application
-- Open an application from the `/apps/demo/Quickstart.html` directory in your browser to run the application.
+- Open an application from the `/apps/demos/Quickstart.html` directory in your browser to run the application.
 
 ### FI.js Reference
 - For more detailed instructions, refer to the [FI.js Documentation](https://fijs.net/docs).
