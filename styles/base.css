@@ -355,7 +355,7 @@ canvas {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0, 0, 0, 0.4);
     justify-content: center;
     align-items: center;
     z-index: 9999;
@@ -364,22 +364,58 @@ canvas {
 .modal {
     background: #fff;
     border-radius: 4px;
-    padding: 2rem;
-    max-width: 600px;
     width: 90%;
-    box-sizing: border-box;
-    position: relative;
+    max-width: 600px;
     max-height: 80vh;
+    box-sizing: border-box;
     overflow-y: auto; /* Allows vertical scroll when content exceeds boundary */
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: rgba(0, 122, 204, 0.80);
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.modal-content {
+    padding: 15px; /* Add padding for the modal content */
+}
+
+.light-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+  
+.light-indicator.waiting {
+    background-color: #FF8A80;
+}
+  
+.light-indicator.online {
+    background-color: #80C684;
+}
+  
+.light-indicator.offline {
+    background-color: #FFCC80;
 }
 
 .close-btn {
     background: none;
     border: none;
-    font-size: 1.5rem;
-    line-height: 1;
+    font-size: 1.6rem;
+    line-height: .75;
     position: absolute;
-    top: 1rem;
+    top: .75rem;
     right: 1rem;
     cursor: pointer;
     color: #333;
