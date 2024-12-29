@@ -223,12 +223,36 @@ const financial = {
             description: "Calculates the profit of deposit accounts",
             implementation: function(portfolio, balance, interest=null, rate=null, charges=null, waived=null, open, source, deposits=null, withdrawals=null) {
                 const sourceIndex = aiSynonymKey(source);
+                 console.log('sourceIndex', sourceIndex);
                 const creditRate = financial.functions.calculateFtpRate.implementation(12, sourceIndex);
                 //const creditRate = window.libraries.api.trates.values[12] * 0.627; // operational risk, regulatory risk, deposit acquisition factor, interest rate risk, and liquidity discount.
                 const creditForFunding = sourceIndex === 'checking' ? creditRate * balance * (1 - financial.attributes.ddaReserveRequired.value) : creditRate * balance;
-                let operatingExpense = 100;  //default
-                let fraudLoss = 0;
-                let interestExpense = 0;
+                var operatingExpense = 100;  //default
+                var fraudLoss = 0;
+                var interestExpense = 0;
+
+                // calculate deposit volume
+                var annualDeposits = 0;
+                if (deposits) {
+                    if (window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'deposits')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
+                        const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
+                        annualDeposits = deposits / yearsSinceOpen;
+                    } else {
+                        annualDeposits = deposits * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'deposits')].YTDfactor;
+                    }
+                }
+
+                //calculate withdrawals volume
+                var annualWithdrawals = 0;
+                if (withdrawals) {
+                    if (window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'withdrawals')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
+                        const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
+                        annualWithdrawals = withdrawals / yearsSinceOpen;
+                    } else {
+                        annualWithdrawals = withdrawals *  window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'withdrawals')].YTDfactor;
+                    }
+                }
+
                 if (sourceIndex === 'certificate') {
                     rate = rate < 1 ? parseFloat(rate) : parseFloat(rate / 100); 
                     interestExpense = balance * rate;
@@ -238,13 +262,13 @@ const financial = {
                 } else {  //checking and savings
 		    		//aiIdConsumerSmallBiz  
 					const consumerMaximum = financial.dictionaries.consumerMaximum.values[sourceIndex];
-					const params = {balance, interest, sourceIndex, deposits, withdrawals, consumerMaximum};
+					const params = {balance, interest, sourceIndex, annualDeposits, annualWithdrawals, consumerMaximum};
 					const isBusiness = aiIsBusiness([params]);  // @ai.js
 					let accountType = "Consumer";
 					if (isBusiness) {
 					    accountType = "Business";
 					}
-					console.log('account type: ${accountType} ${sourceIndex}');
+					console.log(`account type: ${accountType} ${sourceIndex}`);
                     interestExpense = interest * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'interest')].YTDfactor;
                     if (financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType]) {
                         operatingExpense = financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType];
@@ -258,31 +282,13 @@ const financial = {
                     feeIncome = netCharges * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'charges')].YTDfactor;
                 }
 
-                let depositsExpense = 0;
-                if (deposits) {
-                    if (window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'deposits')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years
-                        const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
-                        depositsExpense = deposits ? deposits * financial.attributes.depositUnitExpense.value / yearsSinceOpen  : 0;
-                    } else {
-                        depositsExpense = deposits ? deposits * financial.attributes.depositUnitExpense.value * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'deposits')].YTDfactor : 0;
-                    }
-                }
-
-                let withdrawalsExpense = 0;
-                if (withdrawals) {
-                    if (window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'withdrawals')].YTDfactor === 1) {
-                        const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
-                        withdrawalsExpense = withdrawals ? withdrawals * financial.attributes.withdrawalUnitExpense.value / yearsSinceOpen  : 0;
-                    } else {
-                        withdrawalsExpense = withdrawals ? withdrawals * financial.attributes.withdrawalUnitExpense.value * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'withdrawals')].YTDfactor : 0;
-                    }
-                }
-
+                const depositsExpense = deposits * financial.attributes.depositUnitExpense.value;            
+                const withdrawalsExpense =  withdrawals * financial.attributes.withdrawalUnitExpense.value;
                 const pretaxIncome = creditForFunding + feeIncome;
                 const pretaxExpense = interestExpense + depositsExpense + withdrawalsExpense + operatingExpense + fraudLoss; 
                 const pretaxProfit = pretaxIncome - pretaxExpense;
                 const profit = pretaxProfit * (1 - window.libraries.organization.attributes.taxRate.value);
-                console.log(`portfolio: ${portfolio}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, rate: ${rate} interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
+                console.log(`portfolio: ${portfolio}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, rate: ${rate} interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits: ${deposits}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
                 return profit;
             }
         },
