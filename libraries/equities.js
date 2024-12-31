@@ -27,7 +27,7 @@ const equities = {
         // Asynchronous data fetch
         getStockData: async function(symbol) {
             try {
-                const response = await fetch(`https://bankersiq.com/api/equities?symbol=${symbol}`);
+                const response = await fetch(`https://bankersiq.com/api/equities/?symbol=${symbol}`);
                 const data = await response.json();
                 
                 if (data.error) {
