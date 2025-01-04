@@ -223,7 +223,6 @@ const financial = {
             description: "Calculates the profit of deposit accounts",
             implementation: function(portfolio, balance, interest=null, rate=null, charges=null, waived=null, open, source, deposits=null, withdrawals=null) {
                 const sourceIndex = aiSynonymKey(source);
-                 console.log('sourceIndex', sourceIndex);
                 const creditRate = financial.functions.calculateFtpRate.implementation(12, sourceIndex);
                 //const creditRate = window.libraries.api.trates.values[12] * 0.627; // operational risk, regulatory risk, deposit acquisition factor, interest rate risk, and liquidity discount.
                 const creditForFunding = sourceIndex === 'checking' ? creditRate * balance * (1 - financial.attributes.ddaReserveRequired.value) : creditRate * balance;
@@ -234,22 +233,22 @@ const financial = {
                 // calculate deposit volume
                 var annualDeposits = 0;
                 if (deposits) {
-                    if (window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'deposits')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
+                    if (window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'deposits')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
                         const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
                         annualDeposits = deposits / yearsSinceOpen;
                     } else {
-                        annualDeposits = deposits * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'deposits')].YTDfactor;
+                        annualDeposits = deposits * window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'deposits')].YTDfactor;
                     }
                 }
 
                 //calculate withdrawals volume
                 var annualWithdrawals = 0;
                 if (withdrawals) {
-                    if (window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'withdrawals')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
+                    if (window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'withdrawals')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
                         const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
                         annualWithdrawals = withdrawals / yearsSinceOpen;
                     } else {
-                        annualWithdrawals = withdrawals *  window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'withdrawals')].YTDfactor;
+                        annualWithdrawals = withdrawals *  window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'withdrawals')].YTDfactor;
                     }
                 }
 
@@ -267,9 +266,8 @@ const financial = {
 					let accountType = "Consumer";
 					if (isBusiness) {
 					    accountType = "Business";
-					}
-					console.log(`account type: ${accountType} ${sourceIndex}`);
-                    interestExpense = interest * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'interest')].YTDfactor;
+                    }
+                    interestExpense = interest * window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'interest')].YTDfactor;
                     if (financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType]) {
                         operatingExpense = financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType];
                     }
@@ -279,7 +277,7 @@ const financial = {
                 let feeIncome = 0;
                 if (charges) {
                     const netCharges = waived ? (charges - waived) : charges;
-                    feeIncome = netCharges * window.analytics[sourceIndex][aiTranslater(Object.keys(window.analytics[sourceIndex]), 'charges')].YTDfactor;
+                    feeIncome = netCharges * window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'charges')].YTDfactor;
                 }
 
                 const depositsExpense = deposits * financial.attributes.depositUnitExpense.value;            
@@ -288,7 +286,7 @@ const financial = {
                 const pretaxExpense = interestExpense + depositsExpense + withdrawalsExpense + operatingExpense + fraudLoss; 
                 const pretaxProfit = pretaxIncome - pretaxExpense;
                 const profit = pretaxProfit * (1 - window.libraries.organization.attributes.taxRate.value);
-                console.log(`portfolio: ${portfolio}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, rate: ${rate} interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits: ${deposits}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
+                //console.log(`portfolio: ${portfolio}, balance: ${balance}, creditRate: ${creditRate}, creditForFunding: ${creditForFunding}, rate: ${rate} interestExpense: ${interestExpense}, charges: ${charges}, waived: ${waived}, deposits: ${deposits}, deposits expense: ${depositsExpense}, withdrawals expense: ${withdrawalsExpense}, operatingExpense: ${operatingExpense}, fraudLoss: ${fraudLoss}, pretax: ${pretaxProfit}, taxAdj: ${1 - window.libraries.organization.attributes.taxRate.value}, depositProfit: ${profit}`);
                 return profit;
             }
         },
@@ -325,7 +323,7 @@ const financial = {
                 const fundingExpense = AveragePrincipal * fundingRate;
 
 				let smallLoanMaximum = financial.attributes.smallLoanMaximum.value;  //default
-				const principalObject = window.analytics.loan[aiTranslater(Object.keys(window.analytics.loan), 'principal')];
+				const principalObject = window.statistics.loan[aiTranslater(Object.keys(window.statistics.loan), 'principal')];
 				if (principalObject && Object.hasOwn(principalObject, "median")) {
 					smallLoanMaximum = principalObject.median > smallLoanMaximum ? principalObject.median : smallLoanMaximum;  // the median of each loan principal in the entire portfolio (50th percentile)
 				}
@@ -344,8 +342,8 @@ const financial = {
                 const originationExpense = (financial.attributes.fixedOriginationExpense.value + Math.min(principal, financial.attributes.principalCostMaximum.value) * financial.attributes.variableOriginationFactor.value * complexityFactor) / Math.min(termInYears, 10);
                 const servicingExpense = (financial.attributes.fixedServicingExpense.value + principal * financial.attributes.loanServicingFactor.value / yearsUntilMaturity) * complexityFactor;
 
-                //console.log('risk key:', aiTranslater(Object.keys(window.analytics.loan), 'risk'));
-                const riskObject = window.analytics.loan[aiTranslater(Object.keys(window.analytics.loan), 'risk')];
+                //console.log('risk key:', aiTranslater(Object.keys(window.statistics.loan), 'risk'));
+                const riskObject = window.statistics.loan[aiTranslater(Object.keys(window.statistics.loan), 'risk')];
                 console.log('risk data:', riskObject, Object.hasOwn(riskObject, "convexProbability"), riskObject.convexProbability);
                 let probabilityOfDefault = 0;
                 if (risk && risk !== 'NULL') {
@@ -376,6 +374,36 @@ const financial = {
                 const profit = pretax - expectedLossProvision;
                 console.log(`portfolio: ${portfolio}, principal: ${principal}, average: ${AveragePrincipal}, risk: ${risk}, fees: ${fees}, years until maturity: ${yearsUntilMaturity}, term in years: ${termInYears}, rate: ${rate}, interest: ${interestIncome}, funding rate: ${fundingRate}, funding expense: ${fundingExpense}, origination expense: ${originationExpense}, servicing expense: ${servicingExpense}, non interest income: ${nonInterestIncome}, probability of default: ${probabilityOfDefault}, pretax: ${pretax}, expected loss: ${expectedLossProvision}, profit: ${profit.toFixed(2)}`);
                 return profit;
+            }
+        },
+        risk: {
+            description: "Scores the risk of a checking account",
+            implementation: function(balance, deposits, nsf, source) {
+                if (balance === 0) return 0
+                const sourceIndex = aiSynonymKey(source);
+                // A high average balance indicates a higher exposure and might justify offering Positive Pay as a risk mitigant
+                const balanceRisk = 1;
+                if (balance > window.statistics[sourceIndex].threeStdDeviations) {
+                    balanceRisk = 5;
+                } else if (balance > window.statistics[sourceIndex].mean) {
+                    balanceRisk = 3;
+                }
+                // Regular deposits (e.g., payroll or vendor payments) indicate frequency of activity--higher active accounts may indicate risk.
+                const depositsRisk = 1;
+                if (deposits > window.statistics[sourceIndex].threeStdDeviations) {
+                    depositsRisk = 5;
+                } else if (deposits > window.statistics[sourceIndex].twoStdDeviations) {
+                    depositsRisk = 2;
+                }
+                // High overdraft activity could signal poor account management.
+                const nsfRisk = 1;
+                if (nsf > window.statistics[sourceIndex].threeStdDeviations) {
+                    nsfRisk = 5;
+                }    
+
+                return balanceRisk * financial.dictionaries.depositRiskWeights["balance"] +
+                    depositsRisk * financial.dictionaries.depositRiskWeights["deposits"] +
+                    nsfRisk * financial.dictionaries.depositRiskWeights["nsf"];
             }
         }
     },
@@ -454,6 +482,13 @@ const financial = {
         }
     },
     dictionaries: {
+        depositRiskWeights: {
+            description: "The weights for each deposit account risk criteria",
+            "checks": 5,
+            "balance": 5,
+            "deposits": 3,
+            "nsf": 1
+        },
         consumerMaximum: {
             description: "The dollar threshold that can distinguish a consumer from a business account",
             values: {
