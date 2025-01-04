@@ -81,6 +81,12 @@ function displayResultsInTable() {
     format.isCurrency = format.currencyCount > format.integerCount;  //if more currency than integer column is currency
   });
 
+  const allResultsAreIntegers = Object.values(combinedResults).every(item => Number.isInteger(Number(item.result)));
+  const resultFormat = { isCurrency: !allResultsAreIntegers };
+  console.log('All results are integers:', allResultsAreIntegers);
+  console.log('Result format:', resultFormat);
+
+
   // Second pass to render each row with consistent formatting
   const rows = {};
   sortedResults.forEach(([uniqueId, data]) => {
@@ -127,14 +133,17 @@ function displayResultsInTable() {
       });
 
       const valueCell = document.createElement('td');
-      valueCell.textContent = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
-      }).format(data.result);
+      if (resultFormat.isCurrency) {
+        valueCell.textContent = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        }).format(data.result);
+      } else {
+        valueCell.textContent = data.result;
+      }
+
       row.appendChild(valueCell);
-
       resultSum += data.result;
-
       table.appendChild(row);
       rows[uniqueId] = uniqueIdCell;
     }
@@ -160,10 +169,14 @@ function displayResultsInTable() {
   });
 
   const resultTotalCell = document.createElement('td');
-  resultTotalCell.textContent = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(resultSum);
+  if (resultFormat.isCurrency) {
+    resultTotalCell.textContent = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(resultSum);
+  } else {
+    resultTotalCell.textContent = ''; // Blank if the column isn't currency
+  }
   totalRow.appendChild(resultTotalCell);
   table.appendChild(totalRow);
 

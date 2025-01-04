@@ -276,8 +276,8 @@ function aiIsBusiness(...args) {
     if (typeof params.balance !== 'number' || typeof params.consumerMaximum !== 'number' || typeof params.annualDeposits !== 'number') {
         throw new Error("Invalid or missing parameters. Ensure 'balance', 'consumerMaximum', and 'deposits' are provided as numbers.");
     }
-    const threeStandardDeviations = window.analytics[params.sourceIndex][aiTranslater(Object.keys(window.analytics[params.sourceIndex]), 'balance')].threeStdDeviations[1];
-    const twoStandardDeviations = window.analytics[params.sourceIndex][aiTranslater(Object.keys(window.analytics[params.sourceIndex]), 'balance')].twoStdDeviations[1];
+    const threeStandardDeviations = window.statistics[params.sourceIndex][aiTranslater(Object.keys(window.statistics[params.sourceIndex]), 'balance')].threeStdDeviations[1];
+    const twoStandardDeviations = window.statistics[params.sourceIndex][aiTranslater(Object.keys(window.statistics[params.sourceIndex]), 'balance')].twoStdDeviations[1];
     
     const highThreshold = threeStandardDeviations > params.consumerMaximum * 1.2  ?  threeStandardDeviations : params.consumerMaximum * 1.2; // 20% over the consumer threshold
     const lowThreshold = twoStandardDeviations > params.consumerMaximum * .8  ?  twoStandardDeviations : params.consumerMaximum * .8; // 20% under the consumer threshold

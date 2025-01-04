@@ -6,7 +6,7 @@ if (typeof appConfig === 'undefined') {
 }
 
 // if logger is true, select console.logs will log
-let logger = true;
+let logger = false;
 
 //load ai, ux (user exprience), charts supporting scripts, and kickoff the app
 (function() {
@@ -36,8 +36,9 @@ let logger = true;
               const headers = ['Portfolio', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
               console.log('Translated header testing (pay):', aiTranslater(headers, 'pay'));
               console.log('Translated header testing (fees):', aiTranslater(headers, 'fees'));
-              console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} and type = ${stem('type')}`)
-              
+              console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} and type = ${stem('type')}`);
+              console.log('Area Mode test: ', calculateAreaMode([121, 123, 134, 145, 17564.89, 300, 299, 120, 150, 320, 310]));
+              console.log('Area Mode test 2: ', calculateAreaMode([12, 23, 13, 14, 17564.89, 30, 29, 12, 15, 32, 31]));
               loadUX();
               loadCharts();
 
@@ -149,11 +150,11 @@ function evaluateExpression(expression) {
   if (expression.length === 0) return { result: 0, nonNullCount: 0 };
   let conditionLocked = false; // Initialize within the function to ensure it resets each time
   let nonNullCount = 0; // Initialize a counter for non-null values
-  console.log('Original Expression:', expression);
+  if (logger) console.log('Original Expression:', expression);
 
   // Step 1: Replace conditions where 'null' is the first part of the condition with 'false'
   expression = expression.replace(/\{\{\s*null\s*[!=><]=?\s*[^}]+\}\}/g, '{{ false }}');
-  console.log('Expression after replacing conditions starting with null:', expression);
+  if (logger) console.log('Expression after replacing conditions starting with null:', expression);
 
   // Regex to match conditions inside double curly braces {{ }}
   const conditionRegex = /\{\{([\s\S]+?)\}\}/g;
@@ -161,7 +162,6 @@ function evaluateExpression(expression) {
   // First pass: Evaluate conditions inside double curly braces and determine if any are true
   while ((match = conditionRegex.exec(expression)) !== null) {
     let condition = match[1]; // Extract the condition inside {{ }}
-    console.log('')
 
     // Convert any dates within the condition to day difference values
     condition = condition.replace(/(['"]?\b\d{4}[-/\.]\d{2}[-/\.]\d{2}\b['"]?|\b\d{2}[-/\.]\d{2}[-/\.]\d{4}\b|\b\d{2}[-/\.]\d{2}[-/\.]\d{2}\b)/g, (value) => {
@@ -170,7 +170,7 @@ function evaluateExpression(expression) {
 
     try {
       const evaluatedCondition = Function(`'use strict'; return (${condition})`)();
-      console.log(`Condition "${condition}" evaluated to: ${evaluatedCondition}`);
+      if (logger) console.log(`Condition "${condition}" evaluated to: ${evaluatedCondition}`);
 
       // Lock condition if any evaluates to true
       if (evaluatedCondition === true) {
@@ -217,7 +217,7 @@ function evaluateExpression(expression) {
     return isMember ? 'true' : 'false';
   });
 
-  console.log('Expression after membership evaluation:', expression);
+  if (logger) console.log('Expression after membership evaluation:', expression);
   
   // Replace 'null' with '0' to prevent evaluation issues
   const sanitizedExpression = expression.replace(/null/g, '0');
@@ -495,7 +495,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
     });
 
     let finalExpression = prePropertiesExpression;  //replace(/^,\s*/, '');
-    console.log('Final expression before evaluation:', finalExpression);
+    if (logger) console.log('Final expression before evaluation:', finalExpression);
 
     try {
       const finalEvaluation = evaluateExpression(finalExpression);
@@ -692,10 +692,10 @@ window.processModal = function(fileInputs, identifiedPipes, appConfig, formula) 
 
   Promise.all(promises)
     .then(() => {
-      let analytics = {};
+      let statistics = {};
       if (identifiedPipes.sources.length > 0) {  //data sources
-        window.analytics = computeAnalytics(digestData);
-        console.log('Analytics:', window.analytics);
+        window.statistics = computeStatistics(digestData);
+        console.log('Statistics:', window.statistics);
         document.getElementById('chart-container').style.display = 'block';
       }
       const cleanFormula = formula.replace(/!/g, '! '); //may be other cleaning required
@@ -731,13 +731,13 @@ function yearToDateFactor(fieldName) {
   return factor;
 } 
 
-function computeAnalytics(csvData) {
-  console.log('csvData @ computeAnalytics', csvData)
-  const analytics = {};
+function computeStatistics(csvData) {
+  if (logger) console.log('csvData @ computeStatistics', csvData)
+  const statistics = {};
 
   Object.keys(csvData).forEach(sourceName => {
     const sourceData = csvData[sourceName];
-    const fieldAnalytics = {};
+    const fieldStatistics = {};
 
     // Identify numeric fields by checking if all non-null values in the field are numeric
     const numericFields = Object.keys(sourceData[0]).filter(field => {
@@ -752,12 +752,14 @@ function computeAnalytics(csvData) {
         .map(row => convertToNumeric(row[field]))
         .filter(value => value !== null && !isNaN(value)); // Filter out null and NaN values
       if (validValues.length > 0) {
-        fieldAnalytics[field] = {
+        const { areaMode, nonzeroMin } = calculateAreaMode(validValues);
+        fieldStatistics[field] = {
           min: Math.min(...validValues),
           max: Math.max(...validValues),
           mean: mean(validValues),
           median: median(validValues),
-          mode: mode(validValues),
+          areaMode: areaMode, //focus is on the notion of ranges or areas, this name works well and is intuitive for the purpose of the function.
+          nonzeroMin: nonzeroMin,
           variance: variance(validValues),
           stdDeviation: stdDeviation(validValues),
           twoStdDeviations: twoStdDeviations(validValues),
@@ -766,18 +768,18 @@ function computeAnalytics(csvData) {
           count: validValues.length, 
           unique : uniqueValues(validValues)
         };
-        fieldAnalytics[field].YTDfactor = yearToDateFactor(field);
-        if (fieldAnalytics[field].unique > 4 && fieldAnalytics[field].unique <= 16  && parseInt(fieldAnalytics[field].median) < fieldAnalytics[field].unique-1 ) {
-          fieldAnalytics[field].uniqueArray = [...new Set(validValues)];
-          fieldAnalytics[field].convexProbability = createProbabilityArray(fieldAnalytics[field].mode, fieldAnalytics[field].unique, fieldAnalytics[field].uniqueArray);
+        fieldStatistics[field].YTDfactor = yearToDateFactor(field);
+        if (fieldStatistics[field].unique > 4 && fieldStatistics[field].unique <= 16  && parseInt(fieldStatistics[field].median) < fieldStatistics[field].unique-1 ) {
+          fieldStatistics[field].uniqueArray = [...new Set(validValues)];
+          fieldStatistics[field].convexProbability = createProbabilityArray(fieldStatistics[field].mode, fieldStatistics[field].unique, fieldStatistics[field].uniqueArray);
         }
       }
     });
-    analytics[sourceName] = fieldAnalytics;
+    statistics[sourceName] = fieldStatistics;
   });
 
-  console.log('Computed Analytics:', analytics);
-  return analytics;
+  if (logger) console.log('Computed Statistics:', statistics);
+  return statistics;
 }
 
 // Helper function to check if a value is numeric or starts with a numeric
@@ -826,6 +828,39 @@ function median(values) {
   values.sort((a, b) => a - b);
   const mid = Math.floor(values.length / 2);
   return values.length % 2 !== 0 ? values[mid] : (values[mid - 1] + values[mid]) / 2;
+}
+
+
+function calculateAreaMode(values) {
+  if (!values || values.length === 0) {
+    return { mode: null, min: null };
+  }
+
+  const min = Math.min(...values.filter(value => value > 0));
+  const roundingFactor = Math.pow(10, Math.floor(Math.log10(min)));
+
+  const frequencyMap = {};
+  let maxFreq = 0;
+  let mode = [];
+
+  values.forEach(value => {
+    const roundedValue = Math.round(value / roundingFactor) * roundingFactor;
+    frequencyMap[roundedValue] = (frequencyMap[roundedValue] || 0) + 1;
+    if (frequencyMap[roundedValue] > maxFreq) {
+      maxFreq = frequencyMap[roundedValue];
+    }
+  });
+
+  for (const key in frequencyMap) {
+    if (frequencyMap[key] === maxFreq) {
+      mode.push(Number(key));
+    }
+  }
+
+  return {
+    areaMode: mode.length === 1 ? mode[0] : mode,
+    nonzeroMin: min
+  };
 }
 
 function mode(values) {
