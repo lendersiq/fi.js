@@ -139,7 +139,7 @@ function displayResultsInTable() {
           currency: 'USD'
         }).format(data.result);
       } else {
-        valueCell.textContent = Math.round(data.result / data.tally);
+        valueCell.textContent =  Math.round(data.result / data.tally);
       }
 
       row.appendChild(valueCell);
@@ -186,7 +186,11 @@ function displayResultsInTable() {
   const resultsTitle = document.createElement('h2');
   resultsTitle.textContent = document.title;
   resultsTitle.style.paddingLeft = '1em';
+  const resultsDescription = document.createElement('div');
+  resultsDescription.innerHTML = appConfig.description;
+  resultsDescription.style.paddingLeft = '2em';
   resultsContainer.appendChild(resultsTitle);
+  resultsContainer.appendChild(resultsDescription);
   resultsContainer.appendChild(tableContainer);
   const appContainer = document.getElementById('app-container');
   appContainer.appendChild(resultsContainer);
