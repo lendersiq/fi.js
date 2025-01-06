@@ -186,11 +186,13 @@ function displayResultsInTable() {
   const resultsTitle = document.createElement('h2');
   resultsTitle.textContent = document.title;
   resultsTitle.style.paddingLeft = '1em';
-  const resultsDescription = document.createElement('div');
-  resultsDescription.innerHTML = appConfig.description;
-  resultsDescription.style.paddingLeft = '2em';
   resultsContainer.appendChild(resultsTitle);
-  resultsContainer.appendChild(resultsDescription);
+  if (appConfig.description) {
+    const resultsDescription = document.createElement('div');
+    resultsDescription.innerHTML = appConfig.description;
+    resultsDescription.style.paddingLeft = '2em';
+    resultsContainer.appendChild(resultsDescription);
+  }
   resultsContainer.appendChild(tableContainer);
   const appContainer = document.getElementById('app-container');
   appContainer.appendChild(resultsContainer);
