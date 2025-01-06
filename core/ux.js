@@ -139,7 +139,7 @@ function displayResultsInTable() {
           currency: 'USD'
         }).format(data.result);
       } else {
-        valueCell.textContent = data.result;
+        valueCell.textContent = Math.round(data.result / data.tally);
       }
 
       row.appendChild(valueCell);
