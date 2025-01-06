@@ -503,3 +503,8 @@ canvas {
     background-color: #4682B4;
     border-radius: 3px; /* Rounded corners for a modern look */
 }
+
+ul li span {
+    font-weight: bold;
+    color: #007AC2;
+}
