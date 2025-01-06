@@ -378,30 +378,46 @@ const financial = {
         },
         risk: {
             description: "Scores the risk of a checking account",
-            implementation: function(balance, deposits, nsf, source) {
+            implementation: function(balance, checks, deposits, nsf, source) {
                 if (balance === 0) return 0
                 const sourceIndex = aiSynonymKey(source);
                 // A high average balance indicates a higher exposure and might justify offering Positive Pay as a risk mitigant
-                const balanceRisk = 1;
-                if (balance > window.statistics[sourceIndex].threeStdDeviations) {
+                const balanceObject = window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'balance')];
+                let balanceRisk = 1;
+                if (balance > balanceObject.threeStdDeviations[1]) {
                     balanceRisk = 5;
-                } else if (balance > window.statistics[sourceIndex].mean) {
+                } else if (balance > balanceObject.mean) {
                     balanceRisk = 3;
                 }
+                // issuing checks for payroll, vendor payments, or refunds during specific times of the year may have a greater risk.
+                const checksObject = window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'checks')];
+                let checksRisk = 1;
+                if (checks > checksObject.threeStdDeviations[1]) {
+                    checksRisk = 5;
+                } else if (checks > checksObject.twoStdDeviations[1]) {
+                    checksRisk = 4;
+                } else if (checks > checksObject.mean) {
+                    checksRisk = 2;
+                }
+
                 // Regular deposits (e.g., payroll or vendor payments) indicate frequency of activity--higher active accounts may indicate risk.
-                const depositsRisk = 1;
-                if (deposits > window.statistics[sourceIndex].threeStdDeviations) {
+                const depositsObject = window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'deposits')];
+                let depositsRisk = 1;
+                if (deposits > depositsObject.threeStdDeviations[1]) {
                     depositsRisk = 5;
-                } else if (deposits > window.statistics[sourceIndex].twoStdDeviations) {
+                } else if (deposits > depositsObject.twoStdDeviations[1]) {
                     depositsRisk = 2;
                 }
+
                 // High overdraft activity could signal poor account management.
-                const nsfRisk = 1;
-                if (nsf > window.statistics[sourceIndex].threeStdDeviations) {
+                const nsfObject = window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'nsf')];
+                let nsfRisk = 1;
+                if (nsf > nsfObject.threeStdDeviations[1]) {
                     nsfRisk = 5;
                 }    
 
                 return balanceRisk * financial.dictionaries.depositRiskWeights["balance"] +
+                    checksRisk * financial.dictionaries.depositRiskWeights["checks"] +
                     depositsRisk * financial.dictionaries.depositRiskWeights["deposits"] +
                     nsfRisk * financial.dictionaries.depositRiskWeights["nsf"];
             }
