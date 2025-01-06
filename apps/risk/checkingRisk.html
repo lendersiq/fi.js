@@ -12,7 +12,39 @@
   <script>
     // App configuration
     const appConfig = {
-      description: 'Calculates and ranks the risk of each commercial checking account relationship',
+      description: `<p>This tutorial calculates and ranks the risk of each commercial checking account relationship based on several factors and their associated weights.</p>
+
+      <h4>Average Balance (Weight 5)</h4>
+      <p>A high average balance indicates a higher exposure and might justify offering Positive Pay as a risk mitigant:</p>
+      <ul>
+          <li><span>5</span> - Average Balance exceeds 3 standard deviations</li>
+          <li><span>2</span> - Average Balance exceeds mean</li>
+          <li><span>1</span> - Default</li>
+      </ul>
+  
+      <h4>Number of Checks Written in 1 Month (Weight 5)</h4>
+      <p>Businesses issuing checks for payroll, vendor payments, or refunds during specific times of the year may have a greater risk:</p>
+      <ul>
+          <li><span>5</span> - Checks exceed 3 standard deviations</li>
+          <li><span>4</span> - Checks exceed 2 standard deviations</li>
+          <li><span>2</span> - Checks exceed mean</li>
+          <li><span>1</span> - Default</li>
+      </ul>
+  
+      <h4>Number of Deposits in 1 Month (Weight 3)</h4>
+      <p>Regular deposits (e.g., payroll or vendor payments) indicate frequency of activity. Higher active accounts may indicate risk:</p>
+      <ul>
+          <li><span>5</span> - Deposits exceed 3 standard deviations</li>
+          <li><span>2</span> - Deposits exceed 2 standard deviations</li>
+          <li><span>1</span> - Default</li>
+      </ul>
+  
+      <h4>Number of NSFs in 1 Month (Weight 1)</h4>
+      <p>High overdraft activity could signal poor account management:</p>
+      <ul>
+          <li><span>5</span> - Exceed 3 standard deviations</li>
+          <li><span>1</span> - Default</li>
+      </ul>`,
       libraries: [
         'financial',
       ],
