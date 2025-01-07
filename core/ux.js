@@ -47,7 +47,20 @@ function displayResultsInTable() {
   let totalCount = 0;
   let resultSum = 0;
 
-  // First pass to determine the dominant format for each column
+  // Step 1: Check if all results are integers
+  const allResultsAreIntegers = Object.values(combinedResults).every(item => Number.isInteger(Number(item.result)));
+  const resultFormat = { isCurrency: !allResultsAreIntegers };
+  console.log('All results are integers:', allResultsAreIntegers);
+  console.log('Result format:', resultFormat);
+ 
+  // Step 2: If all results are integers, update the results
+  if (allResultsAreIntegers) {
+    Object.values(combinedResults).forEach(item => {
+      // Update replace result with the average results (result / tally)
+      item.result = Math.round(item.result / item.tally);
+    });
+  }
+  // sort combined results
   const sortedResults = Object.entries(combinedResults).sort((a, b) => {
     return parseFloat(b[1].result) - parseFloat(a[1].result);
   });
@@ -80,12 +93,6 @@ function displayResultsInTable() {
   columnFormat.forEach((format, index) => {
     format.isCurrency = format.currencyCount > format.integerCount;  //if more currency than integer column is currency
   });
-
-  const allResultsAreIntegers = Object.values(combinedResults).every(item => Number.isInteger(Number(item.result)));
-  const resultFormat = { isCurrency: !allResultsAreIntegers };
-  console.log('All results are integers:', allResultsAreIntegers);
-  console.log('Result format:', resultFormat);
-
 
   // Second pass to render each row with consistent formatting
   const rows = {};
@@ -139,7 +146,7 @@ function displayResultsInTable() {
           currency: 'USD'
         }).format(data.result);
       } else {
-        valueCell.textContent =  Math.round(data.result / data.tally);
+        valueCell.textContent =  data.result;
       }
 
       row.appendChild(valueCell);
@@ -435,12 +442,13 @@ function createAccordionItem(key, value) {
     content.classList.add('code-container');
     content.setAttribute('contenteditable', 'true');
     content.setAttribute('spellcheck', 'false');
-    content.style.padding = '2em 0';
+    content.style.padding = '2.5em 0.5em';
     content.id = 'formula';
   }
   caret.className = 'caret';
   caret.innerHTML = '&#x25BC;';
   const headerText = document.createElement('h3');
+
   headerText.textContent = key;
   header.appendChild(headerText);
   header.appendChild(caret);
@@ -458,8 +466,8 @@ function createAccordionItem(key, value) {
       if (subKey === 'columns') {
         const subItemHeader = document.createElement('div');
         subItemHeader.className = 'accordion-header';
-        subItemHeader.textContent = subKey;
-        subItemHeader.style.textDecoration = "underline";
+        subItemHeader.style.padding = '0.25em 0';
+        subItemHeader.innerHTML = '&#9776; ' + subKey;
         const subItemContent = document.createElement('div');
         subItemContent.className = 'accordion-content';
         const list = document.createElement('ul');
@@ -483,7 +491,7 @@ function createAccordionItem(key, value) {
       }
     }
   } else {
-    content.textContent = value;
+    content.innerHTML = value;
   }
 
   header.addEventListener('click', () => {

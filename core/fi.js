@@ -35,7 +35,7 @@ let logger = false;
               // Test the aiTranslater function
               const headers = ['Portfolio', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
               console.log('Translated header testing (pay):', aiTranslater(headers, 'pay'));
-              console.log('Translated header testing (fees):', aiTranslater(headers, 'fees'));
+              console.log('Translated header testing (officer):', aiTranslater(headers, 'officer'));
               console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} and type = ${stem('type')}`);
               console.log('Area Mode test: ', calculateAreaMode([121, 123, 134, 145, 17564.89, 300, 299, 120, 150, 320, 310]));
               console.log('Area Mode test 2: ', calculateAreaMode([12, 23, 13, 14, 17564.89, 30, 29, 12, 15, 32, 31]));

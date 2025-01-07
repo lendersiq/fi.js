@@ -2,13 +2,15 @@
 
 // Synonym library to map common synonyms to their respective headers
 const synonymLibrary = {
+    //keys are stemmed
     'fee': ['charge', 'cost', 'duty', 'collection', 'levy'],
     'open': ['origination', 'start', 'create', 'establish', 'setup'],
     'checking': ['dda', 'demand deposit'], 
     'withdrawal': ['check', 'draft', 'debit'],
     'deposit': ['credit'],
     'certificate': ['cd', 'cod', 'certificate of deposit'],
-    'own': ['responsibility'],
+    'own': ['responsibility', 'officer'],
+    'offic': ['owner', 'responsibility'],
     'typ': ['classification', 'class'],
     'class': ['type']
 };
@@ -136,7 +138,6 @@ function aiTranslater(headers, field) {
             synonyms.some(synonym => header.includes(synonym))
         );
     }
-  
     return matchingHeader ? headers[headersLower.indexOf(matchingHeader)] : null;
 }
 
@@ -221,7 +222,7 @@ function updateTableWithMapping(mapping, tableId, header = null) {
             legendValue = Number(legendValue);
         }
 
-        console.log('legendValue', legendValue)
+        if (logger) console.log('legendValue', legendValue)
         // Check if the normalized legendValue exists in the mapping
         if (mapping[legendValue]) {
             cells[column].textContent = `${mapping[legendValue]} (${legendValue})`;
