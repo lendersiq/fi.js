@@ -57,7 +57,7 @@ function displayResultsInTable() {
   if (allResultsAreIntegers) {
     Object.values(combinedResults).forEach(item => {
       // Update replace result with the average results (result / tally)
-      item.result = Math.round(item.result / item.tally);
+      item.result = item.tally === 0 ? 0 : Math.round(item.result / item.tally);
     });
   }
   // sort combined results
