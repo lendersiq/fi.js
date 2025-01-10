@@ -73,6 +73,7 @@ function loadCharts() {
     const chartType = chartTypeSelect.value;
 
     // Calculate totals for each unique value in the selected field
+
     const totals = {};
     Object.entries(combinedResults).forEach(([uniqueId, record]) => {
       if (record.result) {
@@ -82,9 +83,11 @@ function loadCharts() {
             // If data[field] is already a number or an array of numbers, use it directly
             values = Array.isArray(record[selectedField]) ? record[selectedField] : [parseFloat(record[selectedField])]; 
         }
+      
         const fieldValue = calculateMode(values);
+
         if (totals[fieldValue]) {
-          totals[fieldValue] += record.result; // Sum the result values
+          totals[fieldValue] = allResultsAreIntegers ? (record.result === 0 ? totals[fieldValue] : Math.round((totals[fieldValue] + record.result) / 2)) : totals[fieldValue] + record.result;
         } else {
           totals[fieldValue] = record.result;
         }
@@ -118,12 +121,15 @@ function loadCharts() {
   function plotBarChart(ctx, labels, data, field, canvas) {
     const maxDataValue = Math.max(...data);
     const minDataValue = Math.min(...data);
+    const range = maxDataValue - minDataValue || 1; // Avoid division by zero
+    const scalingFactor = range < 50 ? 1.1 : 1; // Amplify small ranges
 
     // Define padding for labels and adjust chart height
-    const topPadding = 40; // Padding at the top for labels
-    const bottomPadding = 40; // Padding at the bottom for labels
+    const topPadding = 60; // Padding at the top for labels
+    const bottomPadding = 60; // Padding at the bottom for labels
     const legendHeight = 20; // Height for the legend/zero line
     const chartHeight = canvas.height - topPadding - bottomPadding - legendHeight;
+
 
     // Define the zero line at the height of the legend
     const zeroLine = canvas.height - legendHeight - bottomPadding;
@@ -134,7 +140,13 @@ function loadCharts() {
 
     labels.forEach((label, index) => {
         const x = index * (barWidth + barSpacing);
-        const barHeight = Math.abs(data[index] / (maxDataValue - minDataValue) * chartHeight);
+        let barHeight = Math.abs(data[index] / (maxDataValue - minDataValue) * chartHeight);
+        if (scalingFactor > 1) {
+          barHeight = Math.abs(((data[index] - minDataValue) / range) * chartHeight * scalingFactor);
+          barHeight = barHeight == 0 ? 15 : barHeight;  //minimum bar height
+        }
+        //console.log('bar height, range', barHeight, range, scalingFactor)
+
         const y = data[index] >= 0 ? zeroLine - barHeight : zeroLine;
 
         // Apply shadow for bars
@@ -253,6 +265,7 @@ function plotPieChart(ctx, labels, data, canvas) {
 }
 
   function createLegend(labels, data, field) {
+    console.log('createLegend', labels, data, field);
     legendContainer.innerHTML = ''; // Clear previous legend
     const tableContainer = document.createElement('div');
     tableContainer.className = 'table-container';
@@ -277,17 +290,21 @@ function plotPieChart(ctx, labels, data, canvas) {
     table.appendChild(headerRow);
 
     // Create legend items
-    
+    const allDataAreIntegers = data.every(Number.isInteger);
     labels.forEach((label, index) => {
       const row = document.createElement('tr');
       const legendLabel = document.createElement('td');
       legendLabel.textContent = `${label}`;
       row.appendChild(legendLabel);
       const legendValue = document.createElement('td');
-      legendValue.textContent = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
-      }).format(data[index]);
+      if (allDataAreIntegers) {
+        legendValue.textContent = data[index]
+      } else {
+        legendValue.textContent = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        }).format(data[index]);
+      }
       row.appendChild(legendValue);
       table.appendChild(row);
     });

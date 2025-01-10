@@ -8,6 +8,9 @@ if (typeof appConfig === 'undefined') {
 // if logger is true, select console.logs will log
 let logger = false;
 
+//global 
+let allResultsAreIntegers = false;
+
 //load ai, ux (user exprience), charts supporting scripts, and kickoff the app
 (function() {
   const loadScript = (src, callback) => {
@@ -17,6 +20,16 @@ let logger = false;
       script.onload = callback; // Trigger callback when the script is loaded
       document.head.appendChild(script);
   };
+
+  const asciiFIjs = `
+FFFFFFF  IIIIIII         j    ssss
+F           I            j   s    
+FFFFFF      I            j    sss 
+F           I     ..  j  j       s
+F        IIIIIII  ..   jjj   ssss
+`;
+
+  console.log(asciiFIjs);
 
   // Load scripts in the correct order
   loadScript("../../core/ai.js", () => {
@@ -30,7 +43,6 @@ let logger = false;
 
               // Now fi.js can safely execute its logic
               console.log("All dependencies loaded. fi.js is ready to execute.");
-              
               // System Tests 
               // Test the aiTranslater function
               const headers = ['Portfolio', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];

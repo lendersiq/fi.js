@@ -48,12 +48,12 @@ function displayResultsInTable() {
   let resultSum = 0;
 
   // Step 1: Check if all results are integers
-  const allResultsAreIntegers = Object.values(combinedResults).every(item => Number.isInteger(Number(item.result)));
+  allResultsAreIntegers = Object.values(combinedResults).every(item => Number.isInteger(Number(item.result)));
   const resultFormat = { isCurrency: !allResultsAreIntegers };
   console.log('All results are integers:', allResultsAreIntegers);
   console.log('Result format:', resultFormat);
  
-  // Step 2: If all results are integers, update the results
+  // Step 2: If all results are integers, update the average results
   if (allResultsAreIntegers) {
     Object.values(combinedResults).forEach(item => {
       // Update replace result with the average results (result / tally)
