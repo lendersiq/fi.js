@@ -6,7 +6,7 @@ if (typeof appConfig === 'undefined') {
 }
 
 // if logger is true, select console.logs will log
-let logger = false;
+let logger = true;
 
 //global 
 let allResultsAreIntegers = false;
@@ -34,10 +34,11 @@ F        IIIIIII  ..   jjj   ssss
   // Load scripts in the correct order
   loadScript("../../core/ai.js", () => {
       console.log("ai.js loaded");
-
       // Once ai.js is loaded, load the other dependencies
-      loadScript("../../core/ux.js", () => {
-          console.log("ux.js loaded");
+      //loadScript("../../core/ux.js", () => {  //alternative UI / UX
+        //console.log("ux.js loaded");
+      loadScript("../../core/workspace.js", () => {
+          console.log("workspace.js loaded");
           loadScript("../../core/charts.js", () => {
               console.log("charts.js loaded");
 
@@ -249,7 +250,8 @@ function evaluateExpression(expression) {
             () => 'true'
           );
         }
-        const result = eval(`'use strict'; (${subexpr.trim()})`);
+        subexpr = subexpr.trim().replace(/^\(/, "").replace(/\)$/, "");
+        const result = eval(`"use strict"; ${subexpr.trim()}`);
         if (result !== null && result !== 0) {
           nonNullCount++;
         }
@@ -373,6 +375,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
       }
 
       // remove input parameters
+      console.log('pre-scrubbed formula', formula);
       const scrubbedFormula = formula.replace(/(input\.\w+)\([^)]*\)/g, '$1');
       if (logger) console.log('scrubbed formula', scrubbedFormula);
 
@@ -707,10 +710,8 @@ window.processModal = function(fileInputs, identifiedPipes, appConfig, formula) 
       let statistics = {};
       if (identifiedPipes.sources.length > 0) {  //data sources
         window.statistics = computeStatistics(digestData);
-        console.log('Statistics:', window.statistics);
-        document.getElementById('chart-container').style.display = 'block';
       }
-      const cleanFormula = formula.replace(/!/g, '! '); //may be other cleaning required
+      const cleanFormula = formula.replace(/!(?!\=)/g, '! '); //may be other cleaning required
       combinedResults = processFormula(identifiedPipes, cleanFormula, appConfig.groupBy, digestData);
       displayResultsInTable(combinedResults);
     })
