@@ -1,11 +1,70 @@
 /* base.css */
 body {
     margin: 0;
-    font-family: "Helvetica Neue", Arial, sans-serif;
-    background: #fdfdfd;
+    font-family: Arial, sans-serif;
     color: #333;
-    padding: 2rem;
+    display: flex;
+    height: 100vh;
+    background-color: #f4f4f4;
 }
+
+/* Vertical Tabs */
+.vertical-tabs {
+    width: 80px;
+    background-color: #0b6031;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    flex-shrink: 0;
+}
+
+.tab {
+    writing-mode: vertical-rl;
+    text-align: center;
+    transform: rotate(180deg);
+    padding: 15px;
+    margin: 10px 0;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, opacity 0.3s;
+}
+
+.tab:hover {
+    background-color: #0b3260;
+}
+
+.tab.active {
+    border: 2px solid white;
+}
+
+.tab-content {
+    display: none;
+    width: 100%; /* Ensure it fills the content container */
+    height: 100%;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Content Area */
+.content-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
 
 h1, h2, h3 {
     font-weight: 300;
@@ -14,56 +73,57 @@ h1, h2, h3 {
     margin: 0 0 1rem 0;
 }
 
+
 /* Table Container */
 .table-container {
-  width: calc(100% - 40px); /* Adjusted for left and right margins */
-  overflow-y: auto;
-  height: calc(100vh - 50px); /* Adjusted to account for the footer and margins */
-  border: 1px solid #ddd;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
-  /* top | left and right | bottom */
-  margin: 0.5em auto 4.5em;
-  background-color: white;
+    width: calc(100% - 40px); /* Adjusted for left and right margins */
+    overflow-y: auto;
+    height: calc(100vh - 50px); /* Adjusted to account for the footer and margins */
+    border: 1px solid #ddd;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    /* top | left and right | bottom */
+    margin: 0.5em auto 4.5em;
+    background-color: white;
 }
 
 table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: Arial, sans-serif;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
 }
 
 th, td {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: left;
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
 }
 
 th {
-  background-color: #4682B4;
-  color: white;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: sticky;
-  top: 0;
-  z-index: 2;
+    background-color: rgba(11, 50, 96);
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 tr:nth-child(even) {
-  background-color: #ebf8ff;
+    background-color: #E7EFEB;
 }
 
 tr:hover {
-  background-color: #ebfff2;
+    background-color: #EAEFFD;
 }
 
 td {
-  transition: background-color 0.3s;
+    transition: background-color 0.3s;
 }
 
 /* Button styling */
 .chart-button {
-    background-color: #CC5500; 
+    background-color: rgba(171, 64, 96, 0.8);
     color: white;
     padding: 6px 12px;
     border: none;
@@ -75,7 +135,7 @@ td {
 }
 
 .chart-button:hover {
-    background-color: #a34400;
+    background-color: rgba(171, 64, 96, 0.6);
 }
 
 .button {
@@ -169,7 +229,7 @@ canvas {
     width: 50px;
     height: 50px;
     border: 5px solid rgba(0, 0, 0, 0.1);
-    border-top: 5px solid #00aaff;
+    border-top: 5px solid #0b3260;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -189,9 +249,9 @@ canvas {
     align-items: center;
     position: relative;
     min-width: fit-content;
-    border: 2px solid #007bff;
+    border: 2px solid #0b6031;
     background-color: white;
-    color: #007bff;
+    color: #0b6031;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     animation: border-pulse 2s infinite;
     width: 75%;
@@ -251,9 +311,9 @@ canvas {
 }
 
 @keyframes border-pulse {
-    0% { border-color: #007bff; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
-    50% { border-color: #339bff; box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3); }
-    100% { border-color: #007bff; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
+    0% { border-color: #11954c; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
+    50% { border-color: #0b6031; box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3); }
+    100% { border-color: #052b16; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); }
 }
 
 @media print {
@@ -368,10 +428,10 @@ canvas {
     max-width: 600px;
     max-height: 80vh;
     box-sizing: border-box;
-    overflow-y: auto; /* Allows vertical scroll when content exceeds boundary */
     display: flex;
     flex-direction: column;
     padding: 0;
+    overflow: hidden;
 }
 
 .modal-header {
@@ -379,7 +439,7 @@ canvas {
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    background-color: rgba(0, 122, 204, 0.80);
+    background-color: rgba(11, 96, 49, 0.8);
     border-bottom: 1px solid #ddd;
     position: sticky;
     top: 0;
@@ -387,6 +447,8 @@ canvas {
 }
 
 .modal-content {
+    overflow-y: auto; /* Allow vertical scrolling for content */
+    flex-grow: 1; /* Fill available space */
     padding: 15px; /* Add padding for the modal content */
 }
 
@@ -424,7 +486,7 @@ canvas {
 .run-btn {
     margin-top: 1rem;
     display: inline-block;
-    background: rgba(0, 122, 204, 0.8);
+    background: rgba(171, 64, 96, 0.8);
     color: #fff;
     text-decoration: none;
     padding: 0.75rem 1.5rem;
@@ -436,7 +498,7 @@ canvas {
 }
 
 .run-btn:hover {
-    background: rgba(0, 122, 204, 0.6);
+    background: rgba(171, 64, 96, 0.6);
 }
 
 /* Accordion Styles */
@@ -466,11 +528,11 @@ canvas {
 .accordion-header .caret {
     font-size: 1.0rem;
     transition: transform 0.3s ease;
-    color: rgba(0, 122, 204, 0.8);
+    color: rgba(11, 96, 49, 0.8);
 }
 
 .accordion-header:hover h3 {
-    color: #4682B4;
+    color: #0b6031;
 }
 
 .accordion-content {
@@ -490,7 +552,7 @@ canvas {
 .accordion-content ul li {
     position: relative;
     padding-left: 20px;
-  }
+}
   
 .accordion-content ul li::before {
     content: "";
@@ -498,13 +560,13 @@ canvas {
     top: 50%;
     left: 0;
     transform: translateY(-50%);
-    width: 10px;
-    height: 10px;
-    background-color: #4682B4;
-    border-radius: 3px; /* Rounded corners for a modern look */
+    width: 6px;
+    height: 6px;
+    background-color: #ab4060;
+    border-radius: 2px; /* Rounded corners for a modern look */
 }
 
 ul li span {
     font-weight: bold;
-    color: #007AC2;
+    color: #0b3260;
 }
