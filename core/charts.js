@@ -231,14 +231,14 @@ function plotPieChart(ctx, labels, data, canvas) {
 
     // Calculate mid-angle and label position
     const midAngle = startAngle + sliceAngle / 2;
-    const labelRadius = radius * 0.7; // Position labels slightly closer to the center
+    const labelRadius = radius * 0.6; // Position labels slightly closer to the center
     const labelX = centerX + labelRadius * Math.cos(midAngle);
     const labelY = centerY + labelRadius * Math.sin(midAngle);
 
     // Ensure label contrast with the slice color
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; // Light translucent background
     ctx.strokeStyle = '#000'; // Outline for contrast
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 2;
 
     const valueK = convertToK(value);
     const labelText = `${labels[index]}: ${valueK}`;
