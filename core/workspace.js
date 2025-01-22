@@ -1,4 +1,4 @@
-// ux.js
+// workspace.js
 
 // Function to display combined results in a table
 function displayResultsInTable() {
@@ -271,7 +271,6 @@ function displayResultsInTable() {
             }
         });
     });
-
     return container;
 }
 
@@ -366,14 +365,14 @@ function showRunModal() {
     <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 200 200">
       <!-- Bottom rotated square -->
       <g transform="rotate(45, 100, 100)">
-        <rect x="35" y="35" width="130" height="130" fill="#ab4060" opacity="0.8" />
+        <rect x="35" y="35" width="130" height="130" fill="#0b3260" opacity="0.75" />
         <text x="100" y="135" font-family="Arial, sans-serif" font-size="90" fill="#ffffff" text-anchor="middle" >
           JS
         </text>
       </g>
       <!-- Top square -->
       <g>
-        <rect x="35" y="35" width="130" height="130" fill="#0b6031" opacity="0.75" />
+        <rect x="35" y="35" width="130" height="130" fill="#0b6031" opacity="0.65" />
         <text x="100" y="130" font-family="Arial, sans-serif" font-size="80" fill="#ffffff" text-anchor="middle">
           FI
         </text>
@@ -435,7 +434,7 @@ function showRunModal() {
     input.type = "text";
     input.id = inputName;
 
-      // Event listener to check if all inputs are filled
+    // Event listener to check if all inputs are filled
     input.addEventListener('input', () => {
       let allFilled = true;
 
@@ -509,22 +508,16 @@ function createAccordionItem(key, value) {
   header.className = 'accordion-header';
   header.setAttribute('aria-expanded', 'false');
   content.className = 'accordion-content';
-  if (key === 'formula') {
-    content.classList.add('code-container');
-    content.setAttribute('contenteditable', 'true');
-    content.setAttribute('spellcheck', 'false');
-    content.style.padding = '2.5em 0.5em';
-    content.id = 'formula';
-  }
   caret.className = 'caret';
   caret.innerHTML = '&#x25BC;';
   const headerText = document.createElement('h3');
-
   headerText.textContent = key;
   header.appendChild(headerText);
   header.appendChild(caret);
 
-  if (Array.isArray(value)) {
+  if (key === 'formula') {
+    content.classList.add('editor-container');
+  } else if (Array.isArray(value)) {
     const list = document.createElement('ul');
     value.forEach(item => {
       const listItem = document.createElement('li');
@@ -648,40 +641,183 @@ function loadUX() {
   document.body.appendChild(contentContainer);
   const tableTab = newTab('Table');
   showRunModal(); // Set up the modal on page load
-  const appConfigElements = document.querySelectorAll('.code-container');
-  appConfigElements.forEach(appConfigElement => {
-      let highlightedText = appConfigElement.textContent;
-      
-      // Highlight double curly braces first to ensure they are not affected by other replacements
-      highlightedText = highlightedText
-          .replace(/\{\{/g, '<span class="highlight-double-curly">{{</span>')
-          .replace(/\}\}/g, '<span class="highlight-double-curly">}}</span>');
+  const editorContainers = document.querySelectorAll('.editor-container');
+  const createToolbar = (editor) => {
+    // Create toolbar element
+    const toolbar = document.createElement('div');
+    toolbar.className = 'toolbar';
 
-      // Use a function to handle highlighting source.object pairs
-      const sourceObjectRegex = /\b([a-zA-Z_][a-zA-Z0-9_]*)\.(\b[a-zA-Z_][a-zA-Z0-9_]*\b)/g;
-      highlightedText = highlightedText.replace(sourceObjectRegex, (match, source, object) => {
-          //console.log("Match found:", match, "| Source:", source, "| Object:", object);
-          return `<span class="highlight-source">${source}</span><span class="highlight-dot">.</span><span class="highlight-object">${object}</span>`;
+    // Create Save button
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'saveBtn';
+    saveBtn.textContent = '⎘';
+
+    // Create Copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'copyBtn';
+    copyBtn.textContent = '⧉';
+
+    // Create Clear button
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'clearBtn';
+    clearBtn.textContent = '✘';
+
+    // Add button event listeners
+    saveBtn.addEventListener('click', async () => {
+          try {
+              if (window.showSaveFilePicker) {
+                  // File System Access API
+                  const fileHandle = await window.showSaveFilePicker({
+                      suggestedName: 'code.txt',
+                      types: [
+                          {
+                              description: 'Text Files',
+                              accept: {
+                                  'text/plain': ['.txt'],
+                              },
+                          },
+                      ],
+                  });
+
+                  const writable = await fileHandle.createWritable();
+                  await writable.write(editor.textContent);
+                  await writable.close();
+                  alert('File saved successfully!');
+              } else {
+                  // Fallback for unsupported browsers
+                  const blob = new Blob([editor.textContent], { type: 'text/plain' });
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(blob);
+                  link.download = 'code.txt';
+                  link.click();
+                  alert('File saved (using fallback method)!');
+              }
+          } catch (err) {
+              if (err.name !== 'AbortError') {
+                  console.error('Save failed:', err);
+                  alert('Failed to save the file.');
+              }
+          }
       });
 
-      // Highlight keywords and specific elements after handling source.object pairs
-      highlightedText = highlightedText
-          .replace(/\bconst\b/g, '<span class="highlight-const">const</span>')
-          .replace(/\bappConfig\b/g, '<span class="highlight-appConfig">appConfig</span>')
-          .replace(/(?<!\{)\{(?!\{)/g, '<span class="highlight-curly">{</span>')
-          .replace(/(?<!\})\}(?!\})/g, '<span class="highlight-curly">}</span>')
-          .replace(/\(/g, '<span class="highlight-parentheses">(</span>')
-          .replace(/\)/g, '<span class="highlight-parentheses">)</span>')
-          .replace(/\[/g, '<span class="highlight-brackets">[</span>')
-          .replace(/\]/g, '<span class="highlight-brackets">]</span>')
-          .replace(/\b(null)\b/g, '<span class="highlight-null">$1</span>')
-          .replace(/(\b[a-zA-Z_][a-zA-Z0-9_]*\b)(?=\s*:)/g, '<span class="highlight-key">$1</span>');
+      copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(editor.textContent).then(() => {
+              alert('Code copied to clipboard!');
+          });
+      });
 
-      // Highlight all text after // to the end of the line in hunter green
-      highlightedText = highlightedText.replace(/\/\/.*$/gm, '<span class="highlight-comment">$&</span>');
+      clearBtn.addEventListener('click', () => {
+          editor.textContent = '';
+          applySyntaxHighlighting(editor);
+      });
 
-      // Set the final highlighted text back to the HTML element
-      appConfigElement.innerHTML = highlightedText;
+      // Append buttons to the toolbar
+      toolbar.appendChild(saveBtn);
+      toolbar.appendChild(copyBtn);
+      toolbar.appendChild(clearBtn);
+
+      return toolbar;
+  };
+
+  const saveCaretPosition = (element) => {
+      const selection = window.getSelection();
+      if (selection.rangeCount === 0) return null;
+      const range = selection.getRangeAt(0);
+      const preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(element);
+      preCaretRange.setEnd(range.startContainer, range.startOffset);
+      return preCaretRange.toString().length;
+  };
+
+  const restoreCaretPosition = (element, offset) => {
+      if (offset === null) return;
+      const selection = window.getSelection();
+      const range = document.createRange();
+      let currentOffset = 0;
+
+      const traverseNodes = (node) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+              const nextOffset = currentOffset + node.length;
+              if (currentOffset <= offset && offset <= nextOffset) {
+                  range.setStart(node, offset - currentOffset);
+                  range.collapse(true);
+                  return true;
+              }
+              currentOffset = nextOffset;
+          } else {
+              for (let child of node.childNodes) {
+                  if (traverseNodes(child)) return true;
+              }
+          }
+          return false;
+      };
+
+      traverseNodes(element);
+      selection.removeAllRanges();
+      selection.addRange(range);
+  };
+
+  const applySyntaxHighlighting = (editor) => {
+      const caretOffset = saveCaretPosition(editor);
+      const lines = editor.textContent.split('\n');
+      const highlightedLines = lines.map((line) => {
+          let text = line;
+
+          text = text
+              .replace(/\{\{/g, '<span class="highlight-double-curly">{{</span>')
+              .replace(/\}\}/g, '<span class="highlight-double-curly">}}</span>')
+              .replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\.(\b[a-zA-Z_][a-zA-Z0-9_]*\b)/g, (match, source, object) => {
+                  return `<span class="highlight-source">${source}</span><span class="highlight-dot">.</span><span class="highlight-object">${object}</span>`;
+              })
+              .replace(/\bconst\b/g, '<span class="highlight-const">const</span>')
+              .replace(/\bappConfig\b/g, '<span class="highlight-appConfig">appConfig</span>')
+              .replace(/(?<!\{)\{(?!\{)/g, '<span class="highlight-curly">{</span>')
+              .replace(/(?<!\})\}(?!\})/g, '<span class="highlight-curly">}</span>')
+              .replace(/\(/g, '<span class="highlight-parentheses">(</span>')
+              .replace(/\)/g, '<span class="highlight-parentheses">)</span>')
+              .replace(/\[/g, '<span class="highlight-brackets">[</span>')
+              .replace(/\]/g, '<span class="highlight-brackets">]</span>')
+              .replace(/\b(null)\b/g, '<span class="highlight-null">$1</span>')
+              .replace(/(\b[a-zA-Z_][a-zA-Z0-9_]*\b)(?=\s*:)/g, '<span class="highlight-key">$1</span>')
+              .replace(/\/\/.*$/gm, '<span class="highlight-comment">$&</span>');
+
+          return text || '<br>';
+      });
+
+      editor.innerHTML = highlightedLines.join('\n');
+      restoreCaretPosition(editor, caretOffset);
+  };
+
+  editorContainers.forEach((container) => {
+      //const editor = container.querySelector('.code-editor');
+
+      // Append toolbar dynamically
+      const editor= document.createElement('div');
+      editor.classList.add('code-editor');
+      editor.setAttribute('contenteditable', 'true');
+      editor.setAttribute('spellcheck', 'false');
+      editor.id = 'formula';
+      editor.innerHTML = appConfig.formula;
+      container.appendChild(editor);
+      const toolbar = createToolbar(editor);
+      container.appendChild(toolbar);
+
+      editor.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') {
+              event.preventDefault();
+              const caretOffset = saveCaretPosition(editor);
+              const text = editor.textContent;
+              const beforeCaret = text.slice(0, caretOffset);
+              const afterCaret = text.slice(caretOffset);
+              editor.textContent = `${beforeCaret}\n${afterCaret}`;
+              restoreCaretPosition(editor, caretOffset + 1);
+              applySyntaxHighlighting(editor);
+          }
+      });
+
+      editor.addEventListener('input', () => applySyntaxHighlighting(editor));
+
+      applySyntaxHighlighting(editor);
   });
 
   renderFavicon();
