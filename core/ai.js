@@ -222,7 +222,7 @@ function updateTableWithMapping(mapping, tableId, header = null) {
             legendValue = Number(legendValue);
         }
 
-        if (logger) console.log('legendValue', legendValue)
+        //if (logger) console.log('legendValue', legendValue)
         // Check if the normalized legendValue exists in the mapping
         if (mapping[legendValue]) {
             cells[column].textContent = `${mapping[legendValue]} (${legendValue})`;
