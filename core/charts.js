@@ -294,7 +294,9 @@ function plotPieChart(ctx, labels, data, canvas) {
     labels.forEach((label, index) => {
       const row = document.createElement('tr');
       const legendLabel = document.createElement('td');
-      legendLabel.textContent = `${label}`;
+      if (!isNaN(label)) {
+        legendLabel.textContent = `${label}`;
+      }
       row.appendChild(legendLabel);
       const legendValue = document.createElement('td');
       if (allDataAreIntegers) {
