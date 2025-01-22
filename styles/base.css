@@ -59,20 +59,18 @@ body {
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    padding: 20px;
+    padding: 5px 10px;
     overflow-y: auto;
     background-color: #ffffff;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
-
 h1, h2, h3 {
     font-weight: 300;
     letter-spacing: 1px;
     color: #333;
-    margin: 0 0 1rem 0;
+    margin: 0.25em 0;
 }
-
 
 /* Table Container */
 .table-container {
@@ -155,7 +153,9 @@ td {
 }
 
 .button:disabled {
-    background-color: #ccc;
+    background-color: dimgrey;
+    color: linen;
+    opacity: 1;
     cursor: not-allowed;
 }
 
@@ -343,69 +343,69 @@ canvas {
     }
 }
 
-.code-container {
-    background-color: #282c34;
-    color: #abb2bf;
-    padding: 10px 15px;
-    margin: 2px 0;
-    border-radius: 5px;
-    font-family: 'Roboto Mono', Courier, monospace;
-    font-size: 13px;
-    white-space: pre;
-    overflow-x: auto;
-    overflow-y: hidden;
-    line-height: 1.3;
-    text-align: left;
+.editor-container {
+    position: relative;
+    width: 90%;
+    max-width: 1000px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background-color: #2d2d2d;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: monospace;
+    color: #ffffff;
+    margin: 10px 0;
 }
 
-.highlight-brackets {
+.toolbar {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.toolbar button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.toolbar button:hover {
     color: #c678dd;
 }
 
-.highlight-curly {
-    color: #e06c75;
+.code-editor {
+    flex-grow: 1;
+    margin-top: 40px;
+    padding: 16px;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    outline: none;
+    line-height: 1.5;
+    overflow-y: auto;
+    caret-color: #fff;
 }
 
-.highlight-parentheses {
-    color: #61afef;
-}
-
-.highlight-key {
-    color: #d19a66;
-}
-
-.highlight-null {
-    color: red;
-}
-
-.highlight-source {
-    color: #98c379;
-}
-
-.highlight-object {
-    color: #61afef;
-}
-
-.highlight-const {
-    color: #56b6c2;
-}
-
-.highlight-appConfig {
-    color: #e5c07b;
-    font-weight: bold;
-}
-
-.highlight-dot {
-    color: #abb2bf;
-}
-
-.highlight-double-curly {
-    color: #ffd700;
-}
-
-.highlight-comment {
-    color: #355e3b;
-}
+/* Syntax Highlighting Rules */
+.highlight-double-curly { color: #d19a66; font-weight: bold; }
+.highlight-source { color: #61afef; }
+.highlight-dot { color: #abb2bf; }
+.highlight-object { color: #e5c07b; }
+.highlight-const { color: #c678dd; font-weight: bold; }
+.highlight-appConfig { color: #98c379; }
+.highlight-curly { color: #e06c75; }
+.highlight-parentheses { color: #56b6c2; }
+.highlight-brackets { color: #c678dd; }
+.highlight-null { color: #e5c07b; font-style: italic; }
+.highlight-key { color: #61afef; font-weight: bold; }
+.highlight-comment { color: #6a9955; font-style: italic; }
 
 /* Modal Styles */
 .modal-overlay {
@@ -422,11 +422,14 @@ canvas {
 }
 
 .modal {
+    position: absolute;
+    top: 50%;
+    left: 52.5%;
+    transform: translate(-50%, -50%);
+    width: 70%; /* 80% of the screen width */
+    height: 60%; /* 80% of the screen height */
     background: #fff;
-    border-radius: 4px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 80vh;
+    border-radius: 6px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -447,9 +450,9 @@ canvas {
 }
 
 .modal-content {
-    overflow-y: auto; /* Allow vertical scrolling for content */
-    flex-grow: 1; /* Fill available space */
-    padding: 15px; /* Add padding for the modal content */
+    overflow-y: auto; 
+    flex-grow: 1; 
+    padding: 25px; 
 }
 
 .light-indicator {
@@ -500,6 +503,14 @@ canvas {
 .run-btn:hover {
     background: rgba(171, 64, 96, 0.6);
 }
+
+.run-btn:disabled {
+    background-color: dimgrey;
+    color: linen;
+    opacity: 1;
+    cursor: not-allowed;
+}
+
 
 /* Accordion Styles */
 .accordion {
