@@ -12,7 +12,8 @@ const synonymLibrary = {
     'own': ['responsibility', 'officer'],
     'offic': ['owner', 'responsibility'],
     'typ': ['classification', 'class'],
-    'class': ['type']
+    'class': ['type'],
+    'balanc': ['principal']
 };
 
 function stem(word) {
