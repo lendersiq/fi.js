@@ -46,10 +46,10 @@ F        IIIIIII  ..   jjj   ssss
               console.log("All dependencies loaded. fi.js is ready to execute.");
               // System Tests 
               // Test the aiTranslater function
-              const headers = ['Portfolio', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
-              console.log('Translated header testing (pay):', aiTranslater(headers, 'pay'));
+              const headers = ['Portfolio', 'Principal', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
+              console.log('Translated header testing (balance):', aiTranslater(headers, 'balance'));
               console.log('Translated header testing (officer):', aiTranslater(headers, 'officer'));
-              console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} and type = ${stem('type')}`);
+              console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} balance = ${stem('balance')} and type = ${stem('type')}`);
               console.log('Area Mode test: ', calculateAreaMode([121, 123, 134, 145, 17564.89, 300, 299, 120, 150, 320, 310]));
               console.log('Area Mode test 2: ', calculateAreaMode([12, 23, 13, 14, 17564.89, 30, 29, 12, 15, 32, 31]));
               loadUX();
@@ -166,7 +166,11 @@ function evaluateExpression(expression) {
   if (logger) console.log('Original Expression:', expression);
 
   // Step 1: Replace conditions where 'null' is the first part of the condition with 'false'
-  expression = expression.replace(/\{\{\s*null\s*[!=><]=?\s*[^}]+\}\}/g, '{{ false }}');
+  // depr expression = expression.replace(/\{\{\s*null\s*[!=><]=?\s*[^}]+\}\}/g, '{{ false }}');
+  expression = expression.replace(/\{\{\s*null\s*[!=><]=?\s*([^}]+)\}\}/g, (match, condition) => {
+    return condition.trim() === "null" ? match : "{{ false }}";
+  });
+
   if (logger) console.log('Expression after replacing conditions starting with null:', expression);
 
   // Regex to match conditions inside double curly braces {{ }}
