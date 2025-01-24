@@ -3,46 +3,9 @@
 // Function to display combined results in a table
 function displayResultsInTable() {
   console.log('combinedResults', combinedResults);
-  const tableContainer = document.createElement('div');
-  tableContainer.className = 'table-container';
-  const table = document.createElement('table');
-  table.className = 'table';
-  table.id = 'results-table'
-  const thead = document.createElement('thead');
-
-  const headerRow = document.createElement('tr');
-
-  // Create a button to handle Group ID mapping
-  const groupHeader = document.createElement('th');
-  const mashUpButton = document.createElement('button');
-  mashUpButton.textContent = appConfig.groupBy;
-  mashUpButton.className = 'button';
-  mashUpButton.addEventListener('click', handleGroupIdButtonClick);
-  groupHeader.appendChild(mashUpButton);
-  headerRow.appendChild(groupHeader);
-
-  // Add headers from presentation config
-  if (appConfig.presentation && appConfig.presentation.columns) {
-    appConfig.presentation.columns.forEach(column => {
-      const columnHeader = document.createElement('th');
-      const aiButton = document.createElement('button');
-      aiButton.textContent = column.heading;
-      aiButton.className = 'button';
-      aiButton.addEventListener('click', () => aiTableTranslater(table.id, column.heading));
-      columnHeader.appendChild(aiButton);
-      headerRow.appendChild(columnHeader);
-    });
-  }
-
-  // Add the Result header
-  const headerResult = document.createElement('th');
-  headerResult.textContent = 'Result';
-  headerRow.appendChild(headerResult);
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
-
+  
   // Determine column format based on values in each row
-  const columnFormat = appConfig.presentation.columns.map(() => ({ isCurrency: false, integerCount: 0, currencyCount: 0 }));
+  const columnFormat = appConfig.presentation.columns.map(() => ({ isCurrency: false, integerCount: 0, currencyCount: 0, stringCount: 0, isTranslatable: true }));
   const columnSums = Array(appConfig.presentation.columns.length).fill(0);
   let totalCount = 0;
   let resultSum = 0;
@@ -94,16 +57,16 @@ function displayResultsInTable() {
     appConfig.presentation.columns.forEach((column, index) => {
       const field = column.field.toLowerCase();
       let values = [];
-
       if (data[field]) {
         values = parseCommaDelimited(data[field]);
       }
-      
       if (Array.isArray(values)) {
         if (values.every(Number.isInteger) && values.every(v => v <= 9999)) {
           columnFormat[index].integerCount += values.length;
         } else if (values.every(item => typeof item !== 'string')) {
           columnFormat[index].currencyCount += values.length;
+        } else {
+          columnFormat[index].stringCount += values.length;
         }
       }
     });
@@ -111,7 +74,49 @@ function displayResultsInTable() {
 
   columnFormat.forEach((format, index) => {
     format.isCurrency = format.currencyCount > format.integerCount;  //if more currency than integer column is currency
+    format.isTranslatable = format.stringCount < format.integerCount + format.currencyCount  &&  !format.isCurrency; 
   });
+
+  const tableContainer = document.createElement('div');
+  tableContainer.className = 'table-container';
+  const table = document.createElement('table');
+  table.className = 'table';
+  table.id = 'results-table'
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+
+  // Create a button to handle Group ID mapping
+  const groupHeader = document.createElement('th');
+  const mashUpButton = document.createElement('button');
+  mashUpButton.textContent = appConfig.groupBy;
+  mashUpButton.className = 'button';
+  mashUpButton.addEventListener('click', handleGroupIdButtonClick);
+  groupHeader.appendChild(mashUpButton);
+  headerRow.appendChild(groupHeader);
+
+  // Add headers from presentation config
+  if (appConfig.presentation && appConfig.presentation.columns) {
+    appConfig.presentation.columns.forEach((column, index) => {
+      const columnHeader = document.createElement('th');
+      if (columnFormat[index].isTranslatable) {
+        const aiButton = document.createElement('button');
+        aiButton.textContent = column.heading;
+        aiButton.className = 'button';
+        aiButton.addEventListener('click', () => aiTableTranslater(table.id, column.heading));
+        columnHeader.appendChild(aiButton);
+      } else {
+        columnHeader.textContent = column.heading;
+      }
+      headerRow.appendChild(columnHeader);
+    });
+  }
+
+  // Add the Result header
+  const headerResult = document.createElement('th');
+  headerResult.textContent = 'Result';
+  headerRow.appendChild(headerResult);
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
 
   // Second pass to render each row with consistent formatting
   const rows = {};
