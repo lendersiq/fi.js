@@ -9,16 +9,6 @@ function loadCharts() {
   const fieldSelect = document.createElement('select');
   fieldSelect.id = 'field-select';
 
-  // Populate additional fields from appConfig.presentation.columns
-  if (appConfig.presentation && appConfig.presentation.columns) {
-    appConfig.presentation.columns.forEach(column => {
-      const option = document.createElement('option');
-      option.value = column.field;
-      option.textContent = column.heading; // Use heading for display
-      fieldSelect.appendChild(option);
-    });
-  }
-
   // Create the chart type select dropdown
   const chartTypeSelect = document.createElement('select');
   chartTypeSelect.id = 'chart-type-select';
@@ -73,7 +63,6 @@ function loadCharts() {
     const chartType = chartTypeSelect.value;
 
     // Calculate totals for each unique value in the selected field
-
     const totals = {};
     Object.entries(combinedResults).forEach(([uniqueId, record]) => {
       if (record.result) {
