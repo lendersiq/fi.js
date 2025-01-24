@@ -60,10 +60,35 @@ function displayResultsInTable() {
       item.result = item.tally === 0 ? 0 : Math.round(item.result / item.tally);
     });
   }
+
   // sort combined results
   const sortedResults = Object.entries(combinedResults).sort((a, b) => {
     return parseFloat(b[1].result) - parseFloat(a[1].result);
   });
+
+  function parseCommaDelimited(input) {
+    // Trim the input string to handle any leading or trailing whitespace
+    input = String(input).trim();
+
+    // If there's no comma, return the single value parsed appropriately
+    if (!input.includes(',')) {
+        return isNaN(input) || input === '' ? [input] : [parseFloat(input)];
+    }
+
+    // Split the input string by commas and trim any extra whitespace
+    const rawArray = input.split(',').map(item => item.trim());
+
+    // Parse each item into its appropriate type
+    const parsedArray = rawArray.map(item => {
+        // Check if the item is a valid number (integer or float)
+        if (!isNaN(item) && item !== '') {
+            return parseFloat(item);
+        }
+        // Otherwise, keep it as a string
+        return item;
+    });
+    return parsedArray;
+  }
 
   sortedResults.forEach(([_, data]) => {
     appConfig.presentation.columns.forEach((column, index) => {
@@ -71,20 +96,14 @@ function displayResultsInTable() {
       let values = [];
 
       if (data[field]) {
-        if (typeof data[field] === 'string') {
-          values = data[field].includes(',') ? values = data[field].split(',').map(v => parseFloat(v.trim())) : data[field];
-        } else {
-          values = Array.isArray(data[field]) ? data[field] : [parseFloat(data[field])];
-        }
+        values = parseCommaDelimited(data[field]);
       }
-
-      //if (Array.isArray(data[field])) {
+      
       if (Array.isArray(values)) {
         if (values.every(Number.isInteger) && values.every(v => v <= 9999)) {
           columnFormat[index].integerCount += values.length;
-        } else if (typeof data[field] !== 'string') {
+        } else if (values.every(item => typeof item !== 'string')) {
           columnFormat[index].currencyCount += values.length;
-          columnFormat[index].isCurrency = true; // Flag as currency if any value suggests it
         }
       }
     });
@@ -111,11 +130,7 @@ function displayResultsInTable() {
         let values = [];
 
         if (data[field]) {
-          if (typeof data[field] === 'string') {
-            values = data[field].includes(',') ? data[field].split(',').map(v => parseFloat(v.trim())) : data[field];
-          } else {
-            values = Array.isArray(data[field]) ? data[field] : [parseFloat(data[field])];
-          }
+          values = parseCommaDelimited(data[field]);
         }
 
         if (Array.isArray(values)) {
