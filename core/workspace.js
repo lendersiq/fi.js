@@ -688,59 +688,105 @@ function loadUX() {
 
     // Add button event listeners
     saveBtn.addEventListener('click', async () => {
-          try {
-              if (window.showSaveFilePicker) {
-                  // File System Access API
-                  const fileHandle = await window.showSaveFilePicker({
-                      suggestedName: 'code.txt',
-                      types: [
-                          {
-                              description: 'Text Files',
-                              accept: {
-                                  'text/plain': ['.txt'],
-                              },
-                          },
-                      ],
-                  });
+      try {
+        if (window.showSaveFilePicker) {
+          const fileHandle = await window.showSaveFilePicker({
+            suggestedName: '{rename} new_single_page_app.html',
+            types: [
+              {
+                description: 'FI.js SPA File',
+                accept: {
+                  'text/html': ['.html'],
+                },
+              },
+            ],
+          }); 
+        const filename = fileHandle.name.replace(/\.html$/, '');
 
-                  const writable = await fileHandle.createWritable();
-                  await writable.write(editor.textContent);
-                  await writable.close();
-                  alert('File saved successfully!');
-              } else {
-                  // Fallback for unsupported browsers
-                  const blob = new Blob([editor.textContent], { type: 'text/plain' });
-                  const link = document.createElement('a');
-                  link.href = URL.createObjectURL(blob);
-                  link.download = 'code.txt';
-                  link.click();
-                  alert('File saved (using fallback method)!');
-              }
-          } catch (err) {
-              if (err.name !== 'AbortError') {
-                  console.error('Save failed:', err);
-                  alert('Failed to save the file.');
-              }
+            // Base HTML structure
+            let appContent = `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="img-src 'self' data:; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://bankersiq.com; object-src 'none';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../styles/base.css">
+    <title>${filename}</title>
+  </head>
+  <body>
+    <script>
+      // App configuration
+      const appConfig = {
+        description: '<h3>${filename}</h3>',
+        libraries: [`
+            // Add libraries
+              appConfig.libraries.forEach((lib) => {
+                appContent += `
+          '${lib}',`;
+              });
+              appContent += `
+        ],`;
+              // Add formula
+              appContent += `
+        formula: '${editor.textContent}',`;
+              // Add groupBy
+              appContent += `
+        groupBy: '${appConfig.groupBy}',`;
+              // Add presentation columns
+              appContent += `
+        presentation: {
+          columns: [`;
+              appConfig.presentation.columns.forEach((col) => {
+                appContent += `
+            { heading: '${col.heading}', field: '${col.field}' },`
+              });
+              appContent += `
+          ],
+        }
+      };
+    </script>
+    <script src="../../core/fi.js" defer></script>
+  </body>
+</html>`;
+            // Save the file
+            const writable = await fileHandle.createWritable();
+            await writable.write(appContent);
+            await writable.close();
+            alert('File saved successfully!');
+          } else {
+            // Fallback for unsupported browsers
+            const blob = new Blob([appContent], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'new_single_page_app.html';
+            link.click();
+            alert('File saved (using fallback method)!');
           }
+      } catch (err) {
+          if (err.name !== 'AbortError') {
+            console.error('Save failed:', err);
+            alert('Failed to save the file.');
+          }
+      }
+    });
+  
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(editor.textContent).then(() => {
+        alert('Code copied to clipboard!');
       });
+    });
 
-      copyBtn.addEventListener('click', () => {
-          navigator.clipboard.writeText(editor.textContent).then(() => {
-              alert('Code copied to clipboard!');
-          });
-      });
+    clearBtn.addEventListener('click', () => {
+      editor.textContent = '';
+      applySyntaxHighlighting(editor);
+    });
 
-      clearBtn.addEventListener('click', () => {
-          editor.textContent = '';
-          applySyntaxHighlighting(editor);
-      });
+    // Append buttons to the toolbar
+    toolbar.appendChild(saveBtn);
+    toolbar.appendChild(copyBtn);
+    toolbar.appendChild(clearBtn);
 
-      // Append buttons to the toolbar
-      toolbar.appendChild(saveBtn);
-      toolbar.appendChild(copyBtn);
-      toolbar.appendChild(clearBtn);
-
-      return toolbar;
+    return toolbar;
   };
 
   const saveCaretPosition = (element) => {
