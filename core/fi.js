@@ -46,7 +46,7 @@ F        IIIIIII  ..   jjj   ssss
               console.log("All dependencies loaded. fi.js is ready to execute.");
               // System Tests 
               // Test the aiTranslator function
-              const headers = ['Portfolio', 'Principal', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
+              const headers = ['Portfolio', 'Previous_Average_Balance', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
               console.log('Translated header testing (balance):', aiTranslator(headers, 'balance'));
               console.log('Translated header testing (officer):', aiTranslator(headers, 'officer'));
               console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} balance = ${stem('balance')} and type = ${stem('type')}`);

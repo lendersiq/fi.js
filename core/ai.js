@@ -9,10 +9,11 @@ const synonymsDataset = [
   ['withdrawal', 'check', 'draft', 'debit'],
   ['deposit', 'credit'],
   ['certificate', 'cd', 'cod', 'certificate of deposit'],
-  ['own', 'responsibility', 'officer'],
+  ['owner', 'responsibility', 'officer'],
   ['type', 'classification', 'class'],
   ['origin', 'open'],
-  ['location', 'branch', 'office']
+  ['location', 'branch', 'office'],
+  //['principal', 'balance', 'outstanding']
 ];
 
 function stem(word) {
@@ -215,6 +216,7 @@ function stem(word) {
 }  
 
 function aiSynonymKey(word) {
+  return word;
   const stemmedWord = stem(word);
 
   for (const [key, synonyms] of Object.entries(synonymLibrary)) {
@@ -235,7 +237,7 @@ function aiSynonymKey(word) {
 }
 
 function aiTranslator(headers, field) {
-  const headersLower = headers.map(h => stem(h.toLowerCase()));
+  const headersLower = headers.map(h => h.toLowerCase());
   const stemmedField = stem(field.toLowerCase());
 
   // 1) Try to find a direct match (substring) in headers
