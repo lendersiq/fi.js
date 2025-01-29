@@ -269,7 +269,7 @@ function plotPieChart(ctx, labels, data, canvas) {
     const aiButton = document.createElement('button');
     aiButton.textContent = `${field}`;
     aiButton.className = 'chart-button';
-    aiButton.addEventListener('click', () => aiTableTranslater(table.id));
+    aiButton.addEventListener('click', () => aiTableTranslator(table.id));
     headerLegend.appendChild(aiButton);
     headerRow.appendChild(headerLegend);
 

@@ -102,7 +102,7 @@ function displayResultsInTable() {
         const aiButton = document.createElement('button');
         aiButton.textContent = column.heading;
         aiButton.className = 'button';
-        aiButton.addEventListener('click', () => aiTableTranslater(table.id, column.heading));
+        aiButton.addEventListener('click', () => aiTableTranslator(table.id, column.heading));
         columnHeader.appendChild(aiButton);
         const option = document.createElement('option');
         option.value = column.field;

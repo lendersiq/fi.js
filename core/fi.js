@@ -45,10 +45,10 @@ F        IIIIIII  ..   jjj   ssss
               // Now fi.js can safely execute its logic
               console.log("All dependencies loaded. fi.js is ready to execute.");
               // System Tests 
-              // Test the aiTranslater function
+              // Test the aiTranslator function
               const headers = ['Portfolio', 'Principal', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
-              console.log('Translated header testing (balance):', aiTranslater(headers, 'balance'));
-              console.log('Translated header testing (officer):', aiTranslater(headers, 'officer'));
+              console.log('Translated header testing (balance):', aiTranslator(headers, 'balance'));
+              console.log('Translated header testing (officer):', aiTranslator(headers, 'officer'));
               console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} balance = ${stem('balance')} and type = ${stem('type')}`);
               console.log('Area Mode test: ', calculateAreaMode([121, 123, 134, 145, 17564.89, 300, 299, 120, 150, 320, 310]));
               console.log('Area Mode test 2: ', calculateAreaMode([12, 23, 13, 14, 17564.89, 30, 29, 12, 15, 32, 31]));
@@ -368,7 +368,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
     console.log('resource Data:', resourceData);
 
     const headers = resourceData.length > 0 ? Object.keys(resourceData[0]) : [];
-    const translatedGroupKey = aiTranslater(headers, groupKey);
+    const translatedGroupKey = aiTranslator(headers, groupKey);
     resourceData.forEach(row => {
       const uniqueId = row[translatedGroupKey];
       console.log('Processing row:', row);
@@ -427,7 +427,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
                 return resourceName;
               }
       
-              const paramHeader = aiTranslater(headers, info.name);
+              const paramHeader = aiTranslator(headers, info.name);
               if (paramHeader) {
                 const paramValue = row[paramHeader];
                 if (isDate(paramValue)) {
@@ -455,7 +455,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
         }
       
         //if data sourced from pipe
-        const translatedHeader = aiTranslater(headers, sourceObject);
+        const translatedHeader = aiTranslator(headers, sourceObject);
         //console.log(`headers: ${headers} -- translated header: ${translatedHeader}`);
         if (translatedHeader) {
           const value = row[translatedHeader];
@@ -492,7 +492,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
       if (appConfig.presentation && appConfig.presentation.columns) {
         appConfig.presentation.columns.forEach(column => {
           const headers = Object.keys(row);
-          const translatedColumn = aiTranslater(headers, column.field);
+          const translatedColumn = aiTranslator(headers, column.field);
           if (translatedColumn) {
             if (results[uniqueId][column.field] !== undefined) {
               results[uniqueId][column.field] = `${results[uniqueId][column.field]}, ${row[translatedColumn]}`;
