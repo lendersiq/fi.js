@@ -233,22 +233,22 @@ const financial = {
                 // calculate deposit volume
                 var annualDeposits = 0;
                 if (deposits) {
-                    if (window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'deposits')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
+                    if (window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'deposits')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
                         const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
                         annualDeposits = deposits / yearsSinceOpen;
                     } else {
-                        annualDeposits = deposits * window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'deposits')].YTDfactor;
+                        annualDeposits = deposits * window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'deposits')].YTDfactor;
                     }
                 }
 
                 //calculate withdrawals volume
                 var annualWithdrawals = 0;
                 if (withdrawals) {
-                    if (window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'withdrawals')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
+                    if (window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'withdrawals')].YTDfactor === 1) { //if YTDFactor === 1 then divide volume by life in years else multiply YTD factor by volume 
                         const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open);
                         annualWithdrawals = withdrawals / yearsSinceOpen;
                     } else {
-                        annualWithdrawals = withdrawals *  window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'withdrawals')].YTDfactor;
+                        annualWithdrawals = withdrawals *  window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'withdrawals')].YTDfactor;
                     }
                 }
 
@@ -267,7 +267,7 @@ const financial = {
 					if (isBusiness) {
 					    accountType = "Business";
                     }
-                    interestExpense = interest * window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'interest')].YTDfactor;
+                    interestExpense = interest * window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'interest')].YTDfactor;
                     if (financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType]) {
                         operatingExpense = financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType];
                     }
@@ -277,7 +277,7 @@ const financial = {
                 let feeIncome = 0;
                 if (charges) {
                     const netCharges = waived ? (charges - waived) : charges;
-                    feeIncome = netCharges * window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'charges')].YTDfactor;
+                    feeIncome = netCharges * window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'charges')].YTDfactor;
                 }
 
                 const depositsExpense = deposits * financial.attributes.depositUnitExpense.value;            
@@ -323,7 +323,7 @@ const financial = {
                 const fundingExpense = AveragePrincipal * fundingRate;
 
 				let smallLoanMaximum = financial.attributes.smallLoanMaximum.value;  //default
-				const principalObject = window.statistics.loan[aiTranslater(Object.keys(window.statistics.loan), 'principal')];
+				const principalObject = window.statistics.loan[aiTranslator(Object.keys(window.statistics.loan), 'principal')];
 				if (principalObject && Object.hasOwn(principalObject, "median")) {
 					smallLoanMaximum = principalObject.median > smallLoanMaximum ? principalObject.median : smallLoanMaximum;  // the median of each loan principal in the entire portfolio (50th percentile)
 				}
@@ -342,8 +342,8 @@ const financial = {
                 const originationExpense = (financial.attributes.fixedOriginationExpense.value + Math.min(principal, financial.attributes.principalCostMaximum.value) * financial.attributes.variableOriginationFactor.value * complexityFactor) / Math.min(termInYears, 10);
                 const servicingExpense = (financial.attributes.fixedServicingExpense.value + principal * financial.attributes.loanServicingFactor.value / yearsUntilMaturity) * complexityFactor;
 
-                //console.log('risk key:', aiTranslater(Object.keys(window.statistics.loan), 'risk'));
-                const riskObject = window.statistics.loan[aiTranslater(Object.keys(window.statistics.loan), 'risk')];
+                //console.log('risk key:', aiTranslator(Object.keys(window.statistics.loan), 'risk'));
+                const riskObject = window.statistics.loan[aiTranslator(Object.keys(window.statistics.loan), 'risk')];
                 console.log('risk data:', riskObject, Object.hasOwn(riskObject, "convexProbability"), riskObject.convexProbability);
                 let probabilityOfDefault = 0;
                 if (risk && risk !== 'NULL') {
@@ -380,9 +380,10 @@ const financial = {
             description: "Scores the risk of a checking account",
             implementation: function(balance, checks, deposits, nsf, source) {
                 if (balance === 0) return 0
+                console.log('source', source)
                 const sourceIndex = aiSynonymKey(source);
                 // A high average balance indicates a higher exposure and might justify offering Positive Pay as a risk mitigant
-                const balanceObject = window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'balance')];
+                const balanceObject = window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'balance')];
                 let balanceRisk = 1;
                 if (balance > balanceObject.threeStdDeviations[1]) {
                     balanceRisk = 5;
@@ -390,7 +391,7 @@ const financial = {
                     balanceRisk = 3;
                 }
                 // issuing checks for payroll, vendor payments, or refunds during specific times of the year may have a greater risk.
-                const checksObject = window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'checks')];
+                const checksObject = window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'checks')];
                 let checksRisk = 1;
                 if (checks > checksObject.threeStdDeviations[1]) {
                     checksRisk = 5;
@@ -401,7 +402,7 @@ const financial = {
                 }
 
                 // Regular deposits (e.g., payroll or vendor payments) indicate frequency of activity--higher active accounts may indicate risk.
-                const depositsObject = window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'deposits')];
+                const depositsObject = window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'deposits')];
                 let depositsRisk = 1;
                 if (deposits > depositsObject.threeStdDeviations[1]) {
                     depositsRisk = 5;
@@ -410,7 +411,7 @@ const financial = {
                 }
 
                 // High overdraft activity could signal poor account management.
-                const nsfObject = window.statistics[sourceIndex][aiTranslater(Object.keys(window.statistics[sourceIndex]), 'nsf')];
+                const nsfObject = window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'nsf')];
                 let nsfRisk = 1;
                 if (nsf > nsfObject.threeStdDeviations[1]) {
                     nsfRisk = 5;
