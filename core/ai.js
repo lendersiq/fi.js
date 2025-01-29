@@ -1,93 +1,216 @@
 //ai.js
 
 // Synonym library to map common synonyms to their respective headers
-const synonymLibrary = {
-    //keys are stemmed
-    'fee': ['charge', 'cost', 'duty', 'collection', 'levy'],
-    'open': ['origination', 'start', 'create', 'establish', 'setup'],
-    'checking': ['dda', 'demand deposit'], 
-    'withdrawal': ['check', 'draft', 'debit'],
-    'deposit': ['credit'],
-    'certificate': ['cd', 'cod', 'certificate of deposit'],
-    'own': ['responsibility', 'officer'],
-    'offic': ['owner', 'responsibility'],
-    'typ': ['classification', 'class'],
-    'class': ['type'],
-    'balanc': ['principal']
-};
+const synonymsDataset = [
+    ['fee', 'charge', 'cost', 'duty', 'collection', 'levy'],
+    ['open', 'origination', 'start', 'create', 'establish', 'setup'],
+    ['checking', 'dda', 'demand deposit'], 
+    ['withdrawal', 'check', 'draft', 'debit'],
+    ['deposit', 'credit'],
+    ['certificate', 'cd', 'cod', 'certificate of deposit'],
+    ['own', 'responsibility', 'officer'],
+    ['type', 'classification', 'class'],
+    ['origin', 'open'],
+    ['location', 'branch', 'office']
+];
 
 function stem(word) {
-    word = word.toLowerCase();
-
-    // Handle irregular forms
-    const irregulars = {
-        'running': 'run',
-        'ran': 'run',
-        'swimming': 'swim',
-        'swam': 'swim',
-        'taking': 'take',
-        'took': 'take',
-        'gone': 'go',
-        'went': 'go',
-        'being': 'be',
-        'was': 'be',
-        'were': 'be',
-        'having': 'have',
-        'had': 'have',
-        'fees': 'fee',
-        'responsibility': 'resp'
+  // Convert to lowercase
+  word = word.toLowerCase();
+  
+  // ---- (A) Check irregulars / lemma overrides ----
+  const irregulars = {
+      'running': 'run',
+      'ran': 'run',
+      'swimming': 'swim',
+      'swam': 'swim',
+      'taking': 'take',
+      'took': 'take',
+      'gone': 'go',
+      'went': 'go',
+      'being': 'be',
+      'was': 'be',
+      'were': 'be',
+      'having': 'have',
+      'had': 'have',
+      'fees': 'fee',
+      'responsibility': 'resp'
     };
-
     if (irregulars[word]) {
-        return irregulars[word];
+      return irregulars[word];
     }
-
-    // Function to measure the structure of a word
-    function measure(stem) {
-        return stem.replace(/[^aeiouy]+/g, 'C').replace(/[aeiouy]+/g, 'V').match(/VC/g)?.length || 0;
+  
+    // ---- (B) Measure function ----
+    // If you need more precise 'y' handling, consider
+    // a more thorough approach. This is a simplified version.
+    function measure(st) {
+      return (st
+        .replace(/[^aeiouy]+/g, 'C')
+        .replace(/[aeiouy]+/g, 'V')
+        .match(/VC/g) || []).length;
     }
-
-    // Remove common suffixes
-    const suffixes = [
-        'ational', 'tional', 'enci', 'anci', 'izer', 'bli', 'alli',
-        'entli', 'eli', 'ousli', 'ization', 'ation', 'ator', 'alism',
-        'iveness', 'fulness', 'ousness', 'aliti', 'iviti', 'biliti',
-        'logi', 'ing', 'ed', 'ly', 'es', 'er', 'est', 'ment', 'ness'
+  
+    // Check if a string has a vowel
+    function hasVowel(st) {
+      return /[aeiouy]/.test(st);
+    }
+  
+    // ---- (C) Early Exit for very short words ----
+    if (word.length <= 2) {
+      return word; // Stemming very short words often doesn't help
+    }
+  
+    // ---- Step 1a: Plural S endings ----
+    //  (i)  sses -> ss
+    //  (ii) ies  -> i   (but some versions turn to "y" if measure>0)
+    //  (iii) ss   -> ss (do nothing)
+    //  (iv) s    -> (remove if there's a vowel before it)
+    if (word.endsWith('sses')) {
+      word = word.slice(0, -2); // "sses" -> "ss"
+    } else if (word.endsWith('ies')) {
+      word = word.slice(0, -3) + 'i'; // "ponies" -> "poni", "ties" -> "ti"
+    } else if (word.endsWith('ss')) {
+      // do nothing, "ss" stays
+    } else if (word.endsWith('s')) {
+      // remove the final 's' if there's a vowel somewhere before it
+      let stem = word.slice(0, -1);
+      if (hasVowel(stem)) {
+        word = stem;
+      }
+    }
+  
+    // ---- Step 1b: Past tense / Gerund: -ed / -ing ----
+    // Only remove if there's a vowel in the stem
+    if (word.endsWith('ed')) {
+      let stem = word.slice(0, -2);
+      if (hasVowel(stem)) {
+        word = stem;
+        // After removing, handle some special endings:
+        // e.g., "at"->"ate", "bl"->"ble", "iz"->"ize", or double consonant reduction
+        if (word.endsWith('at') || word.endsWith('bl') || word.endsWith('iz')) {
+          word += 'e';
+        } else if (/(.)\1$/.test(word)) {
+          // e.g. "hop" + "pp" -> "hopp" -> "hop"
+          word = word.slice(0, -1);
+        } else if (measure(word) === 1 && /^.*[^aeiou][aeiouy][^aeiouy]$/.test(word)) {
+          // cvc where second c is not w,x,y => add "e"
+          word += 'e';
+        }
+      }
+    } else if (word.endsWith('ing')) {
+      let stem = word.slice(0, -3);
+      if (hasVowel(stem)) {
+        word = stem;
+        // same post-processing
+        if (word.endsWith('at') || word.endsWith('bl') || word.endsWith('iz')) {
+          word += 'e';
+        } else if (/(.)\1$/.test(word)) {
+          word = word.slice(0, -1);
+        } else if (measure(word) === 1 && /^.*[^aeiou][aeiouy][^aeiouy]$/.test(word)) {
+          word += 'e';
+        }
+      }
+    }
+  
+    // ---- Step 1c: Turn final "y" -> "i" if there's a vowel in the stem
+    if (word.endsWith('y')) {
+      let stem = word.slice(0, -1);
+      if (hasVowel(stem)) {
+        word = stem + 'i';
+      }
+    }
+  
+    // ---- Step 2: Larger suffix replacements (measure(stem) > 0) ----
+    //   Some examples from standard Porter:
+    const step2Replacements = {
+      'ational': 'ate',
+      'tional': 'tion',
+      'enci': 'ence',
+      'anci': 'ance',
+      'izer': 'ize',
+      'bli': 'ble',
+      'alli': 'al',
+      'entli': 'ent',
+      'eli': 'e',
+      'ousli': 'ous',
+      'ization': 'ize',
+      'ation': 'ate',
+      'ator': 'ate',
+      'alism': 'al',
+      'iveness': 'ive',
+      'fulness': 'ful',
+      'ousness': 'ous',
+      'aliti': 'al',
+      'iviti': 'ive',
+      'biliti': 'ble',
+      'logi': 'log'
+    };
+  
+    for (let [suffix, replacement] of Object.entries(step2Replacements)) {
+      if (word.endsWith(suffix)) {
+        let stem = word.slice(0, -suffix.length);
+        if (measure(stem) > 0) {
+          word = stem + replacement;
+        }
+        break;
+      }
+    }
+  
+    // ---- Step 3: Some further suffixes (measure(stem) > 0) ----
+    //  e.g., "icate" -> "ic", "ative" -> "", "alize" -> "al", etc.
+    const step3Replacements = {
+      'icate': 'ic',
+      'ative': '',
+      'alize': 'al',
+      'iciti': 'ic',
+      'ical': 'ic',
+      'ful': '',
+      'ness': ''
+    };
+    for (let [suffix, replacement] of Object.entries(step3Replacements)) {
+      if (word.endsWith(suffix)) {
+        let stem = word.slice(0, -suffix.length);
+        if (measure(stem) > 0) {
+          word = stem + replacement;
+        }
+        break;
+      }
+    }
+  
+    // ---- Step 4: Even more suffix chopping if measure(stem) > 1 ----
+    //  E.g., "al", "ance", "ence", "er", "ic", "able", "ible", "ant", ...
+    //  For brevity, let’s just do a few
+    const step4Suffixes = [
+      'al', 'ance', 'ence', 'er', 'ic', 'able', 'ible', 'ant',
+      'ement', 'ment', 'ent', 'ou', 'ism', 'ate', 'iti', 'ous', 'ive', 'ize'
     ];
-
-    for (const suffix of suffixes) {
-        if (word.endsWith(suffix)) {
-            const potentialStem = word.slice(0, -suffix.length);
-
-            // Ensure meaningful stems by checking measure
-            if (measure(potentialStem) > 0) {
-                word = potentialStem;
-            }
-            break;
+    for (let suffix of step4Suffixes) {
+      if (word.endsWith(suffix)) {
+        let stem = word.slice(0, -suffix.length);
+        if (measure(stem) > 1) {
+          word = stem;
         }
+        break;
+      }
     }
-
-    // Remove trailing 'e' when it doesn't violate rules
-    if (word.endsWith('e') && word.length > 4 && measure(word.slice(0, -1)) > 0) {
+  
+    // ---- Step 5: Final tidy ups ----
+    // Remove a trailing "e" if measure(stem) > 1,
+    // or if measure(stem) = 1 but NOT cvc
+    if (word.endsWith('e')) {
+      let stem = word.slice(0, -1);
+      let m = measure(stem);
+      if (m > 1 || (m === 1 && !/^.*[^aeiou][aeiouy][^aeiouy]$/.test(stem))) {
+        word = stem;
+      }
+    }
+  
+    // If measure(word) > 1 and it ends with "ll", remove one "l"
+    if (measure(word) > 1 && word.endsWith('ll')) {
         word = word.slice(0, -1);
     }
-
-    // Remove 's' only when conditions are met
-    if (
-        word.endsWith('s') &&               // Ends with "s"
-        !word.endsWith('ss') &&            // Does not end with "ss"
-        measure(word.slice(0, -1)) > 0 &&  // Valid measure after removing "s"
-        word.slice(0, -1).length >= 3      // Stem length remains meaningful
-    ) {
-        word = word.slice(0, -1);
-    } else {
-        // Handle double consonants more selectively
-        if (/(.)\1$/.test(word) && !/ss$/.test(word)) {
-            word = word.replace(/(.)\1$/, '$1');
-        }
-    }
-    return word;
-}
+  return word;
+}  
 
 function aiSynonymKey(word) {
     const stemmedWord = stem(word);
@@ -110,39 +233,39 @@ function aiSynonymKey(word) {
     return word; // Return word if no match is found
 }
 
-// AI translation function to map formula fields to CSV headers
-function aiTranslater(headers, field) {
-    //extract field from source.field, if neccessary
-    let cleanField;
+function aiTranslator(headers, field) {
+  const headersLower = headers.map(h => stem(h.toLowerCase()));
+  const stemmedField = stem(field.toLowerCase());
 
-    // Check if the field contains a dot, indicating it's in the '{source}.{function or object}' format
-    if (field.includes('.')) {
-      // Extract everything after the dot
-      cleanField = field.split('.')[1];
-    } else {
-      // Otherwise, keep the field as it is
-      cleanField = field;
-    }
-  
-    // Remove any special characters and trim whitespace
-    cleanField = cleanField.replace(/[^a-zA-Z0-9]/g, '').trim();
+  // 1) Try to find a direct match (substring) in headers
+  let matchIndex = headersLower.findIndex(header => header.includes(stemmedField));
+  if (matchIndex !== -1) {
+    return headers[matchIndex];
+  }
 
-    //const headersLower = headers.map(header => stem(header.toLowerCase()));  //depr stemmed headers
-    const headersLower = headers.map(header => header.toLowerCase());
-    const stemmedField = stem(cleanField.toLowerCase());
-    // First, try to find a direct match
-    let matchingHeader = headersLower.find(header => header.includes(stemmedField));
-    // If no direct match, check the synonym library
-    if (!matchingHeader && synonymLibrary[stemmedField]) {
-        const synonyms = synonymLibrary[stemmedField].map(synonym => stem(synonym));
-        matchingHeader = headersLower.find(header => 
-            synonyms.some(synonym => header.includes(synonym))
-        );
+  // 2) If no direct match, check the synonym library
+  // Use a for-of loop (or .some() ) so we can break out early once we find a match
+  for (const dataset of synonymsDataset) {
+    // Optionally, this mapping could be precomputed if synonymsDataset is large
+    const synonyms = dataset.map(synonym => stem(synonym));
+    // Only check synonyms that match the field
+    if (synonyms.includes(stemmedField)) {
+      // Now find a header that includes ANY of those synonyms
+      matchIndex = headersLower.findIndex(headerLower =>
+        synonyms.some(synonym => headerLower.includes(synonym))
+      );
+      if (matchIndex !== -1) {
+        return headers[matchIndex];
+      }
     }
-    return matchingHeader ? headers[headersLower.indexOf(matchingHeader)] : null;
+  }
+
+  // 3) If we exhaust synonymsDataset with no match, return null
+  return null;
 }
 
-function aiTableTranslater(tableId, header = null) {
+
+function aiTableTranslator(tableId, header = null) {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.csv';
@@ -278,8 +401,8 @@ function aiIsBusiness(...args) {
     if (typeof params.balance !== 'number' || typeof params.consumerMaximum !== 'number' || typeof params.annualDeposits !== 'number') {
         throw new Error("Invalid or missing parameters. Ensure 'balance', 'consumerMaximum', and 'deposits' are provided as numbers.");
     }
-    const threeStandardDeviations = window.statistics[params.sourceIndex][aiTranslater(Object.keys(window.statistics[params.sourceIndex]), 'balance')].threeStdDeviations[1];
-    const twoStandardDeviations = window.statistics[params.sourceIndex][aiTranslater(Object.keys(window.statistics[params.sourceIndex]), 'balance')].twoStdDeviations[1];
+    const threeStandardDeviations = window.statistics[params.sourceIndex][aiTranslator(Object.keys(window.statistics[params.sourceIndex]), 'balance')].threeStdDeviations[1];
+    const twoStandardDeviations = window.statistics[params.sourceIndex][aiTranslator(Object.keys(window.statistics[params.sourceIndex]), 'balance')].twoStdDeviations[1];
     
     const highThreshold = threeStandardDeviations > params.consumerMaximum * 1.2  ?  threeStandardDeviations : params.consumerMaximum * 1.2; // 20% over the consumer threshold
     const lowThreshold = twoStandardDeviations > params.consumerMaximum * .8  ?  twoStandardDeviations : params.consumerMaximum * .8; // 20% under the consumer threshold
