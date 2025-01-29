@@ -254,7 +254,7 @@ function plotPieChart(ctx, labels, data, canvas) {
 }
 
   function createLegend(labels, data, field) {
-    console.log('createLegend', labels, data, field);
+    //console.log('createLegend', labels, data, field);
     legendContainer.innerHTML = ''; // Clear previous legend
     const tableContainer = document.createElement('div');
     tableContainer.className = 'table-container';
