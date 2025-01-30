@@ -257,7 +257,7 @@ const financial = {
                     }
                 }
 
-                if (aiSynonymKey(source, 'certificate')) {
+               	if (sourceIndex === 'certificate') {
                     rate = rate < 1 ? parseFloat(rate) : parseFloat(rate / 100); 
                     interestExpense = balance * rate;
                     if (financial.dictionaries.annualOperatingExpense[sourceIndex].value) {
