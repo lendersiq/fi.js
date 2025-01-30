@@ -222,7 +222,12 @@ const financial = {
         depositProfit: {
             description: "Calculates the profit of deposit accounts",
             implementation: function(portfolio, balance, interest=null, rate=null, charges=null, waived=null, open, source, deposits=null, withdrawals=null) {
-                const sourceIndex = aiSynonymKey(source);
+                const sourceIndexes = ['checking', 'savings', 'certificate'];  // possible sourceIndex values
+                const sourceIndex = sourceIndexes.find(key => aiSynonymKey(source, key));
+                if (!sourceIndex) {
+                    console.log(`No synonym found for '${source}'.`);
+                    return null;                
+                }
                 const creditRate = financial.functions.calculateFtpRate.implementation(12, sourceIndex);
                 //const creditRate = window.libraries.api.trates.values[12] * 0.627; // operational risk, regulatory risk, deposit acquisition factor, interest rate risk, and liquidity discount.
                 const creditForFunding = sourceIndex === 'checking' ? creditRate * balance * (1 - financial.attributes.ddaReserveRequired.value) : creditRate * balance;
@@ -252,7 +257,7 @@ const financial = {
                     }
                 }
 
-                if (sourceIndex === 'certificate') {
+                if (aiSynonymKey(source, 'certificate')) {
                     rate = rate < 1 ? parseFloat(rate) : parseFloat(rate / 100); 
                     interestExpense = balance * rate;
                     if (financial.dictionaries.annualOperatingExpense[sourceIndex].value) {
