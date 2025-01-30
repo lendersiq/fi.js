@@ -1,20 +1,31 @@
 // ai.js
 // Framing for more advanced AI
 
-// Synonym library to map common synonyms to their respective headers
+// Synonym library to map common synonym goups
+// vocabulary set for banking-related Natural Language Processing
 const synonymsDataset = [
-  ['fee', 'charge', 'cost', 'duty', 'collection', 'levy'],
-  ['open', 'origination', 'start', 'create', 'establish', 'setup'],
-  ['checking', 'dda', 'demand deposit'], 
-  ['withdrawal', 'check', 'draft', 'debit'],
-  ['deposit', 'credit'],
-  ['certificate', 'cd', 'cod', 'certificate of deposit'],
-  ['owner', 'responsibility', 'officer'],
-  ['type', 'classification', 'class'],
-  ['origin', 'open'],
-  ['location', 'branch', 'office'],
-  //['principal', 'balance', 'outstanding']
+  // Expanded existing entries
+  ['fee', 'charge', 'cost', 'duty', 'collection', 'levy', 'assessment', 'imposition', 'surcharge', 'service fee', 'commission', 'toll', 'premium', 'tariff'],
+  ['open', 'origination', 'start', 'create', 'establish', 'setup', 'initiate', 'commence', 'activate', 'launch', 'inception', 'beginning', 'provenance'],
+  ['checking', 'dda', 'demand deposit', 'share', 'current account', 'transaction account', 'share draft'],
+  ['savings', 'money market', 'thrift', 'deposit account', 'share savings'],
+  ['withdrawal', 'check', 'draft', 'debit', 'payout', 'disbursement', 'deduction', 'cash out'],
+  ['deposit', 'credit', 'payment', 'fund', 'lodge', 'add funds', 'contribution'],
+  ['certificate', 'cd', 'cod', 'certificate of deposit', 'time deposit', 'term deposit', 'fixed deposit'],
+  ['owner', 'responsibility', 'officer', 'holder', 'proprietor', 'account holder', 'signatory'],
+  ['type', 'classification', 'class', 'category', 'kind', 'variety'],
+  ['location', 'branch', 'office', 'site', 'outlet', 'region'],
+  ['principal', 'balance', 'outstanding', 'capital', 'remaining amount', 'unpaid portion'],
+
+  // New groups
+  ['interest', 'finance charge', 'rate', 'accrued interest', 'return', 'yield'],
+  ['loan', 'credit facility', 'mortgage', 'financing', 'advance', 'lending'],
+  ['account', 'bank account', 'ledger', 'record', 'customer account'],
+  ['statement', 'bank statement', 'account statement', 'summary', 'transaction record'],
+  ['overdraft', 'negative balance', 'overdrawn account', 'shortfall', 'deficit'],
+  ['wire transfer', 'electronic funds transfer', 'EFT', 'bank wire', 'remittance', 'telegraphic transfer', 'wires']
 ];
+
 
 function stem(word) {
   // Convert to lowercase
@@ -215,25 +226,27 @@ function stem(word) {
   return word;
 }  
 
-function aiSynonymKey(word) {
-  return word;
-  const stemmedWord = stem(word);
+// Checks if two words (key and word) belong to the same synonyms group after stemming. 
+// --avoiding use of explicit in user-made functions and code 
+// synonyms for checking could be demand deposit, share, dda, etc.
+// function attempts to match these to the Word provided returns true or false
+function aiSynonymKey(key, word) {
+  const stemmedKey = stem(key.toLowerCase());
+  const stemmedWord = stem(word.toLowerCase());
 
-  for (const [key, synonyms] of Object.entries(synonymLibrary)) {
-    const stemmedKey = stem(key);
+  // Loop over each synonyms group
+  for (const group of synonymsDataset) {
+    // Stem every item in the current group
+    const stemmedGroup = group.map(item => stem(item));
 
-    // Check if the stemmed word matches the stemmed key
-    if (stemmedWord === stemmedKey) {
-      return key; //{ key, index: -1 }; // -1 indicates the word matches the key itself
-    }
-
-    // Use findIndex to find the index of the matching stemmed synonym
-    const index = synonyms.findIndex(synonym => stem(synonym) === stemmedWord);
-    if (index !== -1) {
-      return key; //{ key, index };
+    // Check if both stemmedKey and stemmedWord appear in the same group
+    if (stemmedGroup.includes(stemmedKey) && stemmedGroup.includes(stemmedWord)) {
+      return true;
     }
   }
-  return word; // Return word if no match is found
+
+  // If we exhaust all groups without a match, return false
+  return false;
 }
 
 function aiTranslator(headers, field) {
