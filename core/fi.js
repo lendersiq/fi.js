@@ -6,7 +6,7 @@ if (typeof appConfig === 'undefined') {
 }
 
 // if logger is true, select console.logs will log
-let logger = true;
+let logger = false;
 
 //global 
 let allResultsAreIntegers = false;
@@ -46,8 +46,9 @@ F        IIIIIII  ..   jjj   ssss
               console.log("All dependencies loaded. fi.js is ready to execute.");
               // System Tests 
               // Test the aiTranslator function
-              const headers = ['Portfolio', 'Previous_Average_Balance', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
+              const headers = ['Portfolio', 'Principal', 'Previous_Average_Balance', 'Date_Opened', 'Maturity_Date', 'Branch_Number', 'Class_Code', 'Opened_by_Resp_Code', 'Late_Charges', 'Last_Payment'];
               console.log('Translated header testing (balance):', aiTranslator(headers, 'balance'));
+              console.log('Translated header testing (outstanding):', aiTranslator(headers, 'outstanding'));
               console.log('Translated header testing (officer):', aiTranslator(headers, 'officer'));
               console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} balance = ${stem('balance')} and type = ${stem('type')}`);
               console.log('Area Mode test: ', calculateAreaMode([121, 123, 134, 145, 17564.89, 300, 299, 120, 150, 320, 310]));
@@ -335,6 +336,31 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
   //console.log('Group Key:', groupKey);
   console.log('Digested Data:', digestData);
 
+  // synonyms between columns require strict aiTranslation
+  if (appConfig.presentation && appConfig.presentation.columns) {
+    // Default all columns to strict: false
+    appConfig.presentation.columns.forEach(column => {
+      column.strict = false;
+    });
+    
+    // When column field identifies are similar, the condition creates aiTranslation issues e.g. 2 close column fields are translated identically in error.
+    // the solution is to check for synonyms among columns and if found set strict flag to restrict the ai behavior
+    for (let i = 0; i < appConfig.presentation.columns.length; i++) {
+      for (let j = i + 1; j < appConfig.presentation.columns.length; j++) {
+        const fieldA = appConfig.presentation.columns[i].field;
+        const fieldB = appConfig.presentation.columns[j].field;
+        
+        // If aiSynonymKey says these fields are synonyms
+        if (aiSynonymKey(fieldA, fieldB)) {
+          console.log(`Columns "${fieldA}" and "${fieldB}" are synonyms--setting both to strict`);
+          // Set strict: true on both columns
+          appConfig.presentation.columns[i].strict = true;
+          appConfig.presentation.columns[j].strict = true;
+        }
+      }
+    }
+  }
+  
   // Iterate over each source's data to ensure flexibility with multiple sources
   // Initialize identifiedResources as needed (array or object)
   const identifiedResources = [];
@@ -490,9 +516,9 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
 
       // Populate other fields based on the presentation configuration
       if (appConfig.presentation && appConfig.presentation.columns) {
-        appConfig.presentation.columns.forEach(column => {
-          const headers = Object.keys(row);
-          const translatedColumn = aiTranslator(headers, column.field);
+        let headers = Object.keys(row);
+        appConfig.presentation.columns.forEach(column => {          
+          const translatedColumn = aiTranslator(headers, column.field, column.strict);
           if (translatedColumn) {
             if (results[uniqueId][column.field] !== undefined) {
               results[uniqueId][column.field] = `${results[uniqueId][column.field]}, ${row[translatedColumn]}`;
@@ -939,6 +965,20 @@ function threeStdDeviations(values) {
   const sd = stdDeviation(values);
   return [m - 3 * sd, m + 3 * sd];
 }
+
+function oldestDate(dates) {
+  // Find the smallest timestamp
+  const oldestTimestamp = Math.min(...dates.map(d => d.getTime()));
+  return new Date(oldestTimestamp);
+}
+
+function allDatesUnique(dates) {
+  // Convert each Date object to its numeric timestamp
+  const timestamps = dates.map(date => date.getTime());
+  // A Set of timestamps will have the same size as the array length only if all are unique
+  return new Set(timestamps).size === dates.length;
+}
+
 
 function createProbabilityArray(mode, unique, uniqueArray) {
   //unique is quantity of unique values in a column, and uniqueArray contains all unique values

@@ -5,7 +5,7 @@ function displayResultsInTable() {
   console.log('combinedResults', combinedResults);
   
   // Determine column format based on values in each row
-  const columnFormat = appConfig.presentation.columns.map(() => ({ isCurrency: false, integerCount: 0, currencyCount: 0, stringCount: 0, isTranslatable: true }));
+  const columnFormat = appConfig.presentation.columns.map(() => ({ isCurrency: false, integerCount: 0, currencyCount: 0, stringCount: 0, isTranslatable: true, isDate: false }));
   const columnSums = Array(appConfig.presentation.columns.length).fill(0);
   let totalCount = 0;
   let resultSum = 0;
@@ -66,6 +66,10 @@ function displayResultsInTable() {
         } else if (values.every(item => typeof item !== 'string')) {
           columnFormat[index].currencyCount += values.length;
         } else {
+          const dateCount = values.filter(isDate).length;
+          if (dateCount > values.length / 2) {
+            columnFormat[index].isDate = true;
+          }
           columnFormat[index].stringCount += values.length;
         }
       }
@@ -76,6 +80,8 @@ function displayResultsInTable() {
     format.isCurrency = format.currencyCount > format.integerCount;  //if more currency than integer column is currency
     format.isTranslatable = format.stringCount < format.integerCount + format.currencyCount  &&  !format.isCurrency; 
   });
+
+  console.log('columnFormat', columnFormat)
 
   const tableContainer = document.createElement('div');
   tableContainer.className = 'table-container';
@@ -98,7 +104,7 @@ function displayResultsInTable() {
   if (appConfig.presentation && appConfig.presentation.columns) {
     appConfig.presentation.columns.forEach((column, index) => {
       const columnHeader = document.createElement('th');
-      if (columnFormat[index].isTranslatable) {
+      if (columnFormat[index].isTranslatable) {  // render a translater button
         const aiButton = document.createElement('button');
         aiButton.textContent = column.heading;
         aiButton.className = 'button';
@@ -144,8 +150,31 @@ function displayResultsInTable() {
 
         if (Array.isArray(values)) {
           if (!columnFormat[index].isCurrency) {
-            const modeValue = calculateMode(values);
-            cell.textContent = modeValue;
+            if (columnFormat[index].isDate) {
+              const dateValues = values.filter(isDate);
+              const dateObjects = dateValues.map(d => new Date(d));
+              if (dateObjects.length === 0) {
+                cell.textContent = '';
+              } else if (allDatesUnique(dateObjects)) {
+                const oldest = oldestDate(dateObjects);
+                // For display, could use something like toLocaleDateString() or toISOString().
+                cell.textContent = oldest.toLocaleDateString('en-US', {
+                  month: '2-digit',
+                  day: '2-digit',
+                  year: 'numeric'
+                });
+              } else {
+                const modeDate = calculateMode(dateObjects);
+                cell.textContent = modeDate.toLocaleDateString('en-US', {
+                  month: '2-digit',
+                  day: '2-digit',
+                  year: 'numeric'
+                });
+              }
+            } else {
+              const modeValue = calculateMode(values);
+              cell.textContent = modeValue;
+            }
           } else {
             const sumValue = values.reduce((acc, v) => acc + v, 0);
             cell.textContent = new Intl.NumberFormat('en-US', {

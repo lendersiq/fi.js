@@ -6,7 +6,7 @@
 const synonymsDataset = [
   // Expanded existing entries
   ['fee', 'charge', 'cost', 'duty', 'collection', 'levy', 'assessment', 'imposition', 'surcharge', 'service fee', 'commission', 'toll', 'premium', 'tariff'],
-  ['open', 'origination', 'start', 'create', 'establish', 'setup', 'initiate', 'commence', 'activate', 'launch', 'inception', 'beginning', 'provenance'],
+  ['open', 'term', 'origination', 'start', 'create', 'establish', 'setup', 'initiate', 'commence', 'activate', 'launch', 'inception', 'beginning', 'provenance'],
   ['checking', 'dda', 'demand deposit', 'share', 'current account', 'transaction account', 'share draft'],
   ['savings', 'money market', 'thrift', 'deposit account', 'share savings'],
   ['withdrawal', 'check', 'draft', 'debit', 'payout', 'disbursement', 'deduction', 'cash out'],
@@ -16,6 +16,7 @@ const synonymsDataset = [
   ['type', 'classification', 'class', 'category', 'kind', 'variety'],
   ['location', 'branch', 'office', 'site', 'outlet', 'region'],
   ['principal', 'balance', 'outstanding', 'capital', 'remaining amount', 'unpaid portion'],
+  ['balance', 'funds on deposit', 'available funds', 'funds'],
 
   // New groups
   ['interest', 'finance charge', 'rate', 'accrued interest', 'return', 'yield'],
@@ -249,7 +250,7 @@ function aiSynonymKey(key, word) {
   return false;
 }
 
-function aiTranslator(headers, field) {
+function aiTranslator(headers, field, strict=false) {
   const headersLower = headers.map(h => h.toLowerCase());
   const stemmedField = stem(field.toLowerCase());
 
@@ -259,21 +260,23 @@ function aiTranslator(headers, field) {
     return headers[matchIndex];
   }
 
-  // 2) If no direct match, check the synonym library
-  // Use a for-of loop (or .some() ) so we can break out early once we find a match
-  for (const dataset of synonymsDataset) {
-    // Optionally, this mapping could be precomputed if synonymsDataset is large
-    const synonyms = dataset.map(synonym => stem(synonym));
-    // Only check synonyms that match the field
-    if (synonyms.includes(stemmedField)) {
-      // Now find a header that includes ANY of those synonyms
-      matchIndex = headersLower.findIndex(headerLower =>
-        synonyms.some(synonym => headerLower.includes(synonym))
-      );
-      if (matchIndex !== -1) {
-        return headers[matchIndex];
+  if (!strict) {
+    // 2) If no direct match and not strict, check the synonym library
+    // Use a for-of loop (or .some() ) so we can break out early once we find a match
+    for (const dataset of synonymsDataset) {
+      // Optionally, this mapping could be precomputed if synonymsDataset is large
+      const synonyms = dataset.map(synonym => stem(synonym));
+      // Only check synonyms that match the field
+      if (synonyms.includes(stemmedField)) {
+        // Now find a header that includes ANY of those synonyms
+        matchIndex = headersLower.findIndex(headerLower =>
+          synonyms.some(synonym => headerLower.includes(synonym))
+        );
+        if (matchIndex !== -1) {
+          return headers[matchIndex];
+        }
       }
-    }
+    } 
   }
 
   // 3) If we exhaust synonymsDataset with no match, return null
