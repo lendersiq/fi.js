@@ -1,5 +1,7 @@
 // workspace.js
 
+let fileInputs = {};
+let identifiedPipes = {};
 // Function to display combined results in a table
 function displayResultsInTable() {
   console.log('combinedResults', combinedResults);
@@ -384,68 +386,16 @@ function setIndicatorState(state, tooltip = null) {
     LoFiIndicator.title = tooltip;
   }
 }
-  
-// Function to show the modal with file inputs and starting button
-function showRunModal() {
-  const modalOverlay = document.createElement('div');
-  modalOverlay.className = 'modal-overlay';
-  const modal = document.createElement('div');
-  modal.className = 'modal';
-  const modalHeader = document.createElement('div');
-  modalHeader.className = 'modal-header';
-  // LoFi Indicator
-  const lightIndicator = document.createElement('div');
-  lightIndicator.className = 'light-indicator online'; // Default to 'waiting' state
-  lightIndicator.id = "LoFiIndicator";
-  lightIndicator.title = 'Waiting for Signal';
-  modalHeader.appendChild(lightIndicator);
 
-  const closeButton = document.createElement('button');
-  closeButton.className = 'close-btn';
-  closeButton.id = 'close-modal-btn';
-  closeButton.setAttribute('aria-label', 'Close Modal');
-  closeButton.innerHTML = '&times;';
-  closeButton.addEventListener('click', function() {
-    modalOverlay.style.display = 'none';
-  });
-  modalHeader.appendChild(closeButton);
-  modal.appendChild(modalHeader);
-
-  const modalContent = document.createElement('div');
-  modalContent.className = 'modal-content';
-  const modalHero = document.createElement('span');
-  modalHero.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 200 200">
-      <!-- Bottom rotated square -->
-      <g transform="rotate(45, 100, 100)">
-        <rect x="35" y="35" width="130" height="130" fill="#0b3260" opacity="0.75" />
-        <text x="100" y="135" font-family="Arial, sans-serif" font-size="90" fill="#ffffff" text-anchor="middle" >
-          JS
-        </text>
-      </g>
-      <!-- Top square -->
-      <g>
-        <rect x="35" y="35" width="130" height="130" fill="#0b6031" opacity="0.65" />
-        <text x="100" y="130" font-family="Arial, sans-serif" font-size="80" fill="#ffffff" text-anchor="middle">
-          FI
-        </text>
-      </g>
-    </svg>`;
-  modalContent.appendChild(modalHero);
-  const instructions = document.createElement('p');
-  instructions.textContent = 'Select data from the secure source.';
-  modalContent.appendChild(instructions);
-  const inputsContainer = document.createElement('div');
-  const startButton = document.createElement('button');
-  startButton.textContent = 'Run ' + document.title;
-  startButton.className = 'btn run-btn';
-  startButton.disabled = true; // Disable the run button initially
-
+function displayInputs() {
   // Identify sources and inputs from the formula
-  const identifiedPipes = extractPipes(appConfig.formula, appConfig.presentation);
+  identifiedPipes = extractPipes(appConfig.formula, appConfig.presentation);
   console.log('identifiedPipes', identifiedPipes)
   // Create file inputs for each identified source
-  const fileInputs = {};
+  const inputsContainer = document.getElementById('inputs-container');
+  const startButton = document.getElementById('start-button');
+  inputsContainer.innerHTML = '';
+  fileInputs = {};
   identifiedPipes.sources.forEach(sourceName => {
     const sourceDiv = document.createElement('div');
     sourceDiv.style.marginBottom = "10px";
@@ -504,6 +454,180 @@ function showRunModal() {
     inputDiv.appendChild(input);
     inputsContainer.appendChild(inputDiv);
   });
+  
+}
+  
+// Function to show the modal with file inputs and starting button
+function showRunModal() {
+  const modalOverlay = document.createElement('div');
+  modalOverlay.className = 'modal-overlay';
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  const modalHeader = document.createElement('div');
+  modalHeader.className = 'modal-header';
+  // LoFi Indicator
+  const lightIndicator = document.createElement('div');
+  lightIndicator.className = 'light-indicator online'; // Default to 'waiting' state
+  lightIndicator.id = "LoFiIndicator";
+  lightIndicator.title = 'Waiting for Signal';
+  modalHeader.appendChild(lightIndicator);
+
+  // Create Save button
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'saveButton';
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", "0 0 100 100");
+
+  const topColor = "#0b8f4d";     // Lighter green for the top
+  const leftColor = "#0b703e";    // Medium shade for the left
+  const rightColor = "#0b6031";   // Darkest green for the right
+
+  const topFace = document.createElementNS(svgNS, "polygon");
+  topFace.setAttribute("points", "50,10 80,30 50,50 20,30");
+  topFace.setAttribute("fill", topColor);
+  svg.appendChild(topFace);
+
+  const leftFace = document.createElementNS(svgNS, "polygon");
+  leftFace.setAttribute("points", "20,30 50,50 50,80 20,60");
+  leftFace.setAttribute("fill", leftColor);
+  svg.appendChild(leftFace);
+
+  const rightFace = document.createElementNS(svgNS, "polygon");
+  rightFace.setAttribute("points", "80,30 50,50 50,80 80,60");
+  rightFace.setAttribute("fill", rightColor);
+  svg.appendChild(rightFace);
+
+  saveBtn.appendChild(svg);
+
+  saveBtn.addEventListener('click', async () => {
+    try {
+      const formula = document.getElementById('formula').textContent.trim();
+      if (window.showSaveFilePicker) {
+        const fileHandle = await window.showSaveFilePicker({
+          suggestedName: '{rename} new_single_page_app.html',
+          types: [
+            {
+              description: 'FI.js SPA File',
+              accept: {
+                'text/html': ['.html'],
+              },
+            },
+          ],
+        }); 
+      const filename = fileHandle.name.replace(/\.html$/, '');
+
+          // Base HTML structure
+          let appContent = `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="img-src 'self' data:; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://bankersiq.com; object-src 'none';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../../styles/base.css">
+  <title>${filename}</title>
+  </head>
+  <body>
+  <script>
+    // App configuration
+    const appConfig = {
+      description: '<h3>${filename}</h3>',
+      libraries: [`
+          // Add libraries
+            appConfig.libraries.forEach((lib) => {
+              appContent += `
+        '${lib}',`;
+            });
+            appContent += `
+      ],`;
+            // Add formula
+            appContent += `
+      formula: '${formula}',`;
+            // Add groupBy
+            appContent += `
+      groupBy: '${appConfig.groupBy}',`;
+            // Add presentation columns
+            appContent += `
+      presentation: {
+        columns: [`;
+            appConfig.presentation.columns.forEach((col) => {
+              appContent += `
+          { heading: '${col.heading}', field: '${col.field}' },`
+            });
+            appContent += `
+        ],
+      }
+    };
+  </script>
+  <script src="../../core/fi.js" defer></script>
+  </body>
+  </html>`;
+          // Save the file
+          const writable = await fileHandle.createWritable();
+          await writable.write(appContent);
+          await writable.close();
+          alert('File saved successfully!');
+        } else {
+          // Fallback for unsupported browsers
+          const blob = new Blob([appContent], { type: 'text/html' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'new_single_page_app.html';
+          link.click();
+          alert('File saved (using fallback method)!');
+        }
+    } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Save failed:', err);
+          alert('Failed to save the file.');
+        }
+    }
+  });
+  modalHeader.appendChild(saveBtn);
+
+  const closeButton = document.createElement('button');
+  closeButton.className = 'close-btn';
+  closeButton.id = 'close-modal-btn';
+  closeButton.setAttribute('aria-label', 'Close Modal');
+  closeButton.innerHTML = '&times;';
+  closeButton.addEventListener('click', function() {
+    modalOverlay.style.display = 'none';
+  });
+  modalHeader.appendChild(closeButton);
+  modal.appendChild(modalHeader);
+
+  const modalContent = document.createElement('div');
+  modalContent.className = 'modal-content';
+  const modalHero = document.createElement('span');
+  modalHero.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 200 200">
+      <!-- Bottom rotated square -->
+      <g transform="rotate(45, 100, 100)">
+        <rect x="35" y="35" width="130" height="130" fill="#0b3260" opacity="0.75" />
+        <text x="100" y="135" font-family="Arial, sans-serif" font-size="90" fill="#ffffff" text-anchor="middle" >
+          JS
+        </text>
+      </g>
+      <!-- Top square -->
+      <g>
+        <rect x="35" y="35" width="130" height="130" fill="#0b6031" opacity="0.65" />
+        <text x="100" y="130" font-family="Arial, sans-serif" font-size="80" fill="#ffffff" text-anchor="middle">
+          FI
+        </text>
+      </g>
+    </svg>`;
+  modalContent.appendChild(modalHero);
+  const instructions = document.createElement('p');
+  instructions.textContent = 'Select data from the secure source.';
+  modalContent.appendChild(instructions);
+  const inputsContainer = document.createElement('div');
+  inputsContainer.id = 'inputs-container';
+  modalContent.appendChild(inputsContainer);
+  const startButton = document.createElement('button');
+  startButton.textContent = 'Run ' + document.title;
+  startButton.id = "start-button";
+  startButton.className = 'btn run-btn';
+  startButton.disabled = true; // Disable the run button initially
 
   // Handle file selection and process formula
   startButton.addEventListener('click', () => {
@@ -515,7 +639,6 @@ function showRunModal() {
   });
   const outputContainer = document.createElement('div');
   outputContainer.id = 'outputElement';
-  modalContent.appendChild(inputsContainer);
   modalContent.appendChild(outputContainer);
   modalContent.appendChild(startButton);
 
@@ -550,21 +673,26 @@ function showRunModal() {
   modal.appendChild(modalContent);
   modalOverlay.appendChild(modal);
   document.body.appendChild(modalOverlay);
+  displayInputs();
 }
 
-function createAccordionItem(key, value) {
+function createAccordionItem(key, value) { 
   const item = document.createElement('div');
   const header = document.createElement('div');
   const content = document.createElement('div');
   const caret = document.createElement('span');
+
   item.className = 'accordion-item';
   header.className = 'accordion-header';
   header.setAttribute('aria-expanded', 'false');
   content.className = 'accordion-content';
+
   caret.className = 'caret';
   caret.innerHTML = '&#x25BC;';
+
   const headerText = document.createElement('h3');
   headerText.textContent = key;
+
   header.appendChild(headerText);
   header.appendChild(caret);
 
@@ -581,13 +709,17 @@ function createAccordionItem(key, value) {
   } else if (typeof value === 'object' && value !== null) {
     for (const subKey in value) {
       if (subKey === 'columns') {
+        // Render columns with a collapsible sub-section
         const subItemHeader = document.createElement('div');
         subItemHeader.className = 'accordion-header';
         subItemHeader.style.padding = '0.25em 0';
         subItemHeader.innerHTML = '&#9776; ' + subKey;
+
         const subItemContent = document.createElement('div');
         subItemContent.className = 'accordion-content';
         const list = document.createElement('ul');
+
+        // Populate existing columns
         value[subKey].forEach(column => {
           const listItem = document.createElement('li');
           listItem.textContent = JSON.stringify(column);
@@ -595,6 +727,29 @@ function createAccordionItem(key, value) {
         });
         subItemContent.appendChild(list);
 
+        // *** Add a button to add a new column ***
+        const addButton = document.createElement('button');
+        addButton.textContent = 'Add Column';
+        addButton.className = 'addButton';
+        addButton.addEventListener('click', () => {
+          const heading = prompt('Enter column heading:');
+          if (!heading) return; // If cancelled or empty
+          const field = prompt('Enter column field:');
+          if (!field) return;
+
+          // Push new column into appConfig
+          appConfig.presentation.columns.push({ heading, field });
+
+          // Reflect the change in the UI without a full re-render:
+          const listItem = document.createElement('li');
+          listItem.textContent = JSON.stringify({ heading, field });
+          list.appendChild(listItem);
+        });
+
+        // Insert the button right after the subItemHeader text
+        subItemHeader.appendChild(addButton);
+
+        // Toggle display for sub-accordion
         subItemHeader.addEventListener('click', () => {
           const isVisible = subItemContent.style.display === 'block';
           subItemContent.style.display = isVisible ? 'none' : 'block';
@@ -602,15 +757,19 @@ function createAccordionItem(key, value) {
 
         content.appendChild(subItemHeader);
         content.appendChild(subItemContent);
+
       } else {
+        // Recursively create more accordion items if needed
         const subItem = createAccordionItem(subKey, value[subKey]);
         content.appendChild(subItem);
       }
     }
   } else {
+    // For strings, numbers, or other primitive values
     content.innerHTML = value;
   }
 
+  // Toggle display of the main accordion item
   header.addEventListener('click', () => {
     const isVisible = content.style.display === 'block';
     content.style.display = isVisible ? 'none' : 'block';
@@ -700,105 +859,19 @@ function loadUX() {
     const toolbar = document.createElement('div');
     toolbar.className = 'toolbar';
 
-    // Create Save button
-    const saveBtn = document.createElement('button');
-    saveBtn.className = 'saveBtn';
-    saveBtn.textContent = '⎘';
+    editor.addEventListener('blur', () => {
+      appConfig.formula = editor.textContent;
+      displayInputs();
+    });
 
-    // Create Copy button
     const copyBtn = document.createElement('button');
     copyBtn.className = 'copyBtn';
     copyBtn.textContent = '⧉';
 
-    // Create Clear button
     const clearBtn = document.createElement('button');
     clearBtn.className = 'clearBtn';
     clearBtn.textContent = '✘';
 
-    // Add button event listeners
-    saveBtn.addEventListener('click', async () => {
-      try {
-        if (window.showSaveFilePicker) {
-          const fileHandle = await window.showSaveFilePicker({
-            suggestedName: '{rename} new_single_page_app.html',
-            types: [
-              {
-                description: 'FI.js SPA File',
-                accept: {
-                  'text/html': ['.html'],
-                },
-              },
-            ],
-          }); 
-        const filename = fileHandle.name.replace(/\.html$/, '');
-
-            // Base HTML structure
-            let appContent = `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="img-src 'self' data:; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://bankersiq.com; object-src 'none';">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../styles/base.css">
-    <title>${filename}</title>
-  </head>
-  <body>
-    <script>
-      // App configuration
-      const appConfig = {
-        description: '<h3>${filename}</h3>',
-        libraries: [`
-            // Add libraries
-              appConfig.libraries.forEach((lib) => {
-                appContent += `
-          '${lib}',`;
-              });
-              appContent += `
-        ],`;
-              // Add formula
-              appContent += `
-        formula: '${editor.textContent}',`;
-              // Add groupBy
-              appContent += `
-        groupBy: '${appConfig.groupBy}',`;
-              // Add presentation columns
-              appContent += `
-        presentation: {
-          columns: [`;
-              appConfig.presentation.columns.forEach((col) => {
-                appContent += `
-            { heading: '${col.heading}', field: '${col.field}' },`
-              });
-              appContent += `
-          ],
-        }
-      };
-    </script>
-    <script src="../../core/fi.js" defer></script>
-  </body>
-</html>`;
-            // Save the file
-            const writable = await fileHandle.createWritable();
-            await writable.write(appContent);
-            await writable.close();
-            alert('File saved successfully!');
-          } else {
-            // Fallback for unsupported browsers
-            const blob = new Blob([appContent], { type: 'text/html' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'new_single_page_app.html';
-            link.click();
-            alert('File saved (using fallback method)!');
-          }
-      } catch (err) {
-          if (err.name !== 'AbortError') {
-            console.error('Save failed:', err);
-            alert('Failed to save the file.');
-          }
-      }
-    });
-  
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(editor.textContent).then(() => {
         alert('Code copied to clipboard!');
@@ -810,8 +883,6 @@ function loadUX() {
       applySyntaxHighlighting(editor);
     });
 
-    // Append buttons to the toolbar
-    toolbar.appendChild(saveBtn);
     toolbar.appendChild(copyBtn);
     toolbar.appendChild(clearBtn);
 
