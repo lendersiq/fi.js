@@ -167,7 +167,7 @@ function evaluateExpression(expression) {
   // removes commas within numbers, whether they are integers or floats
   expression = expression.replace(/(\d),(?=\d)/g, "$1");
 
-  console.log('Original Expression:', expression);
+  if (logger) console.log('Original Expression:', expression);
 
   // Step 1: Replace conditions where 'null' is the first part of the condition with 'false'
   // depr expression = expression.replace(/\{\{\s*null\s*[!=><]=?\s*[^}]+\}\}/g, '{{ false }}');
@@ -296,7 +296,7 @@ function extractPipes(formula, presentation) {
   const inputSet = new Set();
   
   // Regex to match {source}.{function or object} format, excluding 'input'
-  // Updated Regex to prevent matching numeric values
+  // Updated Regex to prevent matching numeric values to match {source}.{function or object}
   const sourceRegex = /\b(?!input\b)([a-zA-Z_]\w*)\.\w+/g;
   //const sourceRegex = /\b(?!input\b)(\w+)\.\w+/g;
   
@@ -414,7 +414,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
       }
 
       // remove input parameters
-      console.log('pre-scrubbed formula', formula);
+      if (logger) console.log('pre-scrubbed formula', formula);
       const scrubbedFormula = formula.replace(/(input\.\w+)\([^)]*\)/g, '$1');
       if (logger) console.log('scrubbed formula', scrubbedFormula);
 
@@ -426,8 +426,8 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
     
       // Replace source.field with actual data or function results
       const updatedFormula = DateToDaysFormula.replace(new RegExp(`(${resourceName})\\.(\\w+)`, 'g'), (match, source, sourceObject) => {
-        console.log('Match found:', match);
-        console.log('Source:', source, 'sourceObject:', sourceObject);  //sourceObjects can be functions or data field in pipe
+        if (logger) console.log('Match found:', match);
+        if (logger) console.log('Source:', source, 'sourceObject:', sourceObject);  //sourceObjects can be functions or data field in pipe
       
         //if libraries are present verify sourceObject against library functions
         for (const libName in window.libraries) {
