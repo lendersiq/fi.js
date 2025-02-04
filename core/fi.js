@@ -164,7 +164,10 @@ function evaluateExpression(expression) {
   if (expression.length === 0) return { result: 0, nonNullCount: 0 };
   let conditionLocked = false; // Initialize within the function to ensure it resets each time
   let nonNullCount = 0; // Initialize a counter for non-null values
-  if (logger) console.log('Original Expression:', expression);
+  // removes commas within numbers, whether they are integers or floats
+  expression = expression.replace(/(\d),(?=\d)/g, "$1");
+
+  console.log('Original Expression:', expression);
 
   // Step 1: Replace conditions where 'null' is the first part of the condition with 'false'
   // depr expression = expression.replace(/\{\{\s*null\s*[!=><]=?\s*[^}]+\}\}/g, '{{ false }}');
@@ -255,8 +258,12 @@ function evaluateExpression(expression) {
             () => 'true'
           );
         }
-        subexpr = subexpr.trim().replace(/^\(/, "").replace(/\)$/, "");
-        const result = eval(`"use strict"; ${subexpr.trim()}`);
+        //Removes leading/trailing whitespace, parentheses if they are at the start or end, and commas within numbers without affecting commas in other contexts.
+        subexpr = subexpr
+          .trim()
+          .replace(/^\(/, "")
+          .replace(/\)$/, "")
+        const result = eval(`"use strict"; ${subexpr}`);
         if (result !== null && result !== 0) {
           nonNullCount++;
         }
@@ -289,7 +296,9 @@ function extractPipes(formula, presentation) {
   const inputSet = new Set();
   
   // Regex to match {source}.{function or object} format, excluding 'input'
-  const sourceRegex = /\b(?!input\b)(\w+)\.\w+/g;
+  // Updated Regex to prevent matching numeric values
+  const sourceRegex = /\b(?!input\b)([a-zA-Z_]\w*)\.\w+/g;
+  //const sourceRegex = /\b(?!input\b)(\w+)\.\w+/g;
   
   // Regex to match input.function(args) format
   const inputRegex = /input\.\w+\(([^)]*)\)/g;
