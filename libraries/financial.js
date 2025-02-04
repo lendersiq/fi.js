@@ -257,7 +257,7 @@ const financial = {
                     }
                 }
 
-               	if (sourceIndex === 'certificate') {
+                if (sourceIndex === 'certificate') {
                     rate = rate < 1 ? parseFloat(rate) : parseFloat(rate / 100); 
                     interestExpense = balance * rate;
                     if (financial.dictionaries.annualOperatingExpense[sourceIndex].value) {
@@ -347,9 +347,9 @@ const financial = {
                 const originationExpense = (financial.attributes.fixedOriginationExpense.value + Math.min(principal, financial.attributes.principalCostMaximum.value) * financial.attributes.variableOriginationFactor.value * complexityFactor) / Math.min(termInYears, 10);
                 const servicingExpense = (financial.attributes.fixedServicingExpense.value + principal * financial.attributes.loanServicingFactor.value / yearsUntilMaturity) * complexityFactor;
 
-                //console.log('risk key:', aiTranslator(Object.keys(window.statistics.loan), 'risk'));
+                // console.log('risk key:', aiTranslator(Object.keys(window.statistics.loan), 'risk'));
                 const riskObject = window.statistics.loan[aiTranslator(Object.keys(window.statistics.loan), 'risk')];
-                console.log('risk data:', riskObject, Object.hasOwn(riskObject, "convexProbability"), riskObject.convexProbability);
+                // console.log('risk data:', riskObject, Object.hasOwn(riskObject, "convexProbability"), riskObject.convexProbability);
                 let probabilityOfDefault = 0;
                 if (risk && risk !== 'NULL') {
                     if (riskObject && Object.hasOwn(riskObject, "convexProbability")) { // risk data reached statistical signifigance
@@ -377,7 +377,7 @@ const financial = {
                 //const expectedLossProvision = probabilityOfDefault * (principal - (principal / financial.attributes.minimumLoanToValue.value * (1 - financial.attributes.expectedRecoveryRate.value))) / yearsUntilMaturity; 
                 const pretax = (interestIncome - fundingExpense - originationExpense - servicingExpense + nonInterestIncome) * (1 - window.libraries.organization.attributes.taxRate.value); 
                 const profit = pretax - expectedLossProvision;
-                console.log(`portfolio: ${portfolio}, principal: ${principal}, average: ${AveragePrincipal}, risk: ${risk}, fees: ${fees}, years until maturity: ${yearsUntilMaturity}, term in years: ${termInYears}, rate: ${rate}, interest: ${interestIncome}, funding rate: ${fundingRate}, funding expense: ${fundingExpense}, origination expense: ${originationExpense}, servicing expense: ${servicingExpense}, non interest income: ${nonInterestIncome}, probability of default: ${probabilityOfDefault}, pretax: ${pretax}, expected loss: ${expectedLossProvision}, profit: ${profit.toFixed(2)}`);
+                if (window.logger) console.log(`portfolio: ${portfolio}, principal: ${principal}, average: ${AveragePrincipal}, risk: ${risk}, fees: ${fees}, years until maturity: ${yearsUntilMaturity}, term in years: ${termInYears}, rate: ${rate}, interest: ${interestIncome}, funding rate: ${fundingRate}, funding expense: ${fundingExpense}, origination expense: ${originationExpense}, servicing expense: ${servicingExpense}, non interest income: ${nonInterestIncome}, probability of default: ${probabilityOfDefault}, pretax: ${pretax}, expected loss: ${expectedLossProvision}, profit: ${profit.toFixed(2)}`);
                 return profit;
             }
         },
@@ -385,10 +385,8 @@ const financial = {
             description: "Scores the risk of a checking account",
             implementation: function(balance, checks, deposits, nsf, source) {
                 if (balance === 0) return 0
-                console.log('source', source)
-                const sourceIndex = aiSynonymKey(source);
                 // A high average balance indicates a higher exposure and might justify offering Positive Pay as a risk mitigant
-                const balanceObject = window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'balance')];
+                const balanceObject = window.statistics[source][aiTranslator(Object.keys(window.statistics[source]), 'balance')];
                 let balanceRisk = 1;
                 if (balance > balanceObject.threeStdDeviations[1]) {
                     balanceRisk = 5;
@@ -396,7 +394,7 @@ const financial = {
                     balanceRisk = 3;
                 }
                 // issuing checks for payroll, vendor payments, or refunds during specific times of the year may have a greater risk.
-                const checksObject = window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'checks')];
+                const checksObject = window.statistics[source][aiTranslator(Object.keys(window.statistics[source]), 'checks')];
                 let checksRisk = 1;
                 if (checks > checksObject.threeStdDeviations[1]) {
                     checksRisk = 5;
@@ -407,7 +405,7 @@ const financial = {
                 }
 
                 // Regular deposits (e.g., payroll or vendor payments) indicate frequency of activity--higher active accounts may indicate risk.
-                const depositsObject = window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'deposits')];
+                const depositsObject = window.statistics[source][aiTranslator(Object.keys(window.statistics[source]), 'deposits')];
                 let depositsRisk = 1;
                 if (deposits > depositsObject.threeStdDeviations[1]) {
                     depositsRisk = 5;
@@ -416,7 +414,7 @@ const financial = {
                 }
 
                 // High overdraft activity could signal poor account management.
-                const nsfObject = window.statistics[sourceIndex][aiTranslator(Object.keys(window.statistics[sourceIndex]), 'nsf')];
+                const nsfObject = window.statistics[source][aiTranslator(Object.keys(window.statistics[source]), 'nsf')];
                 let nsfRisk = 1;
                 if (nsf > nsfObject.threeStdDeviations[1]) {
                     nsfRisk = 5;
