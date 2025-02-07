@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Local-First FI.js Demo - Extended</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .file-info {
+      margin-top: 10px;
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    .file-info p {
+      margin: 0;
+      padding: 4px 0;
+    }
+    .all-files-list ul {
+      list-style-type: square;
+      padding-left: 20px;
+    }
+    pre {
+      background: #f9f9f9;
+      border: 1px solid #eee;
+      padding: 6px;
+      max-height: 150px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+<h1>Local-First File Loader (Extended)</h1>
+
+<p>
+  <strong>Goal:</strong> Select a folder on your local machine, list <em>all</em> files, 
+  display the <em>first file</em> in that folder, and then preview matched CSV files.
+</p>
+
+<button id="pickFolderBtn">Select Folder</button>
+
+<div id="fileContainer"></div>
+
+<script>
+// -----------------------------------------------------
+// Configuration Objects (Replace or adjust as needed)
+// -----------------------------------------------------
+const organization = {
+  path: "C:\\projects\\data"  // Example path reference (informational only)
+};
+
+const appConfig = {
+  data: ["random_generated_loan_data.csv", "random_generated_checking_data.csv"]
+};
+
+// -----------------------------------------------------
+// Main Logic
+// -----------------------------------------------------
+const pickFolderBtn = document.getElementById("pickFolderBtn");
+const fileContainer = document.getElementById("fileContainer");
+
+// Create a hidden file input for directory selection
+const folderInput = document.createElement("input");
+folderInput.type = "file";
+folderInput.webkitdirectory = true;  // Chrome/Edge support for folder picking
+folderInput.hidden = true;
+
+folderInput.addEventListener("change", handleDirectorySelection);
+
+// Trigger the hidden input when user clicks the button
+pickFolderBtn.addEventListener("click", () => {
+  folderInput.value = ""; // Reset to ensure the "change" event fires even for the same folder
+  folderInput.click();
+});
+
+/**
+ * Handle the user picking a directory:
+ * 1) List ALL files
+ * 2) Show a preview of the FIRST file in the folder
+ * 3) Display the CSV contents for matched filenames from appConfig.data
+ */
+async function handleDirectorySelection(event) {
+  const fileList = Array.from(event.target.files); // Convert FileList to Array
+
+  // Clear any previous UI
+  fileContainer.innerHTML = "";
+
+  if (!fileList.length) {
+    fileContainer.textContent = "No folder or files selected.";
+    return;
+  }
+
+  // -----------------------------------------------------
+  // 1) Display ALL files
+  // -----------------------------------------------------
+  const allFilesDiv = document.createElement("div");
+  allFilesDiv.className = "section all-files-list";
+  allFilesDiv.innerHTML = `<h2>All Files in Selected Folder</h2>`;
+  
+  // Create a list of ALL filenames
+  const allFilesHtml = fileList
+    .map(file => `<li>${file.name}</li>`)
+    .join("");
+  allFilesDiv.innerHTML += `<ul>${allFilesHtml}</ul>`;
+  fileContainer.appendChild(allFilesDiv);
+
+  // -----------------------------------------------------
+  // 2) Show the FIRST file in the folder (if any)
+  // -----------------------------------------------------
+  // The files are in the order returned by the OS—often alphabetical.
+  // We'll just pick fileList[0].
+  const firstFile = fileList[0];
+  if (firstFile) {
+    const firstFileDiv = document.createElement("div");
+    firstFileDiv.className = "section";
+    firstFileDiv.innerHTML = `<h2>First File in Folder: ${firstFile.name}</h2>`;
+    fileContainer.appendChild(firstFileDiv);
+
+    // Display a snippet of the file's content
+    await displayFileInfo(firstFile);
+  }
+
+  // -----------------------------------------------------
+  // 3) Filter and display matched CSV files
+  // -----------------------------------------------------
+  const requiredFiles = new Set(appConfig.data);
+  const matchedFiles = fileList.filter(file => requiredFiles.has(file.name));
+
+  if (!matchedFiles.length) {
+    const noMatchMsg = document.createElement("p");
+    noMatchMsg.textContent =
+      "None of the required CSV files were found in the selected folder.";
+    fileContainer.appendChild(noMatchMsg);
+    return;
+  }
+
+  for (let file of matchedFiles) {
+    await displayFileInfo(file);
+  }
+}
+
+/**
+ * Reads a file as text (assuming CSV) and displays basic info + a snippet
+ */
+async function displayFileInfo(file) {
+  const reader = new FileReader();
+
+  // Called once file reading is complete
+  reader.onload = () => {
+    const contents = reader.result;
+    // Show only the first 200 characters for brevity
+    const truncated = contents.substring(0, 200) + (contents.length > 200 ? "..." : "");
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "file-info";
+    wrapper.innerHTML = `
+      <p><strong>File:</strong> ${file.name}</p>
+      <p><strong>Size:</strong> ${file.size} bytes</p>
+      <p><strong>Sample Data:</strong></p>
+      <pre>${truncated}</pre>
+    `;
+    fileContainer.appendChild(wrapper);
+  };
+
+  // Called if an error occurs during reading
+  reader.onerror = (err) => {
+    console.error("Error reading file:", file.name, err);
+    const errorMsg = document.createElement("p");
+    errorMsg.style.color = "red";
+    errorMsg.textContent = `Error reading file: ${file.name}`;
+    fileContainer.appendChild(errorMsg);
+  };
+
+  // Initiate reading the file as text
+  reader.readAsText(file);
+}
+</script>
+</body>
+</html>
