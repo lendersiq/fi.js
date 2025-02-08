@@ -158,14 +158,6 @@ function parseCSV(csvContent, callback) {
   callback(data);
 }
 
-/*
-function isDate(dateString) {
-  const date = new Date(dateString);
-  // getTime() returns NaN if date is invalid
-  return !isNaN(date.getTime());
-}
-*/
-
 function evaluateExpression(expression) {
   if (expression.length === 0) return { result: 0, nonNullCount: 0 };
   let conditionLocked = false; // Initialize within the function to ensure it resets each time
