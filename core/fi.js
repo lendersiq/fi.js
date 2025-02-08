@@ -53,6 +53,11 @@ F        IIIIIII  ..   jjj   ssss
               console.log(`Testing Stemmer: stem class = ${stem('class')} payment = ${stem('payment')} balance = ${stem('balance')} and type = ${stem('type')}`);
               console.log('Area Mode test: ', calculateAreaMode([121, 123, 134, 145, 17564.89, 300, 299, 120, 150, 320, 310]));
               console.log('Area Mode test 2: ', calculateAreaMode([12, 23, 13, 14, 17564.89, 30, 29, 12, 15, 32, 31]));
+              console.log("Test date: ", "'03585'", isDate("'03585'"));
+              console.log("Test date: ", "'2023-01-15'", isDate("'2023-01-15'"));  // true (matches "YYYY-MM-DD")
+              console.log("Test date: ", "'08/29/2023'", isDate("'08/29/2023'"));  // true (matches "MM/DD/YYYY")
+              console.log("Test date: ", "'2023/08/29'", isDate("'2023/08/29'"));  // false (doesn’t match the above patterns)
+              console.log("Test date: ", "'05819-1234'", isDate("'05819-1234'"));  // false (clearly not matching either pattern)
               loadUX();
               loadCharts();
 
@@ -153,12 +158,13 @@ function parseCSV(csvContent, callback) {
   callback(data);
 }
 
-function isDate(value) {
-  // Remove any surrounding single or double quotes
-  const strippedValue = value.replace(/^['"]|['"]$/g, '');
-  console('inside isDate', strippedValue);
-  return !isNaN(Date.parse(strippedValue)) && isNaN(value);
+/*
+function isDate(dateString) {
+  const date = new Date(dateString);
+  // getTime() returns NaN if date is invalid
+  return !isNaN(date.getTime());
 }
+*/
 
 function evaluateExpression(expression) {
   if (expression.length === 0) return { result: 0, nonNullCount: 0 };
@@ -406,7 +412,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
     const translatedGroupKey = aiTranslator(headers, groupKey);
     resourceData.forEach(row => {
       const uniqueId = row[translatedGroupKey];
-      console.log('Processing row:', row);
+      if (logger) console.log('Processing row:', row);
       if (!results[uniqueId]) {
         results[uniqueId] = { result: 0, units: 1, tally: 'tally', expression: '' };
       } else {
@@ -494,7 +500,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
         //console.log(`headers: ${headers} -- translated header: ${translatedHeader}`);
         if (translatedHeader) {
           const value = row[translatedHeader];
-          console.log('Field Value:', value);
+          //console.log('Field Value:', value);
           if (isDate(value)) {
             return convertDateToDays(value); 
           } else {
@@ -505,14 +511,14 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
         return '0';
       });
       
-      console.log('Updated Formula:', updatedFormula);
+      //console.log('Updated Formula:', updatedFormula);
       // make sure all components of the formula are resolved before stored in results[uniqueId].formula object
       const resolvedFormula = updatedFormula.replace(/(\w+)\.(\w+)/g, (match) => {
         if (/^\d+(\.\d+)?$/.test(match)) {
             // If match is already a number, leave it as is
             return match;
         } else {
-          console.log(`Unresolved part found: ${match}, setting it to null.`);
+          if (logger) console.log(`Unresolved part found: ${match}, setting it to null.`);
           return null;
         }
       });
@@ -527,7 +533,7 @@ function processFormula(identifiedPipes, formula, groupKey, digestData) {
       if (appConfig.presentation && appConfig.presentation.columns) {
         let headers = Object.keys(row);
         appConfig.presentation.columns.forEach(column => {          
-          const translatedColumn = aiTranslator(headers, column.field, column.strict);
+          const translatedColumn = aiTranslator(headers, column.field, false);
           if (translatedColumn) {
             if (results[uniqueId][column.field] !== undefined) {
               results[uniqueId][column.field] = `${results[uniqueId][column.field]}, ${row[translatedColumn]}`;
@@ -868,7 +874,31 @@ function convertToNumeric(value) {
 
 // Helper function to check if a value is a valid date
 function isDate(value) {
-  return !isNaN(Date.parse(value)) && isNaN(value);
+  // 1) Must be a string
+  if (typeof value !== 'string') return false;
+
+  // 2) Strip quotes/whitespace
+  const stripped = value.trim().replace(/^['"]|['"]$/g, '');
+  
+  // 3) Strictly allow only certain date formats:
+  //    (Adjust these as needed, but here we show 2 common ones.)
+  const datePatterns = [
+    // "YYYY-MM-DD" e.g. "2023-08-29"
+    /^\d{4}-\d{2}-\d{2}$/,
+    // "MM/DD/YYYY" e.g. "08/29/2023"
+    /^\d{1,2}\/\d{1,2}\/\d{4}$/,
+    /^\d{4}\/\d{2}\/\d{2}$/
+  ];
+  
+  // 4) If it doesn’t match any allowed pattern, return false
+  const matches = datePatterns.some(pattern => pattern.test(stripped));
+  if (!matches) {
+    return false;
+  }
+  
+  // 5) If it matches the pattern, parse and confirm it's valid
+  const dateObj = new Date(stripped);
+  return !isNaN(dateObj.getTime());
 }
 
 // Helper functions for computing statistics (as previously defined)

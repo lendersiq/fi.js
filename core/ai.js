@@ -251,8 +251,21 @@ function aiSynonymKey(key, word) {
 }
 
 function aiTranslator(headers, field, strict=false) {
+  let cleanField;
+  // Check if the field contains a dot, indicating it's in the '{source}.{function or object}' format
+  if (field.includes('.')) {
+    // Extract everything after the dot
+    cleanField = field.split('.')[1];
+  } else {
+    // Otherwise, keep the field as it is
+    cleanField = field;
+  }
+
+  // Remove any special characters and trim whitespace
+  cleanField = cleanField.replace(/[^a-zA-Z0-9]/g, '').trim();
+
   const headersLower = headers.map(h => h.toLowerCase());
-  const stemmedField = stem(field.toLowerCase());
+  const stemmedField = stem(cleanField.toLowerCase());
 
   // 1) Try to find a direct match (substring) in headers
   let matchIndex = headersLower.findIndex(header => header.includes(stemmedField));

@@ -149,7 +149,7 @@ function displayResultsInTable() {
         if (data[field]) {
           values = parseCommaDelimited(data[field]);
         }
-
+      
         if (Array.isArray(values)) {
           if (!columnFormat[index].isCurrency) {
             if (columnFormat[index].isDate) {
