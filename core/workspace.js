@@ -716,7 +716,7 @@ function createAccordionItem(key, value) {
         subItemHeader.innerHTML = '&#9776; ' + subKey;
 
         const subItemContent = document.createElement('div');
-        subItemContent.className = 'accordion-content';
+        subItemContent.className = 'accordion-content form-group';
         const list = document.createElement('ul');
 
         // Populate existing columns
@@ -727,27 +727,66 @@ function createAccordionItem(key, value) {
         });
         subItemContent.appendChild(list);
 
-        // *** Add a button to add a new column ***
         const addButton = document.createElement('button');
         addButton.textContent = 'Add Column';
         addButton.className = 'addButton';
+
         addButton.addEventListener('click', () => {
-          const heading = prompt('Enter column heading:');
-          if (!heading) return; // If cancelled or empty
-          const field = prompt('Enter column field:');
-          if (!field) return;
-
-          // Push new column into appConfig
-          appConfig.presentation.columns.push({ heading, field });
-
-          // Reflect the change in the UI without a full re-render:
+          // Create new list item with two inputs
           const listItem = document.createElement('li');
-          listItem.textContent = JSON.stringify({ heading, field });
+          listItem.innerHTML = `
+            { heading: <input type="text" class="heading" />, 
+              field: <input type="text" class="field" /> }
+          `;
           list.appendChild(listItem);
+
+          // Grab references to the newly created inputs
+          const headingInput = listItem.querySelector('.heading');
+          const fieldInput = listItem.querySelector('.field');
+
+          // We'll use this flag to avoid finalizing multiple times.
+          let isFinalized = false;
+
+          // Define a function to check if both inputs have values, then finalize if so.
+          function finalizeIfPossible() {
+            // If already finalized, do nothing
+            if (isFinalized) return;
+
+            const heading = headingInput.value.trim();
+            const field = fieldInput.value.trim();
+
+            // Only finalize if both inputs are filled
+            if (heading && field) {
+              isFinalized = true; // Mark as done to avoid re-triggering
+
+              // 1) Push new column into appConfig
+              appConfig.presentation.columns.push({ heading, field });
+
+              // 2) Replace the list item content with final text
+              listItem.textContent = `{ heading: ${heading}, field: ${field} }`;
+              subItemContent.style.display === 'block';
+            }
+          }
+
+          // Add event listeners for blur
+          headingInput.addEventListener('blur', finalizeIfPossible);
+          fieldInput.addEventListener('blur', finalizeIfPossible);
+
+          // Add event listeners for keydown to capture 'Enter' or 'Tab'
+          headingInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === 'Tab') {
+              finalizeIfPossible();
+            }
+          });
+          fieldInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === 'Tab') {
+              finalizeIfPossible();
+            }
+          });
         });
 
         // Insert the button right after the subItemHeader text
-        subItemHeader.appendChild(addButton);
+        subItemContent.appendChild(addButton);
 
         // Toggle display for sub-accordion
         subItemHeader.addEventListener('click', () => {
