@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../../styles/base.css">
+  <title>Demo 2</title>
+</head>
+<body>
+  <script>
+    // App configuration
+    const appConfig = [
+      { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
+      { "heading": "Loan Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "loan", "filter": "[20]" },
+      { "heading": "Principal", "id": "Principal", "column_type": "data", "data_type": "currency", "source_name": "loan" },
+      { "heading": "Rate", "id": "Rate", "column_type": "data", "data_type": "rate", "source_name": "loan" },
+      { "heading": "Interest Income", "id": "interestIncome", "column_type": "function", "function": "interestIncome", "data_type": "currency" },
+      { "heading": "Commission", "id": "commission", "column_type": "formula", "formula": "interestIncome * 0.1", "data_type": "currency" }
+    ];
+  </script>
+  <script src="../../core/fi.js" defer></script>
+</body>
+</html>
