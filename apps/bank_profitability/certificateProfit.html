@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../../styles/base.css">
+  <title>CD Profit</title>
+</head>
+<body>
+  <script>
+    // App configuration
+    const appConfig = [
+      { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
+      { "heading": "Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "certificate" },
+      { "heading": "Balance", "id": "Previous_Average_Balance", "column_type": "data", "data_type": "currency", "source_name": "certificate" },
+      { "heading": "Profit", "id": "CDProfit", "column_type": "function", "function": "CDProfit", "data_type": "currency", "source_name": "certificate", "sort": "desc" }
+    ];
+  </script>
+  <script src="../../core/fi.js" defer></script>
+</body>
+</html>
