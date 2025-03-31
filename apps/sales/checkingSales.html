@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../../styles/base.css">
+  <title>Sales</title>
+</head>
+<body>
+  <script>
+    // App configuration
+    const appConfig = [
+      { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
+      { "heading": "Balance", "id": "Average_Balance", "column_type": "data", "data_type": "currency", "source_name": "checking" },
+      { "heading": "Branch", "id": "Branch_Number", "column_type": "data", "data_type": "integer", "source_name": "checking" },
+      { "heading": "Open", "id": "Open_Date", "column_type": "data", "data_type": "date", "source_name": "checking", "filter": "> 2023-03-25" },
+      { "heading": "Profit", "id": "checkingProfit", "column_type": "function", "function": "checkingProfit", "data_type": "currency", "source_name": "checking"},
+      { "heading": "Commission", "id": "commission", "column_type": "formula", "formula": "checkingProfit * 0.1", "data_type": "currency" }
+    ];
+  </script>
+  <script src="../../core/fi.js" defer></script>
+</body>
+</html>
