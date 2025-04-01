@@ -9,12 +9,15 @@
 <body>
   <script>
     // App configuration
-    const appConfig = [
-      { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
-      { "heading": "Checking Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "checking", "filter": "[4]" },
-      { "heading": "Balance", "id": "Average_Balance", "column_type": "data", "data_type": "currency", "source_name": "checking" },
-      { "heading": "Profit", "id": "checkingProfit", "column_type": "function", "function": "checkingProfit", "data_type": "currency", "source_name": "checking", "sort": "desc" }
-    ];
+    window.appConfig = {
+      description: `<p>Calculate the profit of each checking account relationship based on market conditions and industy intelligence</p>`,
+      table: [
+        { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
+        { "heading": "Checking Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "checking", "filter": "[4]" },
+        { "heading": "Balance", "id": "Average_Balance", "column_type": "data", "data_type": "currency", "source_name": "checking" },
+        { "heading": "Profit", "id": "checkingProfit", "column_type": "function", "function": "checkingProfit", "data_type": "currency", "source_name": "checking", "sort": "desc" }
+      ]
+    }
   </script>
   <script src="../../core/fi.js" defer></script>
 </body>
