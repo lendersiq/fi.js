@@ -9,13 +9,16 @@
 <body>
   <script>
     // App configuration
-    const appConfig = [
-      { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
-      { "heading": "Loan Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "loan", "filter": "[1, 20]" },
-      { "heading": "Principal", "id": "Principal", "column_type": "data", "data_type": "currency", "source_name": "loan" },
-      { "heading": "Open", "id": "Date_Opened", "column_type": "data", "data_type": "date", "source_name": "loan", "filter": "> 2024-01-01 && <= 2024-11-03" },
-      { "heading": "Profit", "id": "loanProfit", "column_type": "function", "function": "loanProfit", "data_type": "currency", "source_name": "loan", "sort": "desc"}
-    ];
+    window.appConfig = {
+      description: `<p>Report the principal totals of all loan relationships closed by type or class which aligns with the campaign time period (remember to lag your dates in the formula based on campaign start date)</p>`,
+      table: [
+        { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
+        { "heading": "Loan Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "loan", "filter": "[1, 20]" },
+        { "heading": "Principal", "id": "Principal", "column_type": "data", "data_type": "currency", "source_name": "loan" },
+        { "heading": "Open", "id": "Date_Opened", "column_type": "data", "data_type": "date", "source_name": "loan", "filter": "> 2024-01-01 && <= 2024-11-03" },
+        { "heading": "Profit", "id": "loanProfit", "column_type": "function", "function": "loanProfit", "data_type": "currency", "source_name": "loan", "sort": "desc"}
+      ]
+    }
   </script>
   <script src="../../core/fi.js" defer></script>
 </body>
