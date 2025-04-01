@@ -4,19 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../../styles/base.css">
-  <title>Show checking accounts for indirect loan borrowers</title>
+  <title>Indirect Loans</title>
 </head>
 <body>
   <script>
     // App configuration
     window.appConfig = {
-      description: `<p>description</p>`,
+      description: `<p>Show checking accounts for indirect loan borrowers</p>`,
       table: [
         { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
         { "heading": "Loan Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "loan", "filter": "[20]" },
         { "heading": "Principal", "id": "Principal", "column_type": "data", "data_type": "currency", "source_name": "loan" },
         { "heading": "Balance", "id": "Average_Balance", "column_type": "data", "data_type": "currency", "source_name": "checking" }
-      ];
+      ]
     }
   </script>
   <script src="../../core/fi.js" defer></script>
