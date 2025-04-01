@@ -9,14 +9,17 @@
 <body>
   <script>
     // App configuration
-    const appConfig = [
-      { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
-      { "heading": "Loan Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "loan", "filter": "[20]" },
-      { "heading": "Principal", "id": "Principal", "column_type": "data", "data_type": "currency", "source_name": "loan" },
-      { "heading": "Rate", "id": "Rate", "column_type": "data", "data_type": "rate", "source_name": "loan" },
-      { "heading": "Interest Income", "id": "interestIncome", "column_type": "function", "function": "interestIncome", "data_type": "currency" },
-      { "heading": "Commission", "id": "commission", "column_type": "formula", "formula": "interestIncome * 0.1", "data_type": "currency" }
-    ];
+    window.appConfig = {
+      description: `<p>Demo 2 - filter a loan by class 20 and calculate interest income using a function and report commission using a formula.</p>`,
+      table: [
+        { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
+        { "heading": "Loan Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "loan", "filter": "[20]" },
+        { "heading": "Principal", "id": "Principal", "column_type": "data", "data_type": "currency", "source_name": "loan" },
+        { "heading": "Rate", "id": "Rate", "column_type": "data", "data_type": "rate", "source_name": "loan" },
+        { "heading": "Interest Income", "id": "interestIncome", "column_type": "function", "function": "interestIncome", "data_type": "currency", "source_name": "loan" },
+        { "heading": "Commission", "id": "commission", "column_type": "formula", "formula": "interestIncome * 0.1", "data_type": "currency" }
+      ]
+    };
   </script>
   <script src="../../core/fi.js" defer></script>
 </body>
