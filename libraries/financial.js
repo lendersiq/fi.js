@@ -4,8 +4,7 @@ window.financial = {
     interestIncome: {
       description: "Calculates the interest income based on principal and annual rate",
       implementation: function(principal, rate) {
-        //console.log('interestIncome', principal, rate);
-        const treasuryCurve = financial.api.treasuryCurve();
+        //console.log('interestIncome', principal, rate)
         return principal * rate;
       }
     },
