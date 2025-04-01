@@ -1,7 +1,9 @@
 (() => {
-  // 1) Validate appConfig
-  if (!appConfig || !Array.isArray(appConfig)) {
-    console.error("appConfig is not defined or is not an array.");
+  // 1) Set appConfig to global scope and Validate appConfig
+  // const appConfig = typeof window.appConfig !== 'undefined' && typeof window.appConfig === 'object' ? window.appConfig : null;
+
+  if (!appConfig || typeof appConfig !== 'object' || appConfig === null) {
+    console.error("appConfig is not defined or is not a valid object.");
     return;
   }
 
@@ -62,7 +64,7 @@
  
 
   // 2) Identify the unique column config (exactly one assumed)
-  const uniqueConfig = appConfig.find(
+  const uniqueConfig = appConfig.table.find(
     cfg => cfg.column_type === "data" && cfg.data_type === "unique"
   );
   if (!uniqueConfig) {
@@ -82,7 +84,7 @@
   // 4) Gather unique source names
   const uniqueSources = [
     ...new Set(
-      appConfig
+      appConfig.table
         .map(cfg => cfg.source_name)
         .filter(Boolean)
     )
@@ -91,7 +93,7 @@
   // We'll track how many sources are loaded to know when to combine
   let loadedCount = 0;
 
-  // 5) Build a very basic modal
+  // 5) Build the main modal
   const modalBackdrop = document.createElement("div");
   modalBackdrop.id = "modalBackdrop";
   Object.assign(modalBackdrop.style, {
@@ -183,7 +185,7 @@
         const csvContent = e.target.result;
 
         // 6.1) Identify relevant config columns for our configuration testing
-        const relevantConfigItems = appConfig.filter(c =>
+        const relevantConfigItems = appConfig.table.filter(c =>
           (c.source_name === sourceName || !c.source_name) &&
           (c.column_type === "data" || c.column_type === "function")
         );
@@ -249,10 +251,89 @@
     label.appendChild(fileInput);
     modalContent.appendChild(label);
   });
-  modal.appendChild(modalContent)
+
+  // Your existing modal setup code (modalBackdrop, modal, etc.) goes here...
+
+  // Log for debugging
+  // Add discover container only if appConfig exists and has a description
+  if (appConfig && appConfig.description) {
+    const discoverContainer = document.createElement('div');
+    discoverContainer.style.cssText = `
+      margin-top: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    `;
+
+    const discoverButton = document.createElement('button');
+    discoverButton.textContent = 'Discover More';
+    Object.assign(discoverButton.style, {
+      background: 'linear-gradient(135deg, var(--trwth-gradient1), var(--trwth-gradient2))',
+      color: '#fff',
+      border: 'none',
+      padding: '8px 16px',
+      borderRadius: '20px',
+      cursor: 'pointer',
+      fontSize: '14px',
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'transform 0.3s ease'
+    });
+
+    discoverButton.addEventListener('mouseover', () => {
+      discoverButton.style.transform = 'scale(1.05)';
+    });
+    discoverButton.addEventListener('mouseout', () => {
+      discoverButton.style.transform = 'scale(1)';
+    });
+
+    const infoContainer = document.createElement('div');
+    Object.assign(infoContainer.style, {
+      maxHeight: '0',
+      opacity: '0',
+      overflow: 'hidden',
+      transition: 'all 0.5s ease',
+      marginTop: '0',
+      background: 'rgba(255, 255, 255, 0.95)',
+      borderRadius: '5px',
+      padding: '0 15px'
+    });
+
+    // Use appConfig.description instead of appInfo[0].about
+    const aboutText = document.createElement('div'); // Use div since description contains HTML
+    aboutText.innerHTML = appConfig.description;
+    Object.assign(aboutText.style, {
+      margin: '15px 0',
+      lineHeight: '1.5',
+      color: '#333'
+    });
+    infoContainer.appendChild(aboutText);
+
+    let isOpen = false;
+    discoverButton.addEventListener('click', () => {
+      if (!isOpen) {
+        infoContainer.style.maxHeight = '200px'; // Adjust based on content length
+        infoContainer.style.opacity = '1';
+        infoContainer.style.padding = '15px';
+        discoverButton.textContent = 'Hide Details';
+        discoverButton.style.transform = 'scale(1)';
+      } else {
+        infoContainer.style.maxHeight = '0';
+        infoContainer.style.opacity = '0';
+        infoContainer.style.padding = '0 15px';
+        discoverButton.textContent = 'Discover More';
+      }
+      isOpen = !isOpen;
+    });
+
+    discoverContainer.appendChild(discoverButton);
+    discoverContainer.appendChild(infoContainer);
+    modalContent.appendChild(discoverContainer);
+  }
+
+  // Append modalContent to modal (this remains regardless of appConfig)
+  modal.appendChild(modalContent);
   modalBackdrop.appendChild(modal);
   document.body.appendChild(modalBackdrop);
-
   // Example formatValue function for display
   const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -324,7 +405,7 @@
         entry.totals = computeAggregates(subRows);
       }
     });
-    // Apply filters from appConfig (on totals if desired)
+    // Apply filters from appConfig.table (on totals if desired)
     applyFilters();
 
     console.log("Combined data (with subRows):", window.combinedData);
@@ -341,7 +422,7 @@
     // Gather *all* columns that we want to aggregate 
     // (data, function, formula). We skip "unique" only if we want 1 value
     // or handle it separately in the logic below.
-    const aggregatableCols = appConfig.filter(cfg =>
+    const aggregatableCols = appConfig.table.filter(cfg =>
       ["data", "function", "formula"].includes(cfg.column_type)
     );
 
@@ -425,10 +506,10 @@
     return totals;
   }
 
-  // --- Apply any filters defined in appConfig ---
+  // --- Apply any filters defined in appConfig.table ---
   function applyFilterstoRawData(sourceName) {
     // Only grab filters that match this sourceName, have a filter, and are "data" type
-    const filterConfigs = appConfig.filter(
+    const filterConfigs = appConfig.table.filter(
       c => c.source_name === sourceName && c.filter && c.column_type === "data"
     );
     if (!filterConfigs.length) return;
@@ -453,10 +534,10 @@
     });
   }  
 
-  // --- Apply any filters defined in appConfig ---
+  // --- Apply any filters defined in appConfig.table ---
   // used to apply to totals
   function applyFilters() {
-    const filterConfigs = appConfig.filter(
+    const filterConfigs = appConfig.table.filter(
       c => c.filter && c.column_type === "data"
     );
     if (!filterConfigs.length) return;
@@ -666,7 +747,7 @@
   function applyFormulas() {
     let count = 0;
     let uniqueCount = 0;
-    const formulaCols  = appConfig.filter(c => c.column_type === "formula");
+    const formulaCols  = appConfig.table.filter(c => c.column_type === "formula");
 
     // For each unique entry in combinedData, apply these columns
     console.log('window.combinedData', window.combinedData)
@@ -830,7 +911,7 @@
 
   function applyFunctions(sourceName) {
     // Filter function columns where source_name matches the provided sourceName
-    const functionCols = appConfig.filter(c => 
+    const functionCols = appConfig.table.filter(c => 
       c.column_type === "function" && c.source_name === sourceName
     );
     functionCols.forEach(col => {
@@ -989,7 +1070,7 @@
     const headerRow = document.createElement("tr");
 
     // Show columns for data, function, and formula
-    const displayCols = appConfig.filter(c =>
+    const displayCols = appConfig.table.filter(c =>
       ["data", "function", "formula"].includes(c.column_type)
     );
 
@@ -1015,7 +1096,7 @@
     let combinedKeys = Object.keys(window.combinedData);
     
     // Find all columns with sort configuration
-    const sortConfigs = appConfig.filter(col => col.sort);
+    const sortConfigs = appConfig.table.filter(col => col.sort);
     
     if (sortConfigs.length > 0) {
       combinedKeys.sort((a, b) => {
@@ -1177,7 +1258,7 @@
     document.getElementById(chartsContainerID).appendChild(chartContainer);
 
     // Populate X-axis (integer) and Y-axis (currency/float) options
-    appConfig.forEach(col => {
+    appConfig.table.forEach(col => {
       if (col.data_type === 'integer') { // Include 'unique' if Portfolio is intended for X-axis
         const option = document.createElement('option');
         option.value = col.id; // Use 'id' for data reference
