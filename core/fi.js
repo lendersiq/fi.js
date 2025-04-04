@@ -1085,7 +1085,7 @@
     buildTable('table-section');
     buildCharts('charts-section');
     buildStatsList('statistics-section');
-    buildExportForm('export-section')
+    buildExportForm('export-section');
   }
 
   // 11) Build the final table with aggregated totals + sub-rows
