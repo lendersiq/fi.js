@@ -347,6 +347,12 @@
     maximumFractionDigits: 3,
   });
 
+  const percentFormatter = new Intl.NumberFormat("en-US", {
+    style: "percent",
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  });
+
   function formatValue(value, dataType) {
     if (value == null || value === "") {
       return "";
@@ -360,10 +366,13 @@
         const parsed = parseInt(value, 10);
         return isNaN(parsed) ? value : integerFormatter.format(parsed);
       }
-      case "float":
-      case "rate": {
+      case "float": {
         const parsed = parseFloat(value);
         return isNaN(parsed) ? value : floatFormatter.format(parsed);
+      }
+      case "rate": {
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? value : percentFormatter.format(parsed);
       }
       default:
         return value;
@@ -750,24 +759,24 @@
     const formulaCols  = appConfig.table.filter(c => c.column_type === "formula");
 
     // For each unique entry in combinedData, apply these columns
-    console.log('window.combinedData', window.combinedData)
     const allKeys = Object.keys(window.combinedData);
+    console.log('window.combinedData in applyFormulas', window.combinedData, allKeys)
     allKeys.forEach(key => {
       const entry = window.combinedData[key];
       if (!entry) return;
       count += entry.subRows.length;
       uniqueCount += 1;
 
-      // Apply to each subRow
       entry.subRows.forEach(row => {
         applyFormulaCols(row, formulaCols);
-      });
+      }); 
 
       // Re-aggregate so "totals" reflect new columns
       entry.totals = computeAggregates(entry.subRows);
 
-      // Then also apply formula to the newly updated totals
-      //applyFormulaCols(entry.totals, formulaCols);
+      // cross sourced formula calculations
+      applyFormulaCols(entry.totals, formulaCols);
+
     });
 
     window.statistics['filtered'] = window.statistics['filtered'] || {};
@@ -777,35 +786,48 @@
   }
 
   function applyFormulaCols(row, formulaCols) {
+    console.log('row, formulaCols, key', row, formulaCols);
     formulaCols.forEach(col => {
         const expr = col.formula || "";
-        let result;
+        let result = null;
+
         try {
-            // Extract variable names from the formula (e.g., "checkingProfit + loanProfit" -> ["checkingProfit", "loanProfit"])
-            const variables = expr.match(/[a-zA-Z_]\w*/g) || [];
-            
-            // Create a safe evaluation context with defaults
-            const safeRow = { ...row }; // Shallow copy of row
+            // Extract variable names
+            const variables = [...new Set(expr.match(/[a-zA-Z_]\w*/g))] || [];
+
+            // Prepare context
+            const context = {};
             variables.forEach(varName => {
-                if (!(varName in safeRow) || safeRow[varName] === null || safeRow[varName] === undefined) {
-                    safeRow[varName] = 0; // Default to 0 for missing or null/undefined values
-                }
+                let value = row[varName];
+                if (typeof value === 'string') value = value.trim();
+                context[varName] = isNaN(Number(value)) || value === '' || value === null || value === undefined ? 0 : Number(value);
             });
 
-            // Evaluate the expression with the safe context
-            with(safeRow) {
-                result = eval(expr);
+            // Pre-check for division by 0 or missing
+            const divisionMatches = [...expr.matchAll(/\/\s*([a-zA-Z_]\w*)/g)];
+            const hasInvalidDenominator = divisionMatches.some(match => {
+                const varName = match[1];
+                return context[varName] === 0;
+            });
+
+            if (hasInvalidDenominator) {
+                result = 0; // Instead of very large number or error
+            } else {
+                // Build and run the safe function
+                const argNames = Object.keys(context);
+                const argValues = Object.values(context);
+                const safeFunction = new Function(...argNames, `return (${expr});`);
+                const computed = safeFunction(...argValues);
+                result = (typeof computed === 'number' && isFinite(computed)) ? computed : 0;
             }
 
-            // Validate result is a number
-            result = (typeof result === 'number' && !isNaN(result)) ? result : null;
         } catch (err) {
             console.error(`Error evaluating formula "${expr}" for row:`, row, err);
-            result = null;
+            result = 0;
         }
-        row[col.id] = result; // e.g., row["profit"]
+        row[col.id] = result;
     });
-}
+  }
 
   // Regex patterns for date detection (YYYY-MM-DD or YYYY/MM/DD)
   const isoDateRegexDash = /^\d{4}-\d{2}-\d{2}$/;
@@ -1568,8 +1590,8 @@ function parseCSV(csvString) {
   return dataRows.map(row => {
     const values = row.split(",");
     const obj = {};
-    headers.forEach((header, idx) => {
-      obj[header] = values[idx] ? values[idx].trim() : "";
+    headers.forEach((header, index) => {
+      obj[header] = values[index] ? values[index].trim() : "";
     });
     return obj;
   });
