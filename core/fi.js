@@ -786,7 +786,7 @@
   }
 
   function applyFormulaCols(row, formulaCols) {
-    console.log('row, formulaCols, key', row, formulaCols);
+    //console.log('row, formulaCols, key', row, formulaCols);
     formulaCols.forEach(col => {
         const expr = col.formula || "";
         let result = null;
@@ -995,7 +995,8 @@
     const navItems = [
         { text: 'Table', section: 'table', active: true },
         { text: 'Charts', section: 'charts', active: false },
-        { text: 'Statistics', section: 'statistics', active: false }
+        { text: 'Statistics', section: 'statistics', active: false },
+        { text: 'Export', section: 'export', active: false }
     ];
 
     // Store section elements for easy access
@@ -1062,6 +1063,11 @@
     statsSection.style.display = 'none';
     sections['statistics-section'] = statsSection;
 
+    const exportContainer = document.createElement('div');
+    exportContainer.className = 'export-container';
+    exportContainer.id = 'export-section';
+    sections['export-section'] = exportContainer;
+
     // Assemble the structure
     sidebar.appendChild(sidebarHeader);
     sidebar.appendChild(navList);
@@ -1070,6 +1076,7 @@
     main.appendChild(tableContainer);
     main.appendChild(chartsSection);
     main.appendChild(statsSection);
+    main.appendChild(exportContainer);
     appContainer.appendChild(main);
     
     document.body.appendChild(appContainer);
@@ -1078,11 +1085,12 @@
     buildTable('table-section');
     buildCharts('charts-section');
     buildStatsList('statistics-section');
+    buildExportForm('export-section')
   }
 
   // 11) Build the final table with aggregated totals + sub-rows
   function buildTable(tableContainerID) {
-    const tableContainer = document.createElement("div");
+    const tableContainer = document.createElement("div");  //@.@
     const table = document.createElement("table");
     table.className = "table";
     table.id = "mainTable";
@@ -1386,6 +1394,102 @@
       });
   
       statsSection.appendChild(statsContainer);
+  }
+
+  function buildExportForm(exportContainerID) {
+    const exportSection = document.getElementById(exportContainerID);
+    
+    // Get current date for default filename
+    const today = new Date();
+    const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}-${today.getFullYear()}`;
+    const defaultFileName = `${document.title}_${dateStr}`;
+
+    // Create form
+    const form = document.createElement('form');
+    form.id = 'export-form';
+
+    // Create filename group
+    const fileNameGroup = document.createElement('div');
+    fileNameGroup.className = 'form-group';
+
+    const fileNameLabel = document.createElement('label');
+    fileNameLabel.htmlFor = 'fileName';
+    fileNameLabel.textContent = 'File Name:';
+
+    const fileNameInput = document.createElement('input');
+    fileNameInput.type = 'text';
+    fileNameInput.id = 'fileName';
+    fileNameInput.value = defaultFileName;
+    fileNameInput.required = true;
+
+    const fileExtensionSpan = document.createElement('span');
+    fileExtensionSpan.textContent = '.csv';
+
+    fileNameGroup.appendChild(fileNameLabel);
+    fileNameGroup.appendChild(fileNameInput);
+    fileNameGroup.appendChild(fileExtensionSpan);
+
+    // Create format group
+    const formatGroup = document.createElement('div');
+    formatGroup.className = 'form-group';
+
+    const formatLabel = document.createElement('label');
+    formatLabel.textContent = 'Export Format:';
+
+    const formatSelect = document.createElement('select');
+    formatSelect.id = 'exportFormat';
+
+    const csvOption = document.createElement('option');
+    csvOption.value = 'csv';
+    csvOption.textContent = 'CSV (Excel/Google Sheets)';
+    formatSelect.appendChild(csvOption);
+
+    formatGroup.appendChild(formatLabel);
+    formatGroup.appendChild(formatSelect);
+
+    // Create submit button
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.textContent = 'Export Data';
+
+    // Assemble form
+    form.appendChild(fileNameGroup);
+    form.appendChild(formatGroup);
+    form.appendChild(submitButton);
+    exportSection.appendChild(form);
+
+    // Add form submission handler
+    form.addEventListener('submit', handleExport);
+  }
+
+  // Function to handle the export (unchanged from previous version)
+  function handleExport(event) {
+    event.preventDefault();
+    
+    const fileName = document.getElementById('fileName').value;
+    
+    const totalsData = Object.values(window.combinedData).map(item => item.totals);
+    const headers = ['Portfolio', 'Class_Code', 'Principal', 'loanProfit'];
+    
+    const csvContent = [
+        headers.join(','),
+        ...totalsData.map(row => 
+            headers.map(header => {
+                const value = row[header];
+                return typeof value === 'string' && value.includes(',') 
+                    ? `"${value}"` 
+                    : value;
+            }).join(',')
+        )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.setAttribute('href', URL.createObjectURL(blob));
+    link.setAttribute('download', `${fileName}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 })();
 
