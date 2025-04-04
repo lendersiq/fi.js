@@ -135,7 +135,7 @@ function findBestKey(paramName, keys) {
 // Suppose these are the row keys we have
 const rowKeys = [
   "Portfolio",
-  "Open_Date",
+  "Date_Opened",
   "Branch_Number",
   "Class_Code",
   "Owner_Code",
@@ -183,6 +183,7 @@ console.log(`'amount' match test (null): `, findBestKey("amount", rowKeys));
 console.log(`'risk' match test "risk" => match "Risk_Rating": `, findBestKey("risk", rowKeys));
 console.log(`'maturity' match test "maturity" => match "Maturity_Date": `, findBestKey("maturity", rowKeys));
 console.log(`'term_code' should match test "term_code" => match "TERM_CODE": `, findBestKey("term_code", rowKeys));
+console.log(`'open' should match test "open" => match "Date_Opened": `, findBestKey("open", rowKeys));
 
 function getStatistic(sourceIndex, paramName, statistic) {
   const statistics = window.statistics[sourceIndex];
