@@ -12,13 +12,12 @@
     window.appConfig = {
       description: `<p>Show the checking accounts opened within a period of time defined by the filter</p>`,
       table: [
-        { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
+        { "heading": "Officer", "id": "Opened_by_Resp_Code", "column_type": "data", "data_type": "unique" },
         { "heading": "Balance", "id": "Previous_Average_Balance", "column_type": "data", "data_type": "currency", "source_name": "checking" },
         { "heading": "Branch", "id": "Branch_Number", "column_type": "data", "data_type": "integer", "source_name": "checking" },
-        { "heading": "Officer", "id": "Opened_by_Resp_Code", "column_type": "data", "data_type": "integer", "source_name": "checking" },
         { "heading": "Open", "id": "Date_Opened", "column_type": "data", "data_type": "date", "source_name": "checking", "filter":  "> 720" }, //"> 2023-03-25" },
-        { "heading": "Commission", "id": "commission", "column_type": "formula", "data_type": "currency", "formula": "Previous_Average_Balance * .01" }
-      
+        { "heading": "Goal", "id": "Goal", "column_type": "data", "data_type": "currency", "source_name": "officer" },
+        { "heading": "performance", "id": "performance", "column_type": "formula", "formula": "Previous_Average_Balance / Goal", "data_type": "rate" }
       ]
     }
   </script>
