@@ -15,17 +15,14 @@
     document.head.appendChild(script);
   };
 
-
-  const asciiTrwth = `
-  TTTTT  r       w   w    t   h    
-    T    r r r   w   w   ttt  h   
-    T    r   r   w w w    t   hhhh
-    T    r       w w w    t   h   h
-    T    r        w w     tt  h   h
-`;
-
-  console.log("Trwth");
-  console.log(asciiTrwth);
+  const asciiFIjs = `
+  FFFFFFF  IIIIIII         j    ssss
+  F           I            j   s    
+  FFFFFF      I            j    sss 
+  F           I     ..  j  j       s
+  F        IIIIIII  ..   jjj   ssss
+  `;
+  console.log(asciiFIjs);
 
   // Load scripts in the correct order
   loadScript("../../core/ai.js", () => {
@@ -60,7 +57,8 @@
       });
     });
   });
-  renderFavicon();
+  const base64Svg = "data:image/png;base64,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";
+  renderFavicon(base64Svg);
  
 
   // 2) Identify the unique column config (exactly one assumed)
@@ -133,6 +131,14 @@
   const modalContent = document.createElement("div");
   modalContent.classList.add("modal-content");
   const modalHero = document.createElement('div');
+  const logoImage = document.createElement("img");
+  logoImage.src = base64Svg;
+  logoImage.alt = "JS Box Logo";
+  logoImage.width = 70;
+  logoImage.height = 70;
+  modalHero.appendChild(logoImage);
+  
+  /*
   modalHero.classList.add("logo");
   modalHero.style = "--logo-size: 32px";
 
@@ -159,9 +165,9 @@
   rightText.classList.add("logo-text");
   rightText.innerHTML = "th"; 
   modalHero.appendChild(rightText);
+  */
 
   modalContent.appendChild(modalHero);
-
   const instructions = document.createElement('p');
   instructions.textContent = 'Select data from the secure source.';
   modalContent.appendChild(instructions);
@@ -267,7 +273,7 @@
     const discoverButton = document.createElement('button');
     discoverButton.textContent = 'Discover More';
     Object.assign(discoverButton.style, {
-      background: 'linear-gradient(135deg, var(--trwth-gradient1), var(--trwth-gradient2))',
+      background: 'linear-gradient(135deg, var(--fijs-gradient1), var(--fijs-gradient2))',
       color: '#fff',
       border: 'none',
       padding: '8px 16px',
@@ -980,12 +986,11 @@
     // Create sidebar
     const sidebar = document.createElement('nav');
     sidebar.className = 'sidebar';
-
-    // Create sidebar header
     const sidebarHeader = document.createElement('div');
-    sidebarHeader.classList.add("logo", "sidebar-header");
-    sidebarHeader.style = "--logo-size: 32px";
-    sidebarHeader.appendChild(logoShield);
+    sidebarHeader.className = 'sidebar-header';
+    logoImage.width = 50;
+    logoImage.height = 50;
+    sidebarHeader.appendChild(logoImage);
 
     // Create navigation list
     const navList = document.createElement('ul');
@@ -1233,11 +1238,10 @@
   function buildCharts(chartsContainerID) {
     // Create chart config container
     const chartConfig = document.createElement('div');
-    chartConfig.className = 'chart-config';
+    chartConfig.className = 'config-container';
 
     // Create chart type select
     const chartTypeSelect = document.createElement('select');
-    chartTypeSelect.id = 'chart-type';
 
     // Create chart type options
     const chartTypes = [
@@ -1263,7 +1267,7 @@
     // Create render button
     const renderButton = document.createElement('button');
     renderButton.id = 'render-chart';
-    renderButton.className = 'render-button';
+    renderButton.className = 'action-button';
     renderButton.textContent = 'Render Chart';
 
     // Create chart container
@@ -1309,18 +1313,17 @@
       const xCol = xAxisSelect.value;
       const yCol = yAxisSelect.value;
 
-      // Flatten subRows into a single array
-      const subRowsData = Object.values(window.combinedData).flatMap(group => group.subRows);
-
+      // Flatten totals into a single array
+      const totalsData = Object.values(window.combinedData).flatMap(group => group.totals);
       // Aggregate data (sum Y by unique X values)
       const dataMap = {};
-      subRowsData.forEach(row => {
+      totalsData.forEach(row => {
         const xValue = row[xCol];
         const yValue = row[yCol] ? parseFloat(row[yCol]) : 0;
         if (!dataMap[xValue]) dataMap[xValue] = 0;
         dataMap[xValue] += yValue;
       });
-
+      
       const data = Object.entries(dataMap).map(([x, y]) => ({ x, y }));
       chartContainer.innerHTML = ''; // Clear previous chart
 
@@ -1407,6 +1410,7 @@
     // Create form
     const form = document.createElement('form');
     form.id = 'export-form';
+    form.className = 'config-container';
 
     // Create filename group
     const fileNameGroup = document.createElement('div');
@@ -1423,6 +1427,7 @@
     fileNameInput.required = true;
 
     const fileExtensionSpan = document.createElement('span');
+    fileExtensionSpan.id = 'fileExtension';
     fileExtensionSpan.textContent = '.csv';
 
     fileNameGroup.appendChild(fileNameLabel);
@@ -1439,10 +1444,20 @@
     const formatSelect = document.createElement('select');
     formatSelect.id = 'exportFormat';
 
-    const csvOption = document.createElement('option');
-    csvOption.value = 'csv';
-    csvOption.textContent = 'CSV (Excel/Google Sheets)';
-    formatSelect.appendChild(csvOption);
+    // Define available formats
+    const formats = [
+        { value: 'csv', text: 'CSV', ext: '.csv' },
+        { value: 'json', text: 'JSON', ext: '.json' },
+        { value: 'xlsx', text: 'Excel (XLSX)', ext: '.xlsx' }
+    ];
+
+    // Add format options
+    formats.forEach(format => {
+        const option = document.createElement('option');
+        option.value = format.value;
+        option.textContent = format.text;
+        formatSelect.appendChild(option);
+    });
 
     formatGroup.appendChild(formatLabel);
     formatGroup.appendChild(formatSelect);
@@ -1450,6 +1465,7 @@
     // Create submit button
     const submitButton = document.createElement('button');
     submitButton.type = 'submit';
+    submitButton.className = 'action-button';
     submitButton.textContent = 'Export Data';
 
     // Assemble form
@@ -1458,39 +1474,557 @@
     form.appendChild(submitButton);
     exportSection.appendChild(form);
 
+    // Update extension when format changes
+    formatSelect.addEventListener('change', () => {
+        const selectedFormat = formats.find(f => f.value === formatSelect.value);
+        fileExtensionSpan.textContent = selectedFormat.ext;
+    });
+
     // Add form submission handler
     form.addEventListener('submit', handleExport);
   }
 
-  // Function to handle the export (unchanged from previous version)
+  function createXLSX(data, headers, options = {}) {
+    console.log('Creating Excel file with data:', data);
+    console.log('Using headers:', headers);
+    console.log('Options:', options);
+    
+    // Validate and prepare headers
+    // If headers don't match data properties, we need to handle this
+    let actualHeaders = headers;
+    
+    // If headers are empty or don't match data structure, extract from data
+    if (!headers || !headers.length || !dataMatchesHeaders(data, headers)) {
+      console.log('Headers mismatch detected, extracting headers from data');
+      actualHeaders = extractHeadersFromData(data);
+      console.log('Extracted headers:', actualHeaders);
+    }
+    
+    // Set default options
+    const defaults = {
+      worksheetName: 'Sheet1',
+      title: '',
+      author: '',
+      filename: 'download.xls'
+    };
+    
+    const settings = { ...defaults, ...options };
+    
+    // Create HTML table that Excel can interpret as BIFF format
+    let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">\n';
+    html += '<head>\n';
+    html += '<!--[if gte mso 9]>\n';
+    html += '<xml>\n';
+    html += '<x:ExcelWorkbook>\n';
+    html += '<x:ExcelWorksheets>\n';
+    html += '<x:ExcelWorksheet>\n';
+    html += `<x:Name>${escapeHTML(settings.worksheetName)}</x:Name>\n`;
+    html += '<x:WorksheetOptions>\n';
+    html += '<x:DisplayGridlines/>\n';
+    html += '<x:FitToPage/>\n';
+    html += '</x:WorksheetOptions>\n';
+    html += '</x:ExcelWorksheet>\n';
+    html += '</x:ExcelWorksheets>\n';
+    
+    // Add document properties
+    if (settings.title || settings.author) {
+      html += '<x:ExcelWorkbook>\n';
+      if (settings.title) {
+        html += `<x:Title>${escapeHTML(settings.title)}</x:Title>\n`;
+      }
+      if (settings.author) {
+        html += `<x:Author>${escapeHTML(settings.author)}</x:Author>\n`;
+      }
+      html += '<x:WindowHeight>12000</x:WindowHeight>\n';
+      html += '<x:WindowWidth>16000</x:WindowWidth>\n';
+      html += '</x:ExcelWorkbook>\n';
+    }
+    
+    html += '</xml>\n';
+    html += '<![endif]-->\n';
+    html += '<style>\n';
+    html += 'table { border-collapse: collapse; width: 100%; }\n';
+    html += 'th { background-color: #DDDDDD; font-weight: bold; text-align: left; }\n';
+    html += 'td, th { border: 1px solid #DDDDDD; padding: 5px; mso-number-format:"\\@"; }\n';
+    html += 'td.number { mso-number-format:"0.00"; text-align: right; }\n';
+    html += 'td.date { mso-number-format:"yyyy\\-mm\\-dd"; }\n';
+    html += 'td.percent { mso-number-format:"0.00%"; text-align: right; }\n';
+    html += '</style>\n';
+    html += '</head>\n';
+    html += '<body>\n';
+    html += '<table>\n';
+    
+    // Add headers
+    html += '<tr>\n';
+    actualHeaders.forEach(header => {
+      html += `<th>${escapeHTML(header)}</th>\n`;
+    });
+    html += '</tr>\n';
+    
+    // Add data rows
+    data.forEach((row, rowIndex) => {
+      html += '<tr>\n';
+      
+      actualHeaders.forEach(header => {
+        // For safe access, check if property exists in row data
+        let value = row[header];
+        
+        // If value is undefined (header not in data), check if there's a case-insensitive match
+        if (value === undefined) {
+          const matchingKey = findCaseInsensitiveKey(row, header);
+          if (matchingKey) {
+            value = row[matchingKey];
+          }
+        }
+        
+        // Determine the cell type and formatting based on value
+        if (value === null || value === undefined) {
+          html += '<td></td>\n';
+        } else if (value instanceof Date) {
+          // Format date for Excel
+          const excelDate = convertToExcelDate(value);
+          html += `<td class="date" x:num="${excelDate}">${formatDate(value)}</td>\n`;
+        } else if (typeof value === 'number') {
+          if (isPercentValue(header, value)) {
+            html += `<td class="percent" x:num="${value}">${formatPercent(value)}</td>\n`;
+          } else {
+            html += `<td class="number" x:num="${value}">${formatNumber(value)}</td>\n`;
+          }
+        } else if (typeof value === 'string' && isDateString(value)) {
+          try {
+            const dateObj = new Date(value);
+            if (!isNaN(dateObj.getTime())) {
+              const excelDate = convertToExcelDate(dateObj);
+              html += `<td class="date" x:num="${excelDate}">${value}</td>\n`;
+            } else {
+              html += `<td>${escapeHTML(value)}</td>\n`;
+            }
+          } catch (e) {
+            html += `<td>${escapeHTML(value)}</td>\n`;
+          }
+        } else {
+          html += `<td>${escapeHTML(value)}</td>\n`;
+        }
+      });
+      
+      html += '</tr>\n';
+    });
+    
+    html += '</table>\n';
+    html += '</body>\n';
+    html += '</html>';
+    
+    return html;
+  }
+  
+  // Helper function to check if headers match data structure
+  function dataMatchesHeaders(data, headers) {
+    if (!data || !data.length || !headers || !headers.length) return false;
+    
+    // Check if at least some headers exist in the first data item
+    const firstItem = data[0];
+    let matchCount = 0;
+    
+    for (const header of headers) {
+      // Check direct property match or case-insensitive match
+      if (firstItem.hasOwnProperty(header) || findCaseInsensitiveKey(firstItem, header)) {
+        matchCount++;
+      }
+    }
+    
+    // Consider it a match if at least 50% of headers are found
+    return matchCount >= headers.length * 0.5;
+  }
+  
+  // Extract headers from data automatically
+  function extractHeadersFromData(data) {
+    if (!data || !data.length) return [];
+    
+    // Use the first object's keys as headers
+    return Object.keys(data[0]);
+  }
+  
+  // Find a property key in an object case-insensitively
+  function findCaseInsensitiveKey(obj, key) {
+    const keyLower = key.toLowerCase();
+    for (const k of Object.keys(obj)) {
+      if (k.toLowerCase() === keyLower) {
+        return k;
+      }
+    }
+    return null;
+  }
+  
+  // Check if value is likely a percentage based on header name or value range
+  function isPercentValue(header, value) {
+    const percentKeywords = ['percent', 'percentage', 'rate', 'ratio', 'performance'];
+    const headerLower = header.toLowerCase();
+    
+    // Check header name for percentage indicators
+    for (const keyword of percentKeywords) {
+      if (headerLower.includes(keyword)) {
+        return true;
+      }
+    }
+    
+    // Check if value is between 0 and 1 (exclusive), common for decimal percentages
+    return value > 0 && value < 1;
+  }
+  
+  // Format a number with 2 decimal places
+  function formatNumber(num) {
+    return Number(num).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+  
+  // Format a percentage with 2 decimal places
+  function formatPercent(num) {
+    return (num * 100).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) + '%';
+  }
+  
+  // Format a date as YYYY-MM-DD
+  function formatDate(date) {
+    return date.toISOString().slice(0, 10);
+  }
+  
+  // Convert a JS Date to Excel's numeric date format
+  function convertToExcelDate(date) {
+    // Excel's date system starts on 1/1/1900
+    // And Excel incorrectly thinks 1900 was a leap year
+    // So we need to add the number of days since 1/1/1900
+    // Plus the Excel epoch offset (25569 days)
+    return date.getTime() / 86400000 + 25569;
+  }
+  
+  // Escape HTML special characters
+  function escapeHTML(value) {
+    if (value === null || value === undefined) return '';
+    if (typeof value !== 'string') value = String(value);
+    
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  
+  // Check if a string is likely a date
+  function isDateString(str) {
+    // Common date formats: YYYY-MM-DD, MM/DD/YYYY, DD-MM-YYYY
+    const dateRegex = /^\d{4}-\d{1,2}-\d{1,2}$|^\d{1,2}\/\d{1,2}\/\d{4}$|^\d{1,2}-\d{1,2}-\d{4}$/;
+    return dateRegex.test(str);
+  }
+  
+  // Helper function to download the file
+  function downloadExcel(data, headers, filename = 'download.xls', options = {}) {
+    if (filename && !filename.endsWith('.xls')) {
+      filename += '.xls';
+    }
+    
+    const content = createXLSX(data, headers, { ...options, filename });
+    const blob = new Blob([content], { type: 'application/vnd.ms-excel' });
+    
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+      // For IE
+      window.navigator.msSaveOrOpenBlob(blob, filename);
+      return;
+    }
+    
+    // For other browsers
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    return { success: true, filename };
+  }
+  
+
   function handleExport(event) {
     event.preventDefault();
-    
     const fileName = document.getElementById('fileName').value;
+    const exportFormat = document.getElementById('exportFormat').value;
+    // Extract data from the table
+    const tableData = extractTableData();
     
-    const totalsData = Object.values(window.combinedData).map(item => item.totals);
-    const headers = ['Portfolio', 'Class_Code', 'Principal', 'loanProfit'];
+    // Define headers based on the table headers
+    const headers = getTableHeaders();
     
-    const csvContent = [
-        headers.join(','),
-        ...totalsData.map(row => 
-            headers.map(header => {
-                const value = row[header];
-                return typeof value === 'string' && value.includes(',') 
-                    ? `"${value}"` 
-                    : value;
-            }).join(',')
-        )
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    let blob, fileExtension;
+    
+    switch (exportFormat) {
+        case 'csv':
+            const csvContent = [
+                headers.join(','),
+                ...tableData.map(row => 
+                    headers.map(header => {
+                        const value = row[header];
+                        // Handle values with commas by adding quotes
+                        return typeof value === 'string' && value.includes(',')
+                            ? `"${value}"`
+                            : value;
+                    }).join(',')
+                )
+            ].join('\n');
+            
+            blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            fileExtension = '.csv';
+            break;
+        
+        case 'json':
+            const jsonContent = JSON.stringify(tableData, null, 2);
+            blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+            fileExtension = '.json';
+            break;
+        
+        case 'xlsx':
+            // Use the improved Excel export function
+            fileExtension = '.xls'; // Changed to .xls for better compatibility
+            downloadExcel(tableData, headers, `${fileName}${fileExtension}`, {
+                worksheetName: fileName || 'Export',
+                title: 'Table Export'
+            });
+            return; // Early return as downloadExcel handles the download
+        
+        default:
+            console.error('Unsupported format');
+            return;
+    }
+    
+    // Create and trigger download for non-Excel formats
     const link = document.createElement('a');
     link.setAttribute('href', URL.createObjectURL(blob));
-    link.setAttribute('download', `${fileName}.csv`);
+    link.setAttribute('download', `${fileName}${fileExtension}`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
+ * Extract headers from the table
+ */
+function getTableHeaders() {
+    const table = document.getElementById('mainTable');
+    if (!table) {
+        console.error('Table not found');
+        return [];
+    }
+    
+    const headerRow = table.querySelector('thead tr');
+    if (!headerRow) {
+        console.error('Header row not found');
+        return [];
+    }
+    
+    // Extract header texts, cleaning up button elements
+    return Array.from(headerRow.querySelectorAll('th')).map(th => {
+        // If header contains a button, use the button text
+        const button = th.querySelector('button');
+        if (button) {
+            return button.textContent.trim();
+        }
+        return th.textContent.trim();
+    });
+}
+
+/**
+ * Extract data from the table
+ * @param {boolean} includeGroupRows - Whether to include grouped/hidden rows
+ * @param {boolean} includeTotal - Whether to include the total row
+ */
+function extractTableData(includeGroupRows = false, includeTotal = true) {
+    const table = document.getElementById('mainTable');
+    if (!table) {
+        console.error('Table not found');
+        return [];
+    }
+    
+    const headers = getTableHeaders();
+    const rows = table.querySelectorAll('tbody tr');
+    const data = [];
+    
+    rows.forEach(row => {
+        // Skip group rows if not including them
+        if (!includeGroupRows && row.classList.contains('groupRow')) {
+            return;
+        }
+        
+        // Skip total row if not including it
+        const isLastRow = row === rows[rows.length - 1];
+        if (isLastRow && !includeTotal && row.cells[0].textContent.includes('Grand Totals')) {
+            return;
+        }
+        
+        const rowData = {};
+        
+        // Map headers to cell values
+        headers.forEach((header, index) => {
+            if (index < row.cells.length) {
+                let value = row.cells[index].textContent.trim();
+                
+                // Clean up formatted values
+                if (value.includes('$')) {
+                    // Remove dollar signs and commas for numeric processing
+                    value = value.replace(/\$/g, '').replace(/,/g, '');
+                }
+                
+                if (value.includes('%')) {
+                    // Convert percentage to decimal value
+                    value = parseFloat(value.replace(/%/g, '')) / 100;
+                }
+                
+                // Try to convert numeric strings to numbers
+                if (!isNaN(value) && value !== '') {
+                    value = parseFloat(value);
+                }
+                
+                rowData[header] = value;
+            }
+        });
+        
+        data.push(rowData);
+    });
+    
+    return data;
+}
+
+// Function to handle which rows to export
+function handleExportRows(event) {
+    event.preventDefault();
+    
+    const fileName = document.getElementById('fileName').value || 'export';
+    const exportFormat = document.getElementById('exportFormat').value;
+    const exportOption = document.querySelector('input[name="exportRows"]:checked')?.value || 'mainRows';
+    
+    let tableData;
+    
+    switch (exportOption) {
+        case 'allRows':
+            // Export all rows including group rows
+            tableData = extractTableData(true, true);
+            break;
+        case 'mainRows':
+            // Export only the main group header rows
+            tableData = extractTableData(false, true);
+            break;
+        case 'visibleRows':
+            // Export only currently visible rows
+            tableData = extractVisibleRows();
+            break;
+        default:
+            tableData = extractTableData(false, true);
+    }
+    
+    const headers = getTableHeaders();
+    
+    // Handle export based on format
+    if (exportFormat === 'xlsx' || exportFormat === 'xls') {
+        downloadExcel(tableData, headers, `${fileName}.xls`, {
+            worksheetName: fileName || 'Export',
+            title: 'Table Export'
+        });
+    } else {
+        handleCustomExport(tableData, headers, fileName, exportFormat);
+    }
+}
+
+// Extract only visible rows from the table
+function extractVisibleRows() {
+    const table = document.getElementById('mainTable');
+    if (!table) return [];
+    
+    const headers = getTableHeaders();
+    const rows = table.querySelectorAll('tbody tr');
+    const data = [];
+    
+    rows.forEach(row => {
+        // Skip hidden rows
+        if (row.style.display === 'none') {
+            return;
+        }
+        
+        const rowData = {};
+        
+        headers.forEach((header, index) => {
+            if (index < row.cells.length) {
+                let value = row.cells[index].textContent.trim();
+                
+                // Clean up formatted values
+                if (value.includes('$')) {
+                    value = value.replace(/\$/g, '').replace(/,/g, '');
+                }
+                
+                if (value.includes('%')) {
+                    value = parseFloat(value.replace(/%/g, '')) / 100;
+                }
+                
+                if (!isNaN(value) && value !== '') {
+                    value = parseFloat(value);
+                }
+                
+                rowData[header] = value;
+            }
+        });
+        
+        data.push(rowData);
+    });
+    
+    return data;
+}
+
+// Handle custom export formats (CSV, JSON)
+function handleCustomExport(data, headers, fileName, format) {
+    let blob, fileExtension;
+    
+    switch (format) {
+        case 'csv':
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => 
+                    headers.map(header => {
+                        const value = row[header];
+                        return typeof value === 'string' && value.includes(',')
+                            ? `"${value}"`
+                            : value;
+                    }).join(',')
+                )
+            ].join('\n');
+            
+            blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            fileExtension = '.csv';
+            break;
+        
+        case 'json':
+            const jsonContent = JSON.stringify(data, null, 2);
+            blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+            fileExtension = '.json';
+            break;
+        
+        default:
+            console.error('Unsupported format');
+            return;
+    }
+    
+    // Create and trigger download
+    const link = document.createElement('a');
+    link.setAttribute('href', URL.createObjectURL(blob));
+    link.setAttribute('download', `${fileName}${fileExtension}`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }
+
 })();
 
 // -------------------- IndexedDB Helper Functions --------------------
@@ -1762,11 +2296,10 @@ function replaceFirstColumnWithMapping(tableId, mapping, colIndex) {
   });
 }
 
-function renderFavicon() {
+function renderFavicon(base64Svg) {
   const link = document.createElement('link');
   link.rel = 'icon';
   link.type = 'image/svg+xml';
-  link.href =
-    'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iIzJFOEJDMCIgZD0iTTE2IDEyLjhMMzIgMEw0OCAxMi44TDQ4IDUxLjJMMzIgNjRMMTYgNTEuMloiLz48cGF0aCBmaWxsPSIjMEEyNTQwIiBkPSJNMCAwTDE2IDEyLjhMMzIgNjRMMTYgNTEuMloiLz48cGF0aCBmaWxsPSIjNThDNkIxIiBkPSJNNjQgMEw0OCAxMi44TDMyIDY0TDQ4IDUxLjJaIi8+PC9zdmc+';
+  link.href = base64Svg;
   document.head.appendChild(link);
 }
