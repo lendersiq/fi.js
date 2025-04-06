@@ -137,36 +137,6 @@
   logoImage.width = 70;
   logoImage.height = 70;
   modalHero.appendChild(logoImage);
-  
-  /*
-  modalHero.classList.add("logo");
-  modalHero.style = "--logo-size: 32px";
-
-  const leftText = document.createElement("span");
-  leftText.classList.add("logo-text");
-  leftText.innerHTML = "Tr"; 
-  modalHero.appendChild(leftText);
-
-  const logoShield = document.createElement("div");
-  logoShield.classList.add("logo-shield");
-  const shieldMiddle = document.createElement("div");
-  shieldMiddle.classList.add("middle");
-  const shieldLeft = document.createElement("div");
-  shieldLeft.classList.add("left");
-  const shieldRight = document.createElement("div");
-  shieldMiddle.classList.add("right");
-  [ 'middle', 'left', 'right' ].forEach(className => {
-    const div = document.createElement('div');
-    div.className = className;
-    logoShield.appendChild(div);
-  });
-  modalHero.appendChild(logoShield);
-  const rightText = document.createElement("span");
-  rightText.classList.add("logo-text");
-  rightText.innerHTML = "th"; 
-  modalHero.appendChild(rightText);
-  */
-
   modalContent.appendChild(modalHero);
   const instructions = document.createElement('p');
   instructions.textContent = 'Select data from the secure source.';
