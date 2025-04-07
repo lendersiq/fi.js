@@ -1843,7 +1843,6 @@ function extractTableData(includeGroupRows = false, includeTotal = true) {
         }
         
         const rowData = {};
-        
         // Map headers to cell values
         headers.forEach((header, index) => {
             if (index < row.cells.length) {
