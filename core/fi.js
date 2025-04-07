@@ -145,7 +145,7 @@
   // For each source, create a file input
   uniqueSources.forEach(sourceName => {
     const label = document.createElement("label");
-    label.textContent = `Choose ${sourceName} Source`;
+    label.textContent = `Choose ${sourceName} source`;
     label.classList.add("custom-file-upload");
 
     const fileInput = document.createElement("input");
@@ -310,7 +310,8 @@
   modal.appendChild(modalContent);
   modalBackdrop.appendChild(modal);
   document.body.appendChild(modalBackdrop);
-  // Example formatValue function for display
+
+  // formatValue functions for display
   const currencyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -736,7 +737,7 @@
 
     // For each unique entry in combinedData, apply these columns
     const allKeys = Object.keys(window.combinedData);
-    console.log('window.combinedData in applyFormulas', window.combinedData, allKeys)
+    //console.log('window.combinedData in applyFormulas', window.combinedData)
     allKeys.forEach(key => {
       const entry = window.combinedData[key];
       if (!entry) return;
@@ -895,11 +896,9 @@
     
     const paramNames = [];
     const paramDefaults = [];
-    
     params.forEach(param => {
         // Split on = to separate name and default value
         const [name, defaultValue] = param.split('=').map(p => p.trim());
-        
         paramNames.push(name);
         // If there's no default value, use empty string
         paramDefaults.push(defaultValue !== undefined ? defaultValue : '');
@@ -913,7 +912,7 @@
       c.column_type === "function" && c.source_name === sourceName
     );
     functionCols.forEach(col => {
-      const functionName = col.function || "";
+      const functionName = col.id || "";
       if (
         !window.financial.functions || 
         !window.financial.functions[functionName] || 
@@ -1065,7 +1064,7 @@
 
   // 11) Build the final table with aggregated totals + sub-rows
   function buildTable(tableContainerID) {
-    const tableContainer = document.createElement("div");  //@.@
+    const tableContainer = document.createElement("div");  
     const table = document.createElement("table");
     table.className = "table";
     table.id = "mainTable";
@@ -1306,7 +1305,7 @@
   }
 
   function buildStatsList(statsContainerID) {
-      const statsSection = document.getElementById('statistics-section');
+      const statsSection = document.getElementById(statsContainerID);
       if (!statsSection || !window.statistics) return;
       statsSection.innerHTML = '';
   
@@ -1558,7 +1557,14 @@
           if (isPercentValue(header, value)) {
             html += `<td class="percent" x:num="${value}">${formatPercent(value)}</td>\n`;
           } else {
-            html += `<td class="number" x:num="${value}">${formatNumber(value)}</td>\n`;
+            if (Number.isInteger(value)) {
+              // Format as an integer
+              // You could use your own integer-formatting function, or simply convert to string:
+              html += `<td class="integer" x:num="${value}">${value.toString()}</td>\n`;
+            } else {
+              // Format as a float
+              html += `<td class="number" x:num="${value}">${formatNumber(value)}</td>\n`;
+            }
           }
         } else if (typeof value === 'string' && isDateString(value)) {
           try {
@@ -1693,6 +1699,7 @@
   
   // Helper function to download the file
   function downloadExcel(data, headers, filename = 'download.xls', options = {}) {
+
     if (filename && !filename.endsWith('.xls')) {
       filename += '.xls';
     }
@@ -1720,7 +1727,6 @@
     return { success: true, filename };
   }
   
-
   function handleExport(event) {
     event.preventDefault();
     const fileName = document.getElementById('fileName').value;
@@ -1849,10 +1855,11 @@ function extractTableData(includeGroupRows = false, includeTotal = true) {
                     value = value.replace(/\$/g, '').replace(/,/g, '');
                 }
                 
+                /*  // convert % to float, if neccessary
                 if (value.includes('%')) {
                     // Convert percentage to decimal value
                     value = parseFloat(value.replace(/%/g, '')) / 100;
-                }
+                }*/
                 
                 // Try to convert numeric strings to numbers
                 if (!isNaN(value) && value !== '') {
@@ -1868,132 +1875,6 @@ function extractTableData(includeGroupRows = false, includeTotal = true) {
     
     return data;
 }
-
-// Function to handle which rows to export
-function handleExportRows(event) {
-    event.preventDefault();
-    
-    const fileName = document.getElementById('fileName').value || 'export';
-    const exportFormat = document.getElementById('exportFormat').value;
-    const exportOption = document.querySelector('input[name="exportRows"]:checked')?.value || 'mainRows';
-    
-    let tableData;
-    
-    switch (exportOption) {
-        case 'allRows':
-            // Export all rows including group rows
-            tableData = extractTableData(true, true);
-            break;
-        case 'mainRows':
-            // Export only the main group header rows
-            tableData = extractTableData(false, true);
-            break;
-        case 'visibleRows':
-            // Export only currently visible rows
-            tableData = extractVisibleRows();
-            break;
-        default:
-            tableData = extractTableData(false, true);
-    }
-    
-    const headers = getTableHeaders();
-    
-    // Handle export based on format
-    if (exportFormat === 'xlsx' || exportFormat === 'xls') {
-        downloadExcel(tableData, headers, `${fileName}.xls`, {
-            worksheetName: fileName || 'Export',
-            title: 'Table Export'
-        });
-    } else {
-        handleCustomExport(tableData, headers, fileName, exportFormat);
-    }
-}
-
-// Extract only visible rows from the table
-function extractVisibleRows() {
-    const table = document.getElementById('mainTable');
-    if (!table) return [];
-    
-    const headers = getTableHeaders();
-    const rows = table.querySelectorAll('tbody tr');
-    const data = [];
-    
-    rows.forEach(row => {
-        // Skip hidden rows
-        if (row.style.display === 'none') {
-            return;
-        }
-        
-        const rowData = {};
-        
-        headers.forEach((header, index) => {
-            if (index < row.cells.length) {
-                let value = row.cells[index].textContent.trim();
-                
-                // Clean up formatted values
-                if (value.includes('$')) {
-                    value = value.replace(/\$/g, '').replace(/,/g, '');
-                }
-                
-                if (value.includes('%')) {
-                    value = parseFloat(value.replace(/%/g, '')) / 100;
-                }
-                
-                if (!isNaN(value) && value !== '') {
-                    value = parseFloat(value);
-                }
-                
-                rowData[header] = value;
-            }
-        });
-        
-        data.push(rowData);
-    });
-    
-    return data;
-}
-
-// Handle custom export formats (CSV, JSON)
-function handleCustomExport(data, headers, fileName, format) {
-    let blob, fileExtension;
-    
-    switch (format) {
-        case 'csv':
-            const csvContent = [
-                headers.join(','),
-                ...data.map(row => 
-                    headers.map(header => {
-                        const value = row[header];
-                        return typeof value === 'string' && value.includes(',')
-                            ? `"${value}"`
-                            : value;
-                    }).join(',')
-                )
-            ].join('\n');
-            
-            blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            fileExtension = '.csv';
-            break;
-        
-        case 'json':
-            const jsonContent = JSON.stringify(data, null, 2);
-            blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
-            fileExtension = '.json';
-            break;
-        
-        default:
-            console.error('Unsupported format');
-            return;
-    }
-    
-    // Create and trigger download
-    const link = document.createElement('a');
-    link.setAttribute('href', URL.createObjectURL(blob));
-    link.setAttribute('download', `${fileName}${fileExtension}`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
 
 })();
 
