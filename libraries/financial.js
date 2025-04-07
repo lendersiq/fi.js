@@ -20,27 +20,27 @@ window.financial = {
         return principal * window.financial.api._cache.treasuryCurve.values[1];
       }
     },
-    averageBalance: {
+    averagePrincipal: {
       description: "Calculates the average balance of a loan over its term",
       implementation: function(principal, payment, rate, maturity, sourceIndex) {
-          //console.log('principal, payment, rate, maturity', principal, payment, rate, maturity)
-          // Determine months until maturity using either maturity date or term
-          const {monthsUntilMaturity, yearsUntilMaturity} = functions.untilMaturity.implementation(maturity);
-          const monthlyRate = rate < 1 ? parseFloat(rate) / 12 : parseFloat(rate / 100) / 12;
-          //console.log('payment, monthly rate, monthsUntilMaturity', payment, monthlyRate, monthsUntilMaturity)
-          // Calculate the total principal over the loan period
-          let cummulativePrincipal = 0;
-          let tempPrincipal = principal;
-          var month = 0;
-          while (month < monthsUntilMaturity && tempPrincipal > 0) {
-              cummulativePrincipal += tempPrincipal;
-              tempPrincipal -= payment - tempPrincipal * monthlyRate;
-              month++;
-          }
-          // Calculate average balance
-          const averageBalance = cummulativePrincipal / monthsUntilMaturity;
-          //console.log('principal, payment, rate, maturity, average', principal, payment, rate, maturity, averageBalance)
-          return averageBalance.toFixed(2);
+        if (principal <= 0) return 0;
+        // Determine months until maturity using either maturity date or term
+        const {monthsUntilMaturity, yearsUntilMaturity} = financial.functions.untilMaturity.implementation(maturity);
+        const monthlyRate = rate < 1 ? parseFloat(rate) / 12 : parseFloat(rate / 100) / 12;
+        //console.log('payment, monthly rate, monthsUntilMaturity', payment, monthlyRate, monthsUntilMaturity)
+        // Calculate the total principal over the loan period
+        let cummulativePrincipal = 0;
+        let tempPrincipal = principal;
+        var month = 0;
+        while (month < monthsUntilMaturity && tempPrincipal > 0) {
+            cummulativePrincipal += tempPrincipal;
+            tempPrincipal -= payment - tempPrincipal * monthlyRate;
+            month++;
+        }
+        // Calculate average balance
+        const averagePrincipal = cummulativePrincipal / monthsUntilMaturity;
+        //console.log('principal, payment, rate, maturity, average', principal, payment, rate, maturity, averagePrincipal)
+        return averagePrincipal.toFixed(2);
       }
     },
     untilMaturity: {
