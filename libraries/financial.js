@@ -161,76 +161,51 @@ window.financial = {
         return { termInMonths, termInYears };
       }
     },
-    risk: {
+    depositRisk: {
       description: "Scores the risk of a checking account",
-      implementation: function(balance, checks, deposits, nsf, source = null) {
-        if (balance === 0 || source === null) return 0
-        window.risk = window.risk || {};
-        window.risk.balanceObject = window.risk.balanceObject || {};
-        if (!window.risk.balanceObject[source]) {
-          window.risk.balanceObject[source] = window.statistics[source][
-            aiTranslator(Object.keys(window.statistics[source]), 'balance')
-          ];
-        }
+      implementation: function(balance, checks, deposits, nsf, sourceIndex) {
+        if (balance === 0 || sourceIndex === null) return 0
         
-        const balanceObject = window.risk.balanceObject[source];
-        console.log('balanceObject', balanceObject)
+        const balanceObject = getStatistic(sourceIndex, 'balance', 'threeStdDeviations');
         let balanceRisk = 1;
-        if (balance > balanceObject.threeStdDeviations[1]) {
+        if (balance > getStatistic(sourceIndex, 'balance', 'threeStdDeviations')[1]) {
             balanceRisk = 5;
-        } else if (balance > balanceObject.mean) {
+        } else if (balance > getStatistic(sourceIndex, 'balance', 'mean')) {
             balanceRisk = 3;
         }
 
+        
         // issuing checks for payroll, vendor payments, or refunds during specific times of the year may have a greater risk.
-        window.risk.checksObject = window.risk.checksObject || {};
-        if (!window.risk.checksObject[source]) {
-          window.risk.checksObject[source] = window.statistics[source][
-            aiTranslator(Object.keys(window.statistics[source]), 'checks')
-          ];
-        }
-        const checksObject = window.risk.checksObject[source];
         let checksRisk = 1;
-        if (checks > checksObject.threeStdDeviations[1]) {
+        if (checks > getStatistic(sourceIndex, 'checks', 'threeStdDeviations')[1]) {
             checksRisk = 5;
-        } else if (checks > checksObject.twoStdDeviations[1]) {
+        } else if (checks > getStatistic(sourceIndex, 'checks', 'twoStdDeviations')[1]) {
             checksRisk = 4;
-        } else if (checks > checksObject.mean) {
+        } else if (checks > getStatistic(sourceIndex, 'checks', 'mean')) {
             checksRisk = 2;
         }
 
         // Regular deposits (e.g., payroll or vendor payments) indicate frequency of activity--higher active accounts may indicate risk.
-        window.risk.depositsObject = window.risk.depositsObject || {};
-        if (!window.risk.depositsObject[source]) {
-          window.risk.depositsObject[source] = window.statistics[source][
-            aiTranslator(Object.keys(window.statistics[source]), 'deposits')
-          ];
-        }
-        const depositsObject = window.risk.depositsObject[source];
         let depositsRisk = 1;
-        if (deposits > depositsObject.threeStdDeviations[1]) {
+        if (deposits > getStatistic(sourceIndex, 'deposits', 'threeStdDeviations')[1]) {
             depositsRisk = 5;
-        } else if (deposits > depositsObject.twoStdDeviations[1]) {
+        } else if (deposits > getStatistic(sourceIndex, 'deposits', 'twoStdDeviations')[1]) {
             depositsRisk = 2;
         }
 
         // High overdraft activity could signal poor account management.
-        window.risk.NSFsObject = window.risk.NSFsObject || {};
-        if (!window.risk.NSFsObject[source]) {
-          window.risk.NSFsObject[source] = window.statistics[source][
-            aiTranslator(Object.keys(window.statistics[source]), 'nsf')
-          ];
-        }
-        const NSFsObject = window.risk.NSFsObject[source];
         let NSFsRisk = 1;
-        if (nsf > NSFsObject.threeStdDeviations[1]) {
+        if (nsf > getStatistic(sourceIndex, 'nsf', 'threeStdDeviations')[1]) {
             NSFsRisk = 5;
         }    
 
-        return balanceRisk * dictionaries.depositRiskWeights["balance"] +
-            checksRisk * dictionaries.depositRiskWeights["checks"] +
-            depositsRisk * dictionaries.depositRiskWeights["deposits"] +
-            NSFsRisk * dictionaries.depositRiskWeights["nsf"];
+        const risk =  balanceRisk * financial.dictionaries.depositRiskWeights["balance"] + 
+            checksRisk * financial.dictionaries.depositRiskWeights["checks"] +
+            depositsRisk * financial.dictionaries.depositRiskWeights["deposits"] +
+            NSFsRisk * financial.dictionaries.depositRiskWeights["nsf"];
+      
+        //console.log(`balance: ${balance}, checks: ${checks}, deposits: ${deposits}, nsf: ${nsf}, sourceIndex: ${sourceIndex}, risk: ${risk}`);
+        return risk;
       }
     },
 
