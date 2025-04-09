@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../../styles/base.css">
+  <title>Commercial Checking Risk</title>
+</head>
+<body>
+  <script>
+    // App configuration
+    window.appConfig = {
+      "description": "<p>This tutorial calculates and ranks the risk of each commercial checking account relationship based on several factors and their associated weights.</p>",
+      "table": [
+        { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
+        { "heading": "Checking Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "checking", "filter": "[4, 20]" },
+        { "heading": "Risk", "id": "depositRisk", "column_type": "function", "data_type": "integer", "source_name": "checking" },
+      ]
+    }
+  </script>
+  <script src="../../core/fi.js" defer></script>
+</body>
+</html>
