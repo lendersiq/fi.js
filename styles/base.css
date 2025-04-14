@@ -630,6 +630,9 @@ tr:last-child {
 }
 
 .stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin: 0;
     padding: 10px 15px;
     font-size: 18px;
@@ -646,6 +649,10 @@ tr:last-child {
     border-color: var(--fijs-gradient2);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 171, 75, 0.2); /* var(--fijs-gradient2) with opacity */
+}
+
+.stats-header span {
+    flex-grow: 1;
 }
 
 .stats-content {
