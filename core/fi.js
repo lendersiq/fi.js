@@ -820,18 +820,24 @@
 
   function buildParamValues(paramNames, row, sourceName) {
     // 1) Ensure we have a paramMap object for this source
+      // check whether we have cached paramMap for the source to save compute
     if (!window.paramMap[sourceName]) {
       window.paramMap[sourceName] = {};
-      console.log ('parameter names to match:', paramNames);
+      window.paramMap[sourceName] = findBestKeysMapping(paramNames, Object.keys(row)) || null;
+      console.log ('paramMap', window.paramMap[sourceName])
+      /*
+      legacy @.@
       // 2) to save compute we examine each paramName, see if we have a cached matched key
       //    If not, we call findBestKey once and store it.
       paramNames.forEach(paramName => {
         if (!window.paramMap[sourceName][paramName]) {
+
           const matchedKey = findBestKey(paramName, Object.keys(row));
           // Store the result (or null if none)
           window.paramMap[sourceName][paramName] = matchedKey || null;
         }
       });
+      */
     }
 
     // 3) Now build the return array by using the cached mapping
@@ -930,9 +936,9 @@
 
       window.rawData[sourceName].forEach((row, rowIndex) => {
         const paramValues = buildParamValues(paramNames, row, sourceName);
-        //console.log('paramValues', paramValues);
+        console.log('paramValues', paramValues);
         const updatedParamValues = paramValues.map((val, i) => {
-        // If the paramNames[i] is exactly "sourceIndex", use the string "sourcIndex" instead of the value
+        // If the paramNames[i] is exactly "sourceIndex", use the string "sourceIndex" instead of the value
           if (paramNames[i] === 'sourceIndex') {
             return sourceName;
           }
@@ -1305,67 +1311,94 @@
   }
 
   function buildStatsList(statsContainerID) {
-      const statsSection = document.getElementById(statsContainerID);
-      if (!statsSection || !window.statistics) return;
-      statsSection.innerHTML = '';
-  
-      const statsContainer = document.createElement('div');
-      statsContainer.className = 'stats-container';
-  
-      Object.entries(window.statistics).forEach(([category, data]) => {
-          const categoryDiv = document.createElement('div');
-          categoryDiv.className = 'stats-category';
-  
-          // Category Header
-          const header = document.createElement('h2');
-          header.className = 'stats-header';
-          header.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-          header.addEventListener('click', () => {
-              const content = categoryDiv.querySelector('.stats-content');
-              content.style.display = content.style.display === 'none' ? 'block' : 'none';
-          });
-  
-          // Category Content
-          const content = document.createElement('div');
-          content.className = 'stats-content';
-          content.style.display = 'none'; // Initially collapsed
-  
-          // Handle all data dynamically
-          if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
-              Object.entries(data).forEach(([key, value]) => {
-                  const card = document.createElement('div');
-                  card.className = 'stats-card';
-  
-                  // Card Header
-                  const cardHeader = document.createElement('h3');
-                  cardHeader.textContent = key.replace(/_/g, ' ');
-                  card.appendChild(cardHeader);
-  
-                  // Render nested object or simple values
-                  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                      Object.entries(value).forEach(([statKey, statValue]) => {
-                          if (statValue !== null && statValue !== undefined && statKey !== 'convexProbability') {
-                              const p = document.createElement('p');
-                              p.innerHTML = `<strong>${statKey.replace(/_/g, ' ')}:</strong> ${formatValue(statValue)}`;
-                              card.appendChild(p);
-                          }
-                      });
-                  } else {
-                      const p = document.createElement('p');
-                      p.innerHTML = `<strong>Value:</strong> ${formatValue(value)}`;
-                      card.appendChild(p);
-                  }
-  
-                  content.appendChild(card);
-              });
-          }
-  
-          categoryDiv.appendChild(header);
-          categoryDiv.appendChild(content);
-          statsContainer.appendChild(categoryDiv);
+    const statsSection = document.getElementById(statsContainerID);
+    if (!statsSection || !window.statistics) return;
+    statsSection.innerHTML = '';
+
+    Object.entries(window.statistics).forEach(([categoryName, statsData]) => {
+      const categoryDiv = document.createElement('div');
+      categoryDiv.className = 'stats-category';
+
+      const header = document.createElement('h2');
+      header.className = 'stats-header';
+
+      // Category label
+      const labelSpan = document.createElement('span');
+      labelSpan.textContent = categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
+
+      // Button to generate CSV
+      const csvBtn = document.createElement('button');
+      csvBtn.className = 'action-button';
+      csvBtn.textContent = 'Create synthetic data';
+      csvBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Don’t toggle the content section
+        const linesStr = prompt(`Number of lines to generate for "${categoryName}"?`, "10");
+        const lines = parseInt(linesStr, 10) || 10;
+
+        // Generate single-column CSV
+        const csv = generateSyntheticCSV(statsData, lines);
+        // Download
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${categoryName}_synthetic_data.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       });
-  
-      statsSection.appendChild(statsContainer);
+
+      // Put label and button side-by-side with flex
+      header.appendChild(labelSpan);
+      header.appendChild(csvBtn);
+
+      // Toggle content on header click
+      header.addEventListener('click', () => {
+        const content = categoryDiv.querySelector('.stats-content');
+        content.style.display = (content.style.display === 'none') ? 'flex' : 'none';
+      });
+
+      // Stats content
+      const content = document.createElement('div');
+      content.className = 'stats-content';
+      content.style.display = 'none'; // collapsed by default
+
+      // Now fill in the stats cards, the same logic you had:
+      if (typeof statsData === 'object' && statsData !== null && !Array.isArray(statsData)) {
+        Object.entries(statsData).forEach(([key, value]) => {
+          const card = document.createElement('div');
+          card.className = 'stats-card';
+
+          // Card Header
+          const cardHeader = document.createElement('h3');
+          cardHeader.textContent = key.replace(/_/g, ' ');
+          card.appendChild(cardHeader);
+
+          // If nested object
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            Object.entries(value).forEach(([statKey, statValue]) => {
+              if (statValue !== null && statValue !== undefined && statKey !== 'convexProbability') {
+                const p = document.createElement('p');
+                p.innerHTML = `<strong>${statKey.replace(/_/g, ' ')}:</strong> ${formatValue(statValue)}`;
+                card.appendChild(p);
+              }
+            });
+          } else {
+            const p = document.createElement('p');
+            p.innerHTML = `<strong>Value:</strong> ${formatValue(value)}`;
+            card.appendChild(p);
+          }
+
+          content.appendChild(card);
+        });
+      }
+
+      categoryDiv.appendChild(header);
+      categoryDiv.appendChild(content);
+      statsSection.appendChild(categoryDiv);
+    });
   }
 
   function buildExportForm(exportContainerID) {
@@ -1992,76 +2025,237 @@ function createProbabilityArray(mode, unique, uniqueArray) {
   return probabilityArray;
 }
 
-function computeStatistics(data) { 
+/**
+ * Returns true if a string is purely numeric
+ * (e.g. "123", "123.45", "-0.5", ".5", but not "54-01")
+ */
+function isPurelyNumeric(str) {
+  // optional sign (+/-), digits, optional decimal, digits
+  // examples of valid: 54, 54.2, +54.2, -54.2, .5
+  // examples of invalid: 54-01, "", "abc", "  "
+  return /^[+\-]?(\d+(\.\d+)?|\.\d+)$/.test(str);
+}
+
+/**
+ * Returns true if `value` is a valid date string
+ * but not purely numeric
+ */
+function isValidDateString(value) {
+  // If it's purely numeric, we do NOT treat it as a date
+  if (isPurelyNumeric(value)) return false;
+
+  const date = new Date(value);
+  return !isNaN(date.getTime());
+}
+
+/**
+ * Main computeStatistics function
+ */
+function computeStatistics(data) {
   const numericColumns = {};
+  const dateColumns = {};
+
   data.forEach(item => {
     Object.keys(item).forEach(key => {
-      const v = parseFloat(item[key]);
-      if (!isNaN(v)) {
+      const strValue = item[key];
+
+      // 1) If it is purely numeric, treat it as numeric
+      if (isPurelyNumeric(strValue)) {
+        const numValue = parseFloat(strValue);
         if (!numericColumns[key]) numericColumns[key] = [];
-        numericColumns[key].push(v);
+        numericColumns[key].push(numValue);
       }
+      // 2) Otherwise, if it’s a valid date string, treat as date
+      else if (isValidDateString(strValue)) {
+        if (!dateColumns[key]) dateColumns[key] = [];
+        dateColumns[key].push(new Date(strValue));
+      }
+      // 3) Otherwise, ignore or treat as text...
     });
   });
-  
+
   const results = {};
-  Object.keys(numericColumns).forEach(col => {
+
+  // Compute numeric stats
+  for (const col of Object.keys(numericColumns)) {
     const vals = numericColumns[col];
     const count = vals.length;
     const mean = vals.reduce((a, b) => a + b, 0) / count;
-    // Population variance: average of squared differences from the mean.
-    const variance = vals.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / count;
+
+    // population variance
+    const variance = vals.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / count;
     const stdDeviation = Math.sqrt(variance);
 
-    // Sort to compute median
+    // median
     vals.sort((a, b) => a - b);
-    let median;
     const mid = Math.floor(count / 2);
-    if (count % 2 !== 0) {
-      // Odd length: middle element is the median
-      median = vals[mid];
-    } else {
-      // Even length: average of the two middle elements
-      median = (vals[mid - 1] + vals[mid]) / 2;
+    const median = (count % 2 !== 0)
+      ? vals[mid]
+      : (vals[mid - 1] + vals[mid]) / 2;
+
+    // mode
+    const frequency = {};
+    vals.forEach(v => { frequency[v] = (frequency[v] || 0) + 1; });
+    let mode = null;
+    let maxFreq = 0;
+    for (const [val, freq] of Object.entries(frequency)) {
+      if (freq > maxFreq) {
+        mode = parseFloat(val);
+        maxFreq = freq;
+      }
     }
 
-    // Calculate mode
-    const frequencyMap = {};
-    vals.forEach(val => {
-      frequencyMap[val] = (frequencyMap[val] || 0) + 1;
-    });
-    let mode = null;
-    let maxFrequency = 0;
-    Object.entries(frequencyMap).forEach(([val, freq]) => {
-      if (freq > maxFrequency) {
-        mode = parseFloat(val); // Convert back to number
-        maxFrequency = freq;
-      }
-    });
-    
+    const uniqueCount = new Set(vals).size;
+
+    // placeholders for your logic
+    function yearToDateFactor() { return 1; }
+    function createProbabilityArray() { return []; }
+
     results[col] = {
       min: Math.min(...vals),
       max: Math.max(...vals),
-      mean: mean,
-      median: median,
-      mode: mode,
-      count: count,
-      variance: variance,
-      stdDeviation: stdDeviation,
+      mean,
+      median,
+      mode,
+      count,
+      variance,
+      stdDeviation,
       twoStdDeviations: [mean - 2 * stdDeviation, mean + 2 * stdDeviation],
       threeStdDeviations: [mean - 3 * stdDeviation, mean + 3 * stdDeviation],
-      uniqueCount: uniqueValues(vals) 
+      uniqueCount,
+      YTDfactor: yearToDateFactor(col)
     };
-    results[col].YTDfactor = yearToDateFactor(col);
-    
-    // constrain risk scores to a reasonable set
-    if (results[col].uniqueCount > 2 && results[col].uniqueCount <= 100 && parseInt(results[col].mode) < results[col].uniqueCount-1 ) {
+
+    // Probability array logic
+    if (
+      uniqueCount > 2 &&
+      uniqueCount <= 100 &&
+      parseInt(mode) < uniqueCount - 1
+    ) {
       results[col].uniqueArray = [...new Set(vals)];
-      results[col].convexProbability = createProbabilityArray(results[col].mode, results[col].uniqueCount, results[col].uniqueArray);
+      results[col].convexProbability = createProbabilityArray(
+        mode,
+        uniqueCount,
+        results[col].uniqueArray
+      );
     }
-  });
+  }
+
+  // Compute date stats
+  for (const col of Object.keys(dateColumns)) {
+    const dates = dateColumns[col].sort((a, b) => a - b);
+    const count = dates.length;
+    const minDate = dates[0];
+    const maxDate = dates[count - 1];
+
+    // mean (avg) date
+    const totalTime = dates.reduce((acc, d) => acc + d.getTime(), 0);
+    const meanDate = new Date(totalTime / count);
+
+    // median date
+    const mid = Math.floor(count / 2);
+    let medianDate;
+    if (count % 2 !== 0) {
+      medianDate = dates[mid];
+    } else {
+      const avgTime = (dates[mid - 1].getTime() + dates[mid].getTime()) / 2;
+      medianDate = new Date(avgTime);
+    }
+
+    const uniqueCount = new Set(dates.map(d => d.getTime())).size;
+
+    results[col] = {
+      min: minDate,
+      max: maxDate,
+      mean: meanDate,
+      median: medianDate,
+      count,
+      uniqueCount
+    };
+  }
+
   return results;
 }
+
+
+// Statistics Test: Test with your array of objects
+const data = [
+  {
+    "Portfolio": "2071880",
+    "Open_Date": "2025-03-17",
+    "Branch_Number": "19",
+    "Class_Code": "4",
+    "Owner_Code": "99",
+    "Statement_Rate": "0.000125",
+    "Average_Balance": "261615.14",
+    "PMTD_Interest_Earned": "11.44",
+    "PMTD_Checks": "71",
+    "PMTD_Service_Charge": "10",
+    "PMTD_Service_Charge_Waived": "6",
+    "PMTD_Other_Charges": "2",
+    "PMTD_Other_Charges_Waived": "0",
+    "PMTD_Number_of_Deposits": "5",
+    "PMTD_Number_of_Items_NSF": "2",
+    "checkingProfit": 3832.9013693446
+  },
+  {
+    "Portfolio": "2071880",
+    "Open_Date": "1996-12-01",
+    "Branch_Number": "6",
+    "Class_Code": "4",
+    "Owner_Code": "54",
+    "Statement_Rate": "0.00025",
+    "Average_Balance": "262209.66",
+    "PMTD_Interest_Earned": "3.8",
+    "PMTD_Checks": "83",
+    "PMTD_Service_Charge": "11",
+    "PMTD_Service_Charge_Waived": "9",
+    "PMTD_Other_Charges": "15",
+    "PMTD_Other_Charges_Waived": "0",
+    "PMTD_Number_of_Deposits": "2",
+    "PMTD_Number_of_Items_NSF": "2",
+    "checkingProfit": 3819.8467916524
+  },
+  {
+    "Portfolio": "2056874",
+    "Open_Date": "2004-10-10",
+    "Branch_Number": "17",
+    "Class_Code": "8",
+    "Owner_Code": "168",
+    "Statement_Rate": "0.0005",
+    "Average_Balance": "233847.58",
+    "PMTD_Interest_Earned": "2.29",
+    "PMTD_Checks": "60",
+    "PMTD_Service_Charge": "13",
+    "PMTD_Service_Charge_Waived": "6",
+    "PMTD_Other_Charges": "39",
+    "PMTD_Other_Charges_Waived": "0",
+    "PMTD_Number_of_Deposits": "9",
+    "PMTD_Number_of_Items_NSF": "0"
+  },
+  // ... more rows omitted for brevity ...
+  {
+    "Portfolio": "2097326",
+    "Open_Date": "1982-07-21",
+    "Branch_Number": "4",
+    "Class_Code": "2",
+    "Owner_Code": "51",
+    "Statement_Rate": "0",
+    "Average_Balance": "2690.86",
+    "PMTD_Interest_Earned": "7.58",
+    "PMTD_Checks": "48",
+    "PMTD_Service_Charge": "16",
+    "PMTD_Service_Charge_Waived": "16",
+    "PMTD_Other_Charges": "52",
+    "PMTD_Other_Charges_Waived": "0",
+    "PMTD_Number_of_Deposits": "10",
+    "PMTD_Number_of_Items_NSF": "3"
+  }
+];
+
+// Run it and print
+console.log("Computed statistics on test data:");
+console.log(JSON.stringify(computeStatistics(data), null, 2));
 
 // --- CSV parser ---
 function parseCSV(csvString) {
