@@ -1987,14 +1987,15 @@ function uniqueValues(values) {
   return uniqueSet.size;
 }
 
-function createProbabilityArray(mode, unique, uniqueArray) {
-  //unique is quantity of unique values in a column, and uniqueArray contains all unique values
+function createProbabilityArray(mode, uniqueCount, uniqueArray) {
+  //uniqueCount is quantity of unique values in a column, and uniqueArray contains all unique values
   /* Convexity in Risk Model applied here refers to the situation where the rate of probability becomes steeper as the value increases. 
   In other words, the relationship between value and probability is convex, 
   meaning that beyond the mode (value that appears most frequently in a data set which is the tipping point) small increases in value can lead to disproportionately large increases in the likelihood of an event (i.e., a loss).
   */
+ 
   mode = parseInt(mode);
-  if (!Number.isInteger(mode) || mode < 0 || mode >= unique || uniqueArray.length !== unique) {
+  if (!Number.isInteger(mode) || mode < 0 || mode >= uniqueCount || uniqueArray.length !== unique) {
     throw new Error("Invalid input: mode must be within bounds and uniqueArray must match unique count");
   }
 
@@ -2011,9 +2012,9 @@ function createProbabilityArray(mode, unique, uniqueArray) {
   let probabilityArray = [];
   // Interpolate between probabilityArray[0] and probabilityArray[median-1]
   const firstSegment = interpolate(0, 1, mode);
-  // Interpolate between probabilityArray[median] and probabilityArray[unique-1]
-  const secondSegment = interpolate(5, 100, unique - mode);
-  //console.log(`mode: ${mode}, unique: ${unique}, firstSegment: ${firstSegment}, secondSegment : ${secondSegment}`)
+  // Interpolate between probabilityArray[median] and probabilityArray[uniqueCount-1]
+  const secondSegment = interpolate(5, 100, uniqueCount - mode);
+  //console.log(`mode: ${mode}, unique: ${uniqueCount}, firstSegment: ${firstSegment}, secondSegment : ${secondSegment}`)
 
   // Assign values to the first probability array
   for (let i = 0; i < firstSegment.length; i++) {
@@ -2129,15 +2130,11 @@ function computeStatistics(data) {
     // Probability array logic
     if (
       uniqueCount > 2 &&
-      uniqueCount <= 100 &&
-      parseInt(mode) < uniqueCount - 1
+      uniqueCount <= 100  /* &&
+      parseInt(mode) < uniqueCount - 1 @.@ */
     ) {
       results[col].uniqueArray = [...new Set(vals)];
-      results[col].convexProbability = createProbabilityArray(
-        mode,
-        uniqueCount,
-        results[col].uniqueArray
-      );
+      results[col].convexProbability = createProbabilityArray(mode, uniqueCount, results[col].uniqueArray);
     }
   }
 

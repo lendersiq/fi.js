@@ -153,39 +153,40 @@ function isAtWordBoundary(term, str) {
 }
 
 /**
- * Calculate a match score between a parameter name and a key
- * Higher score means better match
+ * Calculate a match score between a parameter name and a key.
+ * Higher score means better match.
  */
 function calculateMatchScore(paramName, key, allSynonyms) {
   const originalParamName = paramName;
   paramName = paramName.toLowerCase();
   key = key.toLowerCase();
-  
+
   // Direct match gets highest score
   if (key === paramName) return 100;
-  
+
   // Calculate base score for substring matches
   let score = 0;
-  
+
   // Normalize for comparison
   const normalizedParam = naiveStem(paramName);
-  
+
   // Split the key by all common connectors
   const keyParts = splitByConnectors(key);
   const normalizedKeyParts = keyParts.map(part => naiveStem(part));
-  
+
   // Also split the param by connectors
   const paramParts = splitByConnectors(paramName);
   const normalizedParamParts = paramParts.map(part => naiveStem(part));
-  
+
   // Check for exact matches with normalized parts
-  const exactPartMatches = normalizedKeyParts.filter(part => 
-    normalizedParamParts.includes(part)).length;
-  
+  const exactPartMatches = normalizedKeyParts.filter(part =>
+    normalizedParamParts.includes(part)
+  ).length;
+
   if (exactPartMatches > 0) {
     score += 60 + (5 * exactPartMatches);
   }
-  
+
   // Check if key contains param or vice versa
   if (key.includes(paramName)) {
     score += 70;
@@ -199,73 +200,132 @@ function calculateMatchScore(paramName, key, allSynonyms) {
   } else if (paramName.includes(key)) {
     score += 60;
   }
-  
+
   // Find which synonym group the parameter belongs to, if any
   let paramSynonymGroup = null;
   for (const group of allSynonyms) {
-    if (group.some(syn => naiveStem(syn.toLowerCase()) === normalizedParam ||
-      normalizedParamParts.some(part => naiveStem(part) === naiveStem(syn)))) {
-        paramSynonymGroup = group;
-        break;
-      }
+    if (
+      group.some(syn => {
+        const normSyn = naiveStem(syn.toLowerCase());
+        return (
+          normSyn === normalizedParam ||
+          normalizedParamParts.some(part => naiveStem(part) === normSyn)
+        );
+      })
+    ) {
+      paramSynonymGroup = group;
+      break;
+    }
   }
-  
+
+  // Keep track of which key parts we've matched, so we can penalize leftover unmatched ones
+  const matchedKeyParts = new Set();
+
   // If param belongs to a synonym group, check for semantic relationships
   if (paramSynonymGroup) {
     let synonymsFoundInKey = new Set();
     let synonymRelationshipScore = 0;
-    
+
     // Check how many different synonyms from this group appear in the key
     for (const synonym of paramSynonymGroup) {
       const normalizedSynonym = naiveStem(synonym.toLowerCase());
-      const synonymParts = splitByConnectors(synonym).map(part => naiveStem(part));
-      
+      const synonymParts = splitByConnectors(synonym).map(part =>
+        naiveStem(part)
+      );
+
       // Check each key part for synonym matches
-      for (const keyPart of keyParts) {
-        const normalizedKeyPart = naiveStem(keyPart);
-        
+      for (let i = 0; i < keyParts.length; i++) {
+        const normKeyPart = normalizedKeyParts[i];
+
         // Direct synonym match
-        if (normalizedKeyPart === normalizedSynonym) {
+        if (normKeyPart === normalizedSynonym) {
           synonymsFoundInKey.add(synonym);
+          matchedKeyParts.add(normKeyPart);
           // Give extra points if this isn't the original param
-          synonymRelationshipScore += (normalizedSynonym !== normalizedParam) ? 35 : 25;
+          synonymRelationshipScore +=
+            normalizedSynonym !== normalizedParam ? 35 : 25;
         }
         // Check if any synonym part matches this key part
-        else if (synonymParts.includes(normalizedKeyPart)) {
+        else if (synonymParts.includes(normKeyPart)) {
           synonymsFoundInKey.add(synonym);
-          synonymRelationshipScore += (normalizedSynonym !== normalizedParam) ? 30 : 20;
+          matchedKeyParts.add(normKeyPart);
+          synonymRelationshipScore +=
+            normalizedSynonym !== normalizedParam ? 30 : 20;
         }
         // Partial synonym match
-        else if (normalizedKeyPart.includes(normalizedSynonym) || 
-                 normalizedSynonym.includes(normalizedKeyPart)) {
-          synonymsFoundInKey.add(synonym);  
-          synonymRelationshipScore += (normalizedSynonym !== normalizedParam) ? 25 : 15;
+        else if (
+          normKeyPart.includes(normalizedSynonym) ||
+          normalizedSynonym.includes(normKeyPart)
+        ) {
+          synonymsFoundInKey.add(synonym);
+          matchedKeyParts.add(normKeyPart);
+          synonymRelationshipScore +=
+            normalizedSynonym !== normalizedParam ? 25 : 15;
         }
       }
     }
-    
-    // Critical advancement: When multiple synonyms from same group appear in the key
-    // this is a strong semantic match - add a substantial bonus based on how many were found
+
+    // When multiple synonyms from same group appear in the key, strong semantic match
     if (synonymsFoundInKey.size > 1) {
-      // The more synonyms found, the higher the bonus
       synonymRelationshipScore += 30 * (synonymsFoundInKey.size - 1);
     }
-    
+
     score += synonymRelationshipScore;
   }
-  
+
   // Check for partial word matches
   let matchingParts = 0;
-  for (const paramPart of paramParts) {
+  for (let i = 0; i < paramParts.length; i++) {
+    const paramPart = paramParts[i];
     if (paramPart.length < 3) continue; // Skip very short parts
-    if (keyParts.some(keyPart => keyPart.includes(paramPart) || paramPart.includes(keyPart))) {
-      matchingParts++;
+
+    for (let j = 0; j < keyParts.length; j++) {
+      const keyPart = keyParts[j];
+      if (keyPart.includes(paramPart) || paramPart.includes(keyPart)) {
+        matchingParts++;
+        matchedKeyParts.add(normalizedKeyParts[j]);
+      }
     }
   }
-  
+
   if (matchingParts > 0) {
     score += 10 * matchingParts;
   }
+
+  // ----------------------------------------------------
+  // PENALTY FOR EXTRA UNMATCHED KEY PARTS
+  // ----------------------------------------------------
+  // If the key contains parts that don't match the param or any synonyms,
+  // deduct some points for them, so we don't tie with simpler matches.
+  const unmatchedKeyParts = normalizedKeyParts.filter(
+    kp => !matchedKeyParts.has(kp)
+  );
+
+  // For each unmatched part, apply a deduction
+  const penaltyPerUnmatched = 10;
+  score -= penaltyPerUnmatched * unmatchedKeyParts.length;
+
+  // ----------------------------------------------------
+  // Tie-breaker bonus pass to address any close calls
+  // ----------------------------------------------------
+  // Flatten all synonyms into a set of naive-stemmed terms
+  const allSynonymsSet = new Set();
+  for (const group of allSynonyms) {
+    for (const syn of group) {
+      allSynonymsSet.add(naiveStem(syn.toLowerCase()));
+    }
+  }
+  
+  // Count how many recognized synonyms appear in this key
+  let recognizedSynCount = 0;
+  for (const kp of normalizedKeyParts) {
+    if (allSynonymsSet.has(kp)) {
+      recognizedSynCount++;
+    }
+  }
+  
+  // Add +5 for each recognized industry synonym in the key
+  score += recognizedSynCount * 5;
   
   return score;
 }
@@ -353,6 +413,7 @@ function getStatistic(sourceIndex, paramName, statistic) {
 
 /********************************************************
  * Helper: Normal distribution for numeric columns
+ * Box-Muller formula: z = sqrt(-2 * ln(u)) * cos(2πv)
  ********************************************************/
 function randomNormal(mean, stdDev) {
   if (!stdDev) return mean;
@@ -458,7 +519,7 @@ function generateNumeric(colStats) {
   if (domain === 'integer') {
     return Math.round(val);
   } else {
-    const prec = detectDecimalPrecision(min, max, mean, median, mode);
+    const prec = detectDecimalPrecision(min, max, mode);
     if (typeof val !== 'number' || isNaN(val)) val = 0;
     return parseFloat(val.toFixed(prec));
   }
