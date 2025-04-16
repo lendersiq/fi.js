@@ -347,7 +347,14 @@ function findBestKeysMapping(paramNames, keys) {
   for (const paramName of paramNames) {
     // Direct and synonym matches with comprehensive scoring
     for (const key of availableKeys) {
-      const score = calculateMatchScore(paramName, key, window.synonyms);
+      let score = calculateMatchScore(paramName, key, window.synonyms);
+      // appConfig match bonus - when key explicitly matches Appconfig.table.id
+		  const table = window.appConfig.table;
+		  const isKeyInAppconfig = table.some(column => column.column_type  === "data" && column.id.includes(key));
+		  if (isKeyInAppconfig) {
+			  score += 25;
+		  }
+
       if (score > 0) {
         allMatches.push({
           paramName,
