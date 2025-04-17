@@ -5,7 +5,8 @@ window.synonyms = [
   ["withdrawal", "check", "debit"],
   ["deposit", "credit"],
   ["id", "code", "identifier"],
-  ["service", "charge", "fee"]
+  ["service", "charge", "fee"],
+  ["type", "class", "classification"]
 ];
 
 function aiIsBusiness(...args) {  
@@ -162,7 +163,7 @@ function calculateMatchScore(paramName, key, allSynonyms) {
   key = key.toLowerCase();
 
   // Direct match gets highest score
-  if (key === paramName) return 100;
+  if (key === paramName) return 500;
 
   // Calculate base score for substring matches
   let score = 0;
@@ -348,14 +349,14 @@ function findBestKeysMapping(paramNames, keys) {
     // Direct and synonym matches with comprehensive scoring
     for (const key of availableKeys) {
       let score = calculateMatchScore(paramName, key, window.synonyms);
-      // appConfig match bonus - when key explicitly matches Appconfig.table.id
-		  const table = window.appConfig.table;
-		  const isKeyInAppconfig = table.some(column => column.column_type  === "data" && column.id.includes(key));
-		  if (isKeyInAppconfig) {
-			  score += 25;
-		  }
-
       if (score > 0) {
+
+        // appConfig match bonus - when key explicitly matches Appconfig.table.id
+        const isKeyInAppconfig = window.appConfig.table.some(column => column.column_type  === "data" && column.id.includes(key));
+        if (isKeyInAppconfig) {
+          score += 25;
+        }
+
         allMatches.push({
           paramName,
           key,
