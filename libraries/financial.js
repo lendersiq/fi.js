@@ -282,7 +282,7 @@ window.financial = {
 
     checkingProfit: {
       description: "Calculates the profit of checking accounts",
-      implementation: function (portfolio, balance, interest = null, rate = null, charges = null, waived = null, deposits = null, withdrawals = null, nsf = null, sourceIndex) {
+      implementation: function (portfolio, balance, type, interest = null, rate = null, charges = null, waived = null, deposits = null, withdrawals = null, nsf = null, sourceIndex) {
         if (!balance || balance === 0) return 0;
         //const sourceIndex = 'checking';
         const creditRate = financial.functions.calculateFtpRate.implementation(12, sourceIndex);
@@ -335,7 +335,7 @@ window.financial = {
 
     savingsProfit: {
       description: "Calculates the profit of savings accounts",
-      implementation: function (portfolio, balance, interest = null, rate = null, term = null, term_code = null, charges = null, waived = null, deposits = null, withdrawals = null, sourceIndex) {
+      implementation: function (portfolio, balance, type, interest = null, rate = null, term = null, term_code = null, charges = null, waived = null, deposits = null, withdrawals = null, sourceIndex) {
         if (!balance || balance === 0) return 0;
         const months = term ? term * (term_code ? (term_code.toLowerCase() !== 'm' ? term / 12 : 1) : 1) : 12;  //default term to 12
         const creditRate = financial.functions.calculateFtpRate.implementation(months, sourceIndex);
@@ -384,7 +384,7 @@ window.financial = {
 
     CDProfit: {
       description: "Calculates the profit of certificate of deposits",
-      implementation: function (portfolio, balance, interest = null, rate = null, term = null, term_id = null, deposits = null, sourceIndex) {
+      implementation: function (portfolio, balance, type, interest = null, rate = null, term = null, term_id = null, deposits = null, sourceIndex) {
         if (!balance || balance === 0) return 0;
         console.log('term_id', term_id)
         const months = term ? term * (term_id ? (term_id.toLowerCase() !== 'm' ? term / 12 : 1) : 1) : 12;  //default term to 12
