@@ -322,7 +322,7 @@ window.financial = {
         const pretaxIncome = creditForFunding + feeIncome + nsfIncome;
         const pretaxExpense = interestExpense + depositsExpense + withdrawalsExpense + operatingExpense + fraudLoss; 
         const pretaxProfit = pretaxIncome - pretaxExpense;
-        const profit = pretaxProfit * (1 - financial.attributes.taxRate.value);
+        const profit = pretaxProfit * (1 - organization.attributes.taxRate.value);
         if (window.logger) console.log(`portfolio: ${portfolio}, balance: ${balance}, interest: ${interestExpense}, rate: ${rate}, credit rate: ${creditRate}, credit for funding: ${creditForFunding}, charges: ${charges}, waived: ${waived}, deposits: ${deposits}, withdrawals: ${withdrawals}, nsf: ${nsf}, operating expense: ${operatingExpense}, fraud loss: ${fraudLoss}, pretax income: ${pretaxIncome}, pretax expense: ${pretaxExpense}, profit: ${profit.toFixed(2)}`);
         return profit;
       }
@@ -367,7 +367,7 @@ window.financial = {
         const pretaxIncome = creditForFunding + feeIncome;
         const pretaxExpense = interestExpense + depositsExpense + withdrawalsExpense + operatingExpense + fraudLoss; 
         const pretaxProfit = pretaxIncome - pretaxExpense;
-        const profit = pretaxProfit * (1 - financial.attributes.taxRate.value);
+        const profit = pretaxProfit * (1 - organization.attributes.taxRate.value);
         if (window.logger) console.log(`portfolio: ${portfolio}, balance: ${balance}, interest: ${interestExpense}, rate: ${rate}, credit rate: ${creditRate}, credit for funding: ${creditForFunding}, charges: ${charges}, waived: ${waived}, deposits: ${deposits}, withdrawals: ${withdrawals}, operating expense: ${operatingExpense}, fraud loss: ${fraudLoss}, pretax income: ${pretaxIncome}, pretax expense: ${pretaxExpense}, profit: ${profit.toFixed(2)}`);
         return profit;
       }
@@ -405,7 +405,7 @@ window.financial = {
 
     loanProfit: {
       description: "Calculates the profit of a variety of loans",
-      implementation: function(portfolio, principal, rate, risk, open, payment = null, fees = null, maturity = null, term = null, sourceIndex) {
+      implementation: function(portfolio, principal, rate, risk, open, type, payment = null, fees = null, maturity = null, term = null, sourceIndex) {
         if (!principal || principal === 0) return 0; // zero principal implies closed loan, so return 0 profit
         const {monthsUntilMaturity, yearsUntilMaturity} = financial.functions.untilMaturity.implementation(maturity);
         const monthlyRate = rate < 1 ? parseFloat(rate) / 12 : parseFloat(rate / 100) / 12;
@@ -457,8 +457,13 @@ window.financial = {
         const lossProvision =  AveragePrincipal / financial.attributes.minimumLoanToValue.value * (1 - financial.attributes.expectedRecoveryRate.value) * probabilityOfDefault;                
         const expectedLossProvision = lossProvision / yearsUntilMaturity;  // spread lossProvision cost over yearsUntilMaturity
         const nonInterestIncome = fees !== null ? fees / termInYears : 0;
-        const pretax = (interestIncome - fundingExpense - originationExpense - servicingExpense + nonInterestIncome) * (1 - financial.attributes.taxRate.value); 
-        const profit = pretax - expectedLossProvision;
+        const pretax = (interestIncome - fundingExpense - originationExpense - servicingExpense + nonInterestIncome);
+        const taxFactor = 1 - organization.attributes.taxRate.value;
+        let taxAdjusted = pretax;
+        if (!organization.attributes.taxExemptLoan.values.includes(type)) {
+          taxAdjusted = pretax * taxFactor;
+        }  
+        const profit = taxAdjusted - expectedLossProvision;
         if (window.logger) console.log(`portfolio: ${portfolio}, principal: ${principal}, payment: ${payment}, average: ${AveragePrincipal}, risk: ${risk}, fees: ${fees}, years until maturity: ${yearsUntilMaturity}, term in years: ${termInYears}, rate: ${rate}, interest: ${interestIncome}, funding rate: ${fundingRate}, funding expense: ${fundingExpense}, origination expense: ${originationExpense}, servicing expense: ${servicingExpense}, non interest income: ${nonInterestIncome}, probability of default: ${probabilityOfDefault}, pretax: ${pretax}, expected loss: ${expectedLossProvision}, profit: ${profit.toFixed(2)}`);
         return profit;
       }
