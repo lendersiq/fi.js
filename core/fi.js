@@ -29,31 +29,33 @@
     console.log("ai.js loaded");
     loadScript("../../core/fiCharts.js", () => {
       console.log("fiCharts.js loaded");
-      loadScript("../../libraries/financial.js", () => {
-        console.log("libraries/financial.js loaded");
-        // function tests
-        console.log('Function Tests')
-        console.log ('Function parameter test: ', getFunctionParameters(window.financial.functions['loanProfit'].implementation));
-        const fn = createFilterFn('>= 730', 'date');
-        // Suppose you're around 2025-03-23 when you run this
-        console.log( fn('2023-03-24') );  // Expect: ???
-        
-        //filter tests
-        const filterFn = createFilterFn("> 2024-01-01 && <= 2024-11-03", "date");
-        console.log(filterFn("2024-06-15")); // true (between Jan 1 and Nov 3, 2024)
-        console.log(filterFn("2023-12-31")); // false (before Jan 1, 2024)
-        console.log(filterFn("2024-12-01")); // false (after Nov 3, 2024)
+      loadScript("../../libraries/organization.js", () => {
+        console.log("libraries/organization.js loaded");
+        loadScript("../../libraries/financial.js", () => {
+          console.log("libraries/financial.js loaded");
+          // function tests
+          console.log('Function Tests')
+          console.log ('Function parameter test: ', getFunctionParameters(window.financial.functions['loanProfit'].implementation));
+          const fn = createFilterFn('>= 730', 'date');
+          // Suppose you're around 2025-03-23 when you run this
+          console.log( fn('2023-03-24') );  // Expect: ???
+          
+          //filter tests
+          const filterFn = createFilterFn("> 2024-01-01 && <= 2024-11-03", "date");
+          console.log(filterFn("2024-06-15")); // true (between Jan 1 and Nov 3, 2024)
+          console.log(filterFn("2023-12-31")); // false (before Jan 1, 2024)
+          console.log(filterFn("2024-12-01")); // false (after Nov 3, 2024)
 
-        // More examples
-        const filterFn2 = createFilterFn("> 2024-01-01 || < 2023-01-01", "date");
-        console.log(filterFn2("2024-06-15")); // true (after Jan 1, 2024)
-        console.log(filterFn2("2022-06-15")); // true (before Jan 1, 2023)
-        console.log(filterFn2("2023-06-15")); // false (in between)
+          // More examples
+          const filterFn2 = createFilterFn("> 2024-01-01 || < 2023-01-01", "date");
+          console.log(filterFn2("2024-06-15")); // true (after Jan 1, 2024)
+          console.log(filterFn2("2022-06-15")); // true (before Jan 1, 2023)
+          console.log(filterFn2("2023-06-15")); // false (in between)
 
-        const filterFn3 = createFilterFn("!<= 2024-01-01", "date");
-        console.log(filterFn3("2024-06-15")); // true (not <= Jan 1, 2024)
-        console.log(filterFn3("2023-06-15")); // false (is <= Jan 1, 2024)
-
+          const filterFn3 = createFilterFn("!<= 2024-01-01", "date");
+          console.log(filterFn3("2024-06-15")); // true (not <= Jan 1, 2024)
+          console.log(filterFn3("2023-06-15")); // false (is <= Jan 1, 2024)
+        });
       });
     });
   });
@@ -1464,6 +1466,19 @@
     formatGroup.appendChild(formatLabel);
     formatGroup.appendChild(formatSelect);
 
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'groupUnique';
+    checkbox.checked = true; 
+
+    const label = document.createElement('label');
+    label.htmlFor = 'groupUnique'; 
+    label.textContent = 'group unique';
+
+    const groupContainer = document.createElement('div');
+    groupContainer.appendChild(checkbox);
+    groupContainer.appendChild(label);
+
     // Create submit button
     const submitButton = document.createElement('button');
     submitButton.type = 'submit';
@@ -1473,6 +1488,7 @@
     // Assemble form
     form.appendChild(fileNameGroup);
     form.appendChild(formatGroup);
+    form.appendChild(groupContainer);
     form.appendChild(submitButton);
     exportSection.appendChild(form);
 
@@ -1852,7 +1868,7 @@ function getTableHeaders() {
  * @param {boolean} includeGroupRows - Whether to include grouped/hidden rows
  * @param {boolean} includeTotal - Whether to include the total row
  */
-function extractTableData(includeGroupRows = false, includeTotal = true) {
+function extractTableData(includeTotal = true) {
     const table = document.getElementById('mainTable');
     if (!table) {
         console.error('Table not found');
@@ -1862,11 +1878,16 @@ function extractTableData(includeGroupRows = false, includeTotal = true) {
     const headers = getTableHeaders();
     const rows = table.querySelectorAll('tbody tr');
     const data = [];
+    const includeGroupRows = document.getElementById('groupUnique').checked;
     
     rows.forEach(row => {
-        // Skip group rows if not including them
-        if (!includeGroupRows && row.classList.contains('groupRow')) {
+        
+        // Skip group rows based on groupUnique checkbox
+        if (includeGroupRows && row.classList.contains('groupRow')) {
             return;
+        }
+        if (!includeGroupRows && row.classList.contains('groupHeadRow')) {
+          return;
         }
         
         // Skip total row if not including it
