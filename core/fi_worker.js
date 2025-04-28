@@ -190,52 +190,90 @@
         // Read file asynchronously
         const csvContent = await file.text();
 
+        // Create and use Web Worker
+        const worker = new Worker(URL.createObjectURL(new Blob([
+          `onmessage = function(e) {
+            const csvString = e.data;
+            const lines = csvString
+              .split("\\n")
+              .map(line => line.trim())
+              .filter(line => line.length > 0);
+
+            if (lines.length === 0) return [];
+
+            const headers = lines[0].split(",").map(h => h.trim());
+            const dataRows = lines.slice(1);
+
+            const result = dataRows.map(row => {
+              const values = row.split(",");
+              const obj = {};
+              headers.forEach((header, index) => {
+                obj[header] = values[index] ? values[index].trim() : "";
+              });
+              return obj;
+            });
+
+            postMessage(result);
+          };`
+        ], { type: 'application/javascript' })));
+
+
         // Parse the CSV
-        window.rawData[sourceName] = parseCSV(csvContent);
+        worker.onmessage = function(e) {
+          window.rawData[sourceName] = e.data;
 
-        // statistics of filtered dataset(s) 
-        window.statistics = window.statistics || {};
-        window.statistics[sourceName] = computeStatistics(window.rawData[sourceName]);
+          // statistics of filtered dataset(s) 
+          window.statistics = window.statistics || {};
+          window.statistics[sourceName] = computeStatistics(window.rawData[sourceName]);
 
-        console.log(`raw data before for ${sourceName}: `, window.rawData[sourceName]);
-        applyFilterstoRawData(sourceName);
-        console.log(`raw data after filters for ${sourceName}:`, window.rawData[sourceName]);
-        applyFunctions(sourceName);
-        console.log(`raw data after with function calls for ${sourceName}:`, window.rawData[sourceName]);
+          console.log(`raw data before for ${sourceName}: `, window.rawData[sourceName]);
+          applyFilterstoRawData(sourceName);
+          console.log(`raw data after filters for ${sourceName}:`, window.rawData[sourceName]);
+          applyFunctions(sourceName);
+          console.log(`raw data after with function calls for ${sourceName}:`, window.rawData[sourceName]);
 
-        // Filter out columns not in relevantColumns
-        const relevantColumns = sourceConfigCache[sourceName];
-        const filteredRows = window.rawData[sourceName].map(row => {
-          const newRow = {};
-          relevantColumns.forEach(col => {
-            if (row.hasOwnProperty(col)) {
-              newRow[col] = row[col];
-            }
+          // Filter out columns not in relevantColumns
+          const relevantColumns = sourceConfigCache[sourceName];
+          const filteredRows = window.rawData[sourceName].map(row => {
+            const newRow = {};
+            relevantColumns.forEach(col => {
+              if (row.hasOwnProperty(col)) {
+                newRow[col] = row[col];
+              }
+            });
+            return newRow;
           });
-          return newRow;
-        });
 
-        // Store result
-        window.cleanData[sourceName] = filteredRows;
-        console.log('filterd rows', filteredRows);
-        
-        // Increment loadedCount. If all done, combine data
-        loadedCount++;
-        if (loadedCount === uniqueSources.length) {
-          // *load done*
-          const modalBackdrop = document.getElementById("modalBackdrop");
-          document.body.removeChild(modalBackdrop);
-          console.log('statistics', window.statistics);
-          // Once all CSVs are loaded, combine
-          combineData();
-          // Then apply formulas
-          applyFormulas();
-          // Finally, render presentation
-          buildPresentation();
+          // 6.4) Store the result
+          window.cleanData[sourceName] = filteredRows;
+          console.log('filterd rows', filteredRows);
+          
+          // Increment loadedCount. If all done, combine data
+          loadedCount++;
+          if (loadedCount === uniqueSources.length) {
+            // *load done*
+            const modalBackdrop = document.getElementById("modalBackdrop");
+            document.body.removeChild(modalBackdrop);
+            console.log('statistics', window.statistics);
+            // Once all CSVs are loaded, combine
+            combineData();
+            // Then apply formulas
+            applyFormulas();
+            // Finally, render presentation
+            buildPresentation();
+          }
         }
+
+        worker.onerror = function(error) {
+          console.error(`Error processing ${sourceName}:`, error);
+        };
+
+        worker.postMessage(csvContent);
       } catch (error) {
         console.error(`Error processing ${sourceName}:`, error);
       }
+
+      
     
       // update source selectors` labels
       label.classList.add('completed');
