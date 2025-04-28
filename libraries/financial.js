@@ -2,7 +2,7 @@
 window.financial = {
   functions: {
     interestIncome: {
-      description: "Calculates the interest income based on principal and annual rate",
+      description: "Calculates the interest income of a loan based on principal and annual rate",
       implementation: function (principal, rate) {
         //console.log('interestIncome', principal, rate)
         return principal * rate;
