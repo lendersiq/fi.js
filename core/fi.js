@@ -336,9 +336,7 @@
     style: "currency",
     currency: "USD",
   });
-  const integerFormatter = new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 0,
-  });
+
   const floatFormatter = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 3,
     maximumFractionDigits: 3,
@@ -361,7 +359,7 @@
       }
       case "integer": {
         const parsed = parseInt(value, 10);
-        return isNaN(parsed) ? value : integerFormatter.format(parsed);
+        return isNaN(parsed) ? value : parsed;
       }
       case "float": {
         const parsed = parseFloat(value);
