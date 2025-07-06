@@ -668,6 +668,13 @@ tr:last-child {
     display: inline-block;
 }
 
+#charts-section {
+    padding: 0;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 /* Statistics Section */
 #statistics-section {
     padding: 0;
