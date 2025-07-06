@@ -1,9 +1,24 @@
 (() => {
   // 1) Set appConfig to global scope and Validate appConfig
-  // const appConfig = typeof window.appConfig !== 'undefined' && typeof window.appConfig === 'object' ? window.appConfig : null;
+  let chartLegendMap = {};
+
+  const validJSON = (configObject) => {
+    const jsonString = JSON.stringify(configObject);
+    try {
+    const parsed = JSON.parse(jsonString);
+    return true;
+    } catch(e) {
+    alert("appConfig is invalid:\n" + e.message + "\n" + jsonString);
+    return false;
+    }
+  };
 
   if (!appConfig || typeof appConfig !== 'object' || appConfig === null) {
     console.error("appConfig is not defined or is not a valid object.");
+    return;
+  }
+
+  if (!validJSON(appConfig)) {
     return;
   }
 
@@ -1096,7 +1111,11 @@
         const mashUpButton = document.createElement('button');
         mashUpButton.textContent = col.heading
         mashUpButton.className = 'button';
-        mashUpButton.addEventListener('click', () => handleGroupIdButtonClick(colIndex));
+        //mashUpButton.addEventListener('click', () =>handleGroupMashup(colIndex));
+        mashUpButton.addEventListener('click', () =>handleGroupMashup(colIndex, (mapping) => {
+          chartLegendMap[col.heading] = mapping;
+          console.log("Mapping has been created:", mapping, col.heading, chartLegendMap);
+        }));
         th.appendChild(mashUpButton);
       } else {
         th.innerText = col.heading;
@@ -1276,7 +1295,7 @@
     appConfig.table.forEach(col => {
       if (col.data_type === 'integer') { // Include 'unique' if Portfolio is intended for X-axis
         const option = document.createElement('option');
-        option.value = col.id; // Use 'id' for data reference
+        option.value = col.id; // Used 'heading' instead of 'id' for data reference
         option.textContent = col.heading; // Use 'heading' for display
         xAxisSelect.appendChild(option);
       }
@@ -1292,6 +1311,7 @@
     renderButton.addEventListener('click', () => {
       const type = chartTypeSelect.value;
       const xCol = xAxisSelect.value;
+      const xColName = xAxisSelect.options[xAxisSelect.selectedIndex]?.text;
       const yCol = yAxisSelect.value;
 
       // Flatten totals into a single array
@@ -1313,7 +1333,158 @@
       } else if (type === 'pie') {
         window.fiCharts.renderPieChart(data, chartContainer);
       }
+
+      renderLegendTable(chartLegendMap, xColName, chartContainer);
+
     });
+  }
+
+  function renderLegendTable(chartLegendMap, legend, container) {
+    //const container = document.querySelector(containerSelector);
+    if (!container) {
+      console.error(`Container ${container.id} not found`);
+      return;
+    }
+
+    // Check if chartLegendMap exists and has data
+    if (!chartLegendMap || Object.keys(chartLegendMap).length === 0) {
+      const message = document.createElement('p');
+      message.textContent = 'No legend data available';
+      message.style.marginTop = '20px';
+      container.appendChild(message);
+      return;
+    }
+
+    // Check if specific legend exists
+    if (!chartLegendMap[legend]) {
+      const message = document.createElement('p');
+      message.textContent = `Legend "${legend}" not found`;
+      message.style.marginTop = '20px';
+      container.appendChild(message);
+    }
+
+    const mapping = chartLegendMap[legend];
+    
+    // Check if mapping has data
+    if (!mapping || Object.keys(mapping).length === 0) {
+      const message = document.createElement('p');
+      message.textContent = `No data available for legend "${legend}"`;
+      message.style.marginTop = '20px';
+      container.appendChild(message);
+      return;
+    }
+
+    const table = document.createElement('table');
+    table.id = 'legendTable';
+    table.style.marginTop = '20px';
+    table.style.display = 'block';
+    table.style.maxHeight = 'calc(2em + 6 * 2em)'; // Header + 6 rows, assuming ~2em per row
+    table.style.overflowY = 'auto';
+    table.style.borderCollapse = 'collapse';
+
+    const thead = document.createElement('thead');
+    thead.style.position = 'sticky';
+    thead.style.top = '0';
+    thead.style.zIndex = '1';
+    const headerRow = document.createElement('tr');
+    
+    [legend, 'ID'].forEach(headerText => {
+      const th = document.createElement('th');
+      th.textContent = headerText;
+      headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create table body
+    const tbody = document.createElement('tbody');
+    
+    // Iterate through the specific legend mapping
+    Object.entries(mapping).forEach(([originalId, mappedValue]) => {
+      const row = document.createElement('tr');
+      row.style.height = '2em';
+      
+      // Original ID cell
+      const originalCell = document.createElement('td');
+      originalCell.textContent = originalId;
+      
+      // Mapped value cell
+      const mappedCell = document.createElement('td');
+      mappedCell.textContent = mappedValue;
+      
+      row.appendChild(originalCell);
+      row.appendChild(mappedCell);
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    container.appendChild(table);
+    
+    console.log(`Legend table rendered successfully for: ${legend}`);
+  }
+
+  // Alternative version that creates a more compact summary table
+  function renderLegendSummaryTable(chartLegendMap, containerSelector = '#chartContainer') {
+    const container = document.querySelector(containerSelector);
+    if (!container) {
+      console.error(`Container ${containerSelector} not found`);
+      return;
+    }
+
+    if (!chartLegendMap || Object.keys(chartLegendMap).length === 0) {
+      container.innerHTML = '<p>No legend data available</p>';
+      return;
+    }
+
+    const table = document.createElement('table');
+    table.id = 'legendSummaryTable';
+
+    // Create header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    ['Column', 'Mappings Count', 'Sample Mapping'].forEach(headerText => {
+      const th = document.createElement('th');
+      th.textContent = headerText;
+      headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create body
+    const tbody = document.createElement('tbody');
+    
+    Object.entries(chartLegendMap).forEach(([columnHeading, mapping]) => {
+      if (mapping && Object.keys(mapping).length > 0) {
+        const row = document.createElement('tr');
+        
+        // Column name
+        const columnCell = document.createElement('td');
+        columnCell.textContent = columnHeading;
+        
+        // Count
+        const countCell = document.createElement('td');
+        countCell.textContent = Object.keys(mapping).length;
+        
+        // Sample mapping
+        const sampleCell = document.createElement('td');
+        const firstEntry = Object.entries(mapping)[0];
+        sampleCell.textContent = `${firstEntry[0]} → ${firstEntry[1]}`;
+        
+        row.appendChild(columnCell);
+        row.appendChild(countCell);
+        row.appendChild(sampleCell);
+        tbody.appendChild(row);
+      }
+    });
+
+    table.appendChild(tbody);
+    container.innerHTML = '';
+    container.appendChild(table);
+    
+    console.log('Legend summary table rendered successfully');
   }
 
   function buildStatsList(statsContainerID) {
@@ -2301,32 +2472,61 @@ function parseCSV(csvString) {
   });
 }
 
-function handleGroupIdButtonClick(colIndex) {
+function replaceColumnWithMapping(tableId, mapping, colIndex) {
+  // Get all table rows from the specified table
+  const rows = document.querySelectorAll(`#${tableId} tr`);
+  const replacedMapping = {}; // Track only the mappings that were actually used
+     
+  rows.forEach(row => {
+    // Get all <td> elements in this row
+    const cells = row.querySelectorAll('td');
+    // Check if the specified column index exists
+    if (cells.length <= colIndex || colIndex < 0) return; // Skip if column is out of bounds
+         
+    // Get the cell at the specified column index
+    const targetCell = cells[colIndex];
+    // Get the current value in that cell (e.g., "200106555")
+    const currentId = targetCell.textContent.trim();
+         
+    // Check if this ID exists in the mapping
+    if (mapping[currentId]) {
+      // Replace the cell's content with the mapped value
+      targetCell.textContent = mapping[currentId];
+      // Track this replacement in our return mapping
+      replacedMapping[currentId] = mapping[currentId];
+    }
+  });
+  
+  return replacedMapping; // Return only the mappings that were actually used
+}
+
+function handleGroupMashup(colIndex, callback) {
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.accept = '.csv';
   fileInput.style.display = 'none';
-
+ 
   fileInput.addEventListener("change", evt => {
     const file = evt.target.files[0];
     if (!file) return;
-
+ 
     const reader = new FileReader();
     reader.onload = e => {
       const csvContent = e.target.result;
       const data = parseCSV(csvContent);
       const mapping = createUniqueIdMapping(data);
-      replaceFirstColumnWithMapping('mainTable', mapping, colIndex);
-    }
+      // Get only the mappings that were actually replaced
+      const replacedMapping = replaceColumnWithMapping('mainTable', mapping, colIndex);
+      callback(replacedMapping); // Call the callback with only the replaced mappings
+    };
     reader.readAsText(file);
   });
-
+ 
   document.body.appendChild(fileInput);
   fileInput.click();
   document.body.removeChild(fileInput);
 }
 
-// Function to create a mapping of unique IDs from CSV data
 function createUniqueIdMapping(data) {
   const mapping = {};
   data.forEach(row => {
@@ -2336,30 +2536,6 @@ function createUniqueIdMapping(data) {
     }
   });
   return mapping;
-}
-
-function replaceFirstColumnWithMapping(tableId, mapping, colIndex) {
-  // Get all table rows from the specified table
-  const rows = document.querySelectorAll(`#${tableId} tr`);
-  
-  // Loop through each row
-  rows.forEach(row => {
-    // Get all <td> elements in this row
-    const cells = row.querySelectorAll('td');
-    // Check if the specified column index exists
-    if (cells.length <= colIndex || colIndex < 0) return; // Skip if column is out of bounds
-    
-    // Get the cell at the specified column index
-    const targetCell = cells[colIndex];
-    // Get the current value in that cell (e.g., "200106555")
-    const currentId = targetCell.textContent.trim();
-    
-    // Check if this ID exists in the mapping
-    if (mapping[currentId]) {
-      // Replace the cell's content with the mapped value
-      targetCell.textContent = mapping[currentId];
-    }
-  });
 }
 
 function renderFavicon(base64Svg) {
