@@ -1953,14 +1953,10 @@
   
   function handleExport(event) {
     event.preventDefault();
-    const fileName = document.getElementById('fileName').value;
+    const fileName     = document.getElementById('fileName').value;
     const exportFormat = document.getElementById('exportFormat').value;
-    // Extract data from the table
-    const tableData = extractTableData();
-    
-    // Define headers based on the table headers
-    const headers = getTableHeaders();
-    
+    const tableData    = extractTableData();
+    const headers      = getTableHeaders();
     let blob, fileExtension;
     
     switch (exportFormat) {
@@ -1989,27 +1985,112 @@
             break;
         
         case 'xlsx':
-            // Use the improved Excel export function
-            fileExtension = '.xls'; // Changed to .xls for better compatibility
-            downloadExcel(tableData, headers, `${fileName}${fileExtension}`, {
-                worksheetName: fileName || 'Export',
-                title: 'Table Export'
-            });
-            return; // Early return as downloadExcel handles the download
+        fileExtension = '.xls';  // XML‑Spreadsheet uses .xls
+  
+        // 1️. find which rows in the table have .groupHeadRow
+        const allRows = Array.from(
+          document.querySelectorAll('#mainTable tbody tr')
+        );
+        const groupHeadIndexes = allRows
+          .map((row, i) => row.classList.contains('groupHeadRow') ? i : -1)
+          .filter(i => i > -1);
+  
+        // 2. build the XML‑Spreadsheet document
+        const xml = generateExcelXML(tableData, headers, {
+          worksheetName: fileName || 'Export',
+          title:         'Table Export',
+          highlightIndexes: groupHeadIndexes
+        });
+  
+        // 3. trigger download
+        blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        break;
         
         default:
             console.error('Unsupported format');
             return;
     }
-    
     // Create and trigger download for non-Excel formats
     const link = document.createElement('a');
-    link.setAttribute('href', URL.createObjectURL(blob));
-    link.setAttribute('download', `${fileName}${fileExtension}`);
+    link.href = URL.createObjectURL(blob);
+    link.download = `${fileName}${fileExtension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
+
+/**
+* @param {Array<Object>} data       — array of row‑objects keyed by header
+* @param {string[]}      headers    — ordered list of column names
+* @param {Object}        options
+*   @prop {string} worksheetName
+*   @prop {string} title
+*   @prop {number[]} highlightIndexes — zero‑based row indexes in `data` to highlight
+*/
+function generateExcelXML(data, headers, options) {
+  const { worksheetName, highlightIndexes } = options;
+
+  //  ➤ minimal style block: Default + Group‑Head
+  const styles = `
+  <Styles>
+    <Style ss:ID="Default" ss:Name="Normal">
+      <Alignment ss:Vertical="Bottom"/>
+      <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11"/>
+    </Style>
+    <Style ss:ID="sGroupHead">
+      <Font ss:Bold="1"/>
+      <Interior ss:Pattern="Solid" ss:Color="#FFFF00"/>
+    </Style>
+  </Styles>`;
+
+  //  ➤ header
+  let xml = `<?xml version="1.0"?>
+  <?mso-application progid="Excel.Sheet"?>
+  <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+            xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:x="urn:schemas-microsoft-com:office:excel"
+            xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  ${styles}
+    <Worksheet ss:Name="${escapeXml(worksheetName)}">
+      <Table>`;
+
+  // header row
+  xml += '<Row>';
+  headers.forEach(h => {
+    xml += `<Cell><Data ss:Type="String">${escapeXml(h)}</Data></Cell>`;
+  });
+  xml += '</Row>';
+
+  // data rows
+  data.forEach((rowObj, rowIdx) => {
+    const isHighlight = highlightIndexes.includes(rowIdx);
+    xml += '<Row>';
+    headers.forEach(col => {
+      const raw = rowObj[col];
+      const val = raw != null ? raw : '';
+      const type = (typeof raw === 'number') ? 'Number' : 'String';
+      const styleAttr = isHighlight ? ' ss:StyleID="sGroupHead"' : '';
+      xml += `<Cell${styleAttr}>`
+           + `<Data ss:Type="${type}">${escapeXml(String(val))}</Data>`
+           + `</Cell>`;
+    });
+    xml += '</Row>';
+  });
+
+  xml += `
+      </Table>
+    </Worksheet>
+  </Workbook>`;
+  return xml;
+}
+
+function escapeXml(str) {
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+}
+
 
 /**
  * Extract headers from the table
