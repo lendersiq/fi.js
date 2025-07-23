@@ -1985,31 +1985,45 @@
             break;
         
         case 'xlsx':
-        fileExtension = '.xls';  // XML‑Spreadsheet uses .xls
-  
-        // 1️. find which rows in the table have .groupHeadRow
-        const allRows = Array.from(
-          document.querySelectorAll('#mainTable tbody tr')
-        );
-        const groupHeadIndexes = allRows
-          .map((row, i) => row.classList.contains('groupHeadRow') ? i : -1)
-          .filter(i => i > -1);
-  
-        // 2. build the XML‑Spreadsheet document
-        const xml = generateExcelXML(tableData, headers, {
-          worksheetName: fileName || 'Export',
-          title:         'Table Export',
-          highlightIndexes: groupHeadIndexes
-        });
-  
-        // 3. trigger download
-        blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-        break;
+          fileExtension = '.xls';
         
+          const table = document.getElementById('mainTable');
+          const allRows = Array.from(table.querySelectorAll('tbody tr'));
+          const includeGroupRows = document.getElementById('groupUnique').checked;
+          const includeTotal     = true; // or match your extractTableData default
+        
+          // Filter exactly as extractTableData does:
+          const filteredRows = allRows.filter((row, idx) => {
+            // same group‑row logic
+            if (includeGroupRows && row.classList.contains('groupRow'))      return false;
+            if (!includeGroupRows && row.classList.contains('groupHeadRow')) return false;
+        
+            // same “Grand Totals” logic
+            const isLast = idx === allRows.length - 1;
+            if (isLast && !includeTotal && row.cells[0].textContent.includes('Grand Totals')) {
+              return false;
+            }
+            return true;
+          });
+        
+          // Now pick out only those filtered rows that still have .groupHeadRow
+          const groupHeadIndexes = filteredRows
+            .map((row, i) => row.classList.contains('groupHeadRow') ? i : -1)
+            .filter(i => i > -1);
+        
+          const xml = generateExcelXML(tableData, headers, {
+            worksheetName: fileName || 'Export',
+            highlightIndexes: groupHeadIndexes
+          });
+        
+          blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+          break;
+
         default:
             console.error('Unsupported format');
             return;
     }
+    
     // Create and trigger download for non-Excel formats
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -2030,7 +2044,6 @@
 function generateExcelXML(data, headers, options) {
   const { worksheetName, highlightIndexes } = options;
 
-  //  ➤ minimal style block: Default + Group‑Head
   const styles = `
   <Styles>
     <Style ss:ID="Default" ss:Name="Normal">
@@ -2039,11 +2052,11 @@ function generateExcelXML(data, headers, options) {
     </Style>
     <Style ss:ID="sGroupHead">
       <Font ss:Bold="1"/>
-      <Interior ss:Pattern="Solid" ss:Color="#FFFF00"/>
+      <!-- Light green fill -->
+      <Interior ss:Pattern="Solid" ss:Color="#CCFFCC"/>
     </Style>
   </Styles>`;
 
-  //  ➤ header
   let xml = `<?xml version="1.0"?>
   <?mso-application progid="Excel.Sheet"?>
   <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
@@ -2066,12 +2079,11 @@ function generateExcelXML(data, headers, options) {
     const isHighlight = highlightIndexes.includes(rowIdx);
     xml += '<Row>';
     headers.forEach(col => {
-      const raw = rowObj[col];
-      const val = raw != null ? raw : '';
+      const raw = rowObj[col] ?? '';
       const type = (typeof raw === 'number') ? 'Number' : 'String';
       const styleAttr = isHighlight ? ' ss:StyleID="sGroupHead"' : '';
       xml += `<Cell${styleAttr}>`
-           + `<Data ss:Type="${type}">${escapeXml(String(val))}</Data>`
+           + `<Data ss:Type="${type}">${escapeXml(String(raw))}</Data>`
            + `</Cell>`;
     });
     xml += '</Row>';
