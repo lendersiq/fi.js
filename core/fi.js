@@ -25,7 +25,7 @@
   //safeguard against duplicate id values
   appConfig.table = appConfig.table.map(cfg => {
     if (
-      (cfg.column_type === "data" || cfg.column_type === "function") &&
+      (cfg.column_type === "data" &&
       cfg.source_name &&
       !cfg.id.endsWith(`_${cfg.source_name}`)
     ) {
