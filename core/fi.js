@@ -22,6 +22,21 @@
     return;
   }
 
+  //safeguard against duplicate id values
+  appConfig.table = appConfig.table.map(cfg => {
+    if (
+      (cfg.column_type === "data" || cfg.column_type === "function") &&
+      cfg.source_name &&
+      !cfg.id.endsWith(`_${cfg.source_name}`)
+    ) {
+      return {
+        ...cfg,
+        id: `${cfg.id}_${cfg.source_name}`
+      };
+    }
+    return cfg;
+  });
+
   const loadScript = (src, callback) => {
     const script = document.createElement('script');
     script.src = src;
