@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../../styles/base.css">
-  <title>Sales</title>
+  <title>Sales by Officer</title>
 </head>
 <body>
   <script>
     // App configuration
     window.appConfig = {
-      description: `<p>Show the checking accounts opened within a period of time defined by the filter</p>`,
+      description: `<p>Show the checking accounts opened by officer within a period of time defined by the filter</p>`,
       table: [
-        { "heading": "Officer", "id": "Opened_by_Resp_Code", "column_type": "data", "data_type": "unique" },
-        { "heading": "Balance", "id": "Previous_Average_Balance", "column_type": "data", "data_type": "currency", "source_name": "checking" },
-        { "heading": "Branch", "id": "Branch_Number", "column_type": "data", "data_type": "integer", "source_name": "checking" },
-        { "heading": "Open", "id": "Date_Opened", "column_type": "data", "data_type": "date", "source_name": "checking", "filter":  "> 720" }, //"> 2023-03-25" },
+        { "heading": "Officer", "id": "Owner_Code", "column_type": "data", "data_type": "unique" },
+        { "heading": "Balance", "id": "Average_Balance", "column_type": "data", "data_type": "currency", "source_name": "checking" },
+        { "heading": "Annualized Balance ", "id": "annualizedPerformance", "column_type": "function", "data_type": "currency", "source_name": "checking", "sort": "desc" },
+        { "heading": "Open", "id": "Open_Date", "column_type": "data", "data_type": "date", "source_name": "checking", "filter": "> 2024-01-01 && <= 2024-12-31" },
         { "heading": "Goal", "id": "Goal", "column_type": "data", "data_type": "currency", "source_name": "officer" },
-        { "heading": "performance", "id": "performance", "column_type": "formula", "formula": "Previous_Average_Balance / Goal", "data_type": "rate" }
+        { "heading": "Performance", "id": "performance", "column_type": "formula", "formula": "annualizedPerformance / Goal", "data_type": "rate" }
       ]
     }
   </script>
