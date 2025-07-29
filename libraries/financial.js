@@ -8,6 +8,21 @@ window.financial = {
         return principal * rate;
       }
     },
+    annualizedPerformance: {
+      description: "Calculates the position's financial performance to a goal",
+      implementation: function (position) {
+        console.log(position)
+        if (typeof position !== "number" || position === 0) {
+          return null; // prevent division by zero or invalid input
+        }
+        const currentDate = new Date();
+        const startOfYear = new Date(currentDate.getFullYear(), 0, 1);
+        const dayOfYear = Math.floor((currentDate - startOfYear) / (1000 * 60 * 60 * 24)) + 1;
+        const totalDays = 365;
+        const ytdPerformance = (position / dayOfYear) * totalDays;
+        return ytdPerformance.toFixed(2); // returns a percentage
+      }
+    },
     costofFunds: {
       description: "Calculates the cost of funds",
       implementation: function (principal, rate) {
