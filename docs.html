@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FI.js Documentation</title>
+    <link rel="stylesheet" href="styles/base.css">
+    <style>
+        html, body {
+            overflow-y: auto;
+            height: 100%;
+        }
+        .docs-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+        }
+        .docs-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, var(--fijs-primary), var(--fijs-gradient2));
+            color: white;
+            border-radius: 8px;
+        }
+        .docs-nav {
+            background: var(--fijs-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .docs-nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .docs-nav a {
+            color: var(--fijs-primary);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .docs-nav a:hover {
+            background-color: rgba(0, 99, 43, 0.1);
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--fijs-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .api-table th, .api-table td {
+            border: 1px solid var(--fijs-muted);
+            padding: 12px;
+            text-align: left;
+        }
+        .api-table th {
+            background: var(--fijs-primary);
+            color: white;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            padding: 20px;
+            border: 1px solid var(--fijs-muted);
+            border-radius: 8px;
+            background: var(--fijs-bg);
+        }
+        .highlight {
+            background: linear-gradient(135deg, rgba(0, 245, 105, 0.1), rgba(0, 99, 43, 0.1));
+            padding: 20px;
+            border-left: 4px solid var(--fijs-primary);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="docs-container">
+        <div class="docs-header">
+            <h1>FI.js Framework Documentation</h1>
+            <p>A Local-First JavaScript Framework for Data-Driven Applications</p>
+            <p>Version 1.2 | Last Updated: December 2024</p>
+        </div>
+
+        <nav class="docs-nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#forms">Forms</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#examples">Examples</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </nav>
+
+        <section id="overview" class="section">
+            <h2>Overview</h2>
+            <p>FI.js is a lightweight, local-first JavaScript framework designed to simplify the creation of data-driven single-page applications (SPAs). It empowers both programmers and non-programmers to build efficient, secure, and dynamic applications with ease.</p>
+            
+            <div class="highlight">
+                <h3>Key Principles</h3>
+                <ul>
+                    <li><strong>Local-First:</strong> Data ownership and privacy by design</li>
+                    <li><strong>Zero Dependencies:</strong> No React, Bootstrap, or external libraries</li>
+                    <li><strong>Transparency:</strong> Open source and fully auditable</li>
+                    <li><strong>Extensibility:</strong> Modular architecture for custom functionality</li>
+                    <li><strong>Connectedness:</strong> Seamless integration with existing systems</li>
+                </ul>
+            </div>
+
+            <h3>Target Industries</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Banking & Finance</h4>
+                    <p>Profitability analysis, risk assessment, regulatory compliance</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Healthcare</h4>
+                    <p>Patient data management, compliance reporting</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Insurance</h4>
+                    <p>Claims processing, risk modeling, actuarial analysis</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Government</h4>
+                    <p>Public data management, citizen services</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="section">
+            <h2>Architecture</h2>
+            
+            <h3>Core Components</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>fi.js</h4>
+                    <p>Main framework engine handling data processing, UI rendering, and application lifecycle</p>
+                </div>
+                <div class="feature-card">
+                    <h4>ai.js</h4>
+                    <p>AI-powered data mapping, intelligent column matching, and business logic automation</p>
+                </div>
+                <div class="feature-card">
+                    <h4>fiCharts.js</h4>
+                    <p>Built-in charting library with bar charts, pie charts, and data visualization</p>
+                </div>
+                <div class="feature-card">
+                    <h4>fi_worker.js</h4>
+                    <p>Web Worker implementation for background data processing and performance optimization</p>
+                </div>
+            </div>
+
+            <h3>Library System</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>financial.js</h4>
+                    <p>Domain-specific functions for banking operations, profit calculations, risk assessment</p>
+                </div>
+                <div class="feature-card">
+                    <h4>organization.js</h4>
+                    <p>Institutional settings, tax configurations, and organizational parameters</p>
+                </div>
+            </div>
+
+            <h3>Data Flow</h3>
+            <div class="code-block">
+1. CSV Data Input → 2. AI Column Mapping → 3. Data Processing → 4. Function Application → 5. UI Rendering
+            </div>
+        </section>
+
+        <section id="getting-started" class="section">
+            <h2>Getting Started</h2>
+            
+            <h3>Basic Setup</h3>
+            <div class="code-block">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;link rel="stylesheet" href="styles/base.css"&gt;
+    &lt;title&gt;My FI.js App&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;script&gt;
+        window.appConfig = {
+            description: "My first FI.js application",
+            table: [
+                { heading: "ID", id: "id", column_type: "data", data_type: "unique" },
+                { heading: "Name", id: "name", column_type: "data", data_type: "string" },
+                { heading: "Value", id: "value", column_type: "data", data_type: "currency" }
+            ]
+        };
+    &lt;/script&gt;
+    &lt;script src="core/fi.js" defer&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+            </div>
+
+            <h3>File Structure</h3>
+            <div class="code-block">
+fi.js-main/
+├── core/
+│   ├── fi.js          # Main framework
+│   ├── ai.js          # AI functionality
+│   ├── fiCharts.js    # Charting library
+│   └── fi_worker.js   # Web Worker
+├── libraries/
+│   ├── financial.js   # Financial functions
+│   └── organization.js # Organizational settings
+├── styles/
+│   └── base.css       # Default styling
+└── apps/              # Sample applications
+            </div>
+        </section>
+
+        <section id="configuration" class="section">
+            <h2>Configuration</h2>
+            
+            <h3>appConfig Object</h3>
+            <p>The <code>appConfig</code> object is the heart of any FI.js application. It defines how data is processed, displayed, and manipulated.</p>
+
+            <h4>Basic Structure</h4>
+            <div class="code-block">
+window.appConfig = {
+    description: "Application description",
+    table: [
+        {
+            heading: "Display Name",     // Column header text
+            id: "column_id",            // Data column identifier
+            column_type: "data",        // data|function|formula
+            data_type: "currency",      // unique|string|integer|float|currency|rate|date
+            source_name: "source1",     // Data source (optional)
+            where: "> 1000",           // Where expression (optional)
+            sort: "desc"               // Sort direction (optional)
+        }
+    ]
+};
+            </div>
+
+            <h4>Column Types</h4>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>data</code></td>
+                        <td>Raw data from CSV files</td>
+                        <td>Displaying imported data</td>
+                    </tr>
+                    <tr>
+                        <td><code>function</code></td>
+                        <td>Computed values using library functions</td>
+                        <td>Calculations, transformations</td>
+                    </tr>
+                    <tr>
+                        <td><code>formula</code></td>
+                        <td>Mathematical expressions</td>
+                        <td>Custom calculations</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Data Types</h4>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Formatting</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>unique</code></td>
+                        <td>Unique identifier</td>
+                        <td>No special formatting</td>
+                    </tr>
+                    <tr>
+                        <td><code>currency</code></td>
+                        <td>Monetary values</td>
+                        <td>$1,234.56</td>
+                    </tr>
+                    <tr>
+                        <td><code>rate</code></td>
+                        <td>Percentage values</td>
+                        <td>12.345%</td>
+                    </tr>
+                    <tr>
+                        <td><code>date</code></td>
+                        <td>Date values</td>
+                        <td>YYYY-MM-DD</td>
+                    </tr>
+                    <tr>
+                        <td><code>integer</code></td>
+                        <td>Whole numbers</td>
+                        <td>1,234</td>
+                    </tr>
+                    <tr>
+                        <td><code>float</code></td>
+                        <td>Decimal numbers</td>
+                        <td>1,234.567</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="forms" class="section">
+            <h2>FI.js Forms</h2>
+            <p>FI.js Forms is a powerful feature that allows you to create interactive HTML forms that integrate seamlessly with data processing and display. Forms can be used standalone or combined with file-based data sources. The framework supports dynamic JavaScript expressions in function calls and formulas, enabling sophisticated real-time calculations and data manipulation.</p>
+            
+            <h3>Key Features</h3>
+            <ul>
+                <li><strong>All HTML Input Types:</strong> Support for text, number, email, select, radio, checkbox, range, date, color, and more</li>
+                <li><strong>Live Updates:</strong> Results update when you finish editing a field - no submit button needed</li>
+                <li><strong>Function Integration:</strong> Form values can be used in calculations and functions</li>
+                <li><strong>Formula Support:</strong> Create custom formulas using form field values</li>
+                <li><strong>Dynamic Expressions:</strong> Use JavaScript expressions for dates, math, strings, and conditional logic</li>
+                <li><strong>Responsive Design:</strong> Left-right split layout with independent scrolling</li>
+                <li><strong>Form Validation:</strong> Built-in validation and completion checking</li>
+            </ul>
+
+            <h3>Basic Forms Structure</h3>
+            <div class="code-block">window.appConfig = {
+    description: "Forms-based application",
+    forms: [
+        {
+            id: "principal",
+            type: "number",
+            label: "Principal Amount",
+            value: 100000,
+            min: 0,
+            step: 0.01
+        },
+        {
+            id: "interestRate",
+            type: "range",
+            label: "Interest Rate (%)",
+            value: 5.5,
+            min: 0,
+            max: 30,
+            step: 0.1
+        }
+    ],
+    display: [
+        { heading: "Principal", id: "principal", column_type: "form", data_type: "currency" },
+        { heading: "Monthly Payment", id: "monthlyPayment", column_type: "function", function: "calculateMonthlyPayment(principal, interestRate, loanTerm)", data_type: "currency" }
+    ]
+};</div>
+
+            <h3>Form Field Types</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Properties</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>text</code></td>
+                        <td>Single-line text input</td>
+                        <td>pattern, placeholder</td>
+                    </tr>
+                    <tr>
+                        <td><code>number</code></td>
+                        <td>Numeric input with validation</td>
+                        <td>min, max, step</td>
+                    </tr>
+                    <tr>
+                        <td><code>rate</code></td>
+                        <td>Rate/percentage input (specialized number)</td>
+                        <td>min, max, step, data-type="rate"</td>
+                    </tr>
+                    <tr>
+                        <td><code>email</code></td>
+                        <td>Email address input</td>
+                        <td>Built-in email validation</td>
+                    </tr>
+                    <tr>
+                        <td><code>select</code></td>
+                        <td>Dropdown selection</td>
+                        <td>options array with value/label pairs</td>
+                    </tr>
+                    <tr>
+                        <td><code>radio</code></td>
+                        <td>Radio button group</td>
+                        <td>options array with value/label pairs</td>
+                    </tr>
+                    <tr>
+                        <td><code>checkbox</code></td>
+                        <td>Checkbox group (multiple selection)</td>
+                        <td>options array with value/label pairs</td>
+                    </tr>
+                    <tr>
+                        <td><code>range</code></td>
+                        <td>Slider input</td>
+                        <td>min, max, step, unit</td>
+                    </tr>
+                    <tr>
+                        <td><code>date</code></td>
+                        <td>Date picker</td>
+                        <td>Built-in date validation</td>
+                    </tr>
+                    <tr>
+                        <td><code>color</code></td>
+                        <td>Color picker</td>
+                        <td>Returns hex color value</td>
+                    </tr>
+                    <tr>
+                        <td><code>textarea</code></td>
+                        <td>Multi-line text input</td>
+                        <td>rows, placeholder</td>
+                    </tr>
+                    <tr>
+                        <td><code>hidden</code></td>
+                        <td>Hidden field (not displayed)</td>
+                        <td>Used for storing session data, etc.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Display Configuration</h3>
+            <p>The <code>display</code> array defines how form data and calculations are presented. It supports three column types:</p>
+            
+            <h4>Form Values</h4>
+            <div class="code-block">{ heading: "Customer Name", id: "customerName", column_type: "form", data_type: "string" }</div>
+            
+            <h4>Function Calculations</h4>
+            <div class="code-block">{ heading: "Monthly Payment", id: "monthlyPayment", column_type: "function", function: "calculateMonthlyPayment(principal, interestRate, loanTerm)", data_type: "currency" }</div>
+            
+            <h4>Custom Formulas</h4>
+            <div class="code-block">{ heading: "Total Cost", id: "totalCost", column_type: "formula", formula: "principal + totalInterest", data_type: "currency" }</div>
+
+            <h3>Creative Display Configuration</h3>
+            <p>FI.js Forms supports dynamic JavaScript expressions in function calls and formulas, enabling powerful real-time calculations and data manipulation.</p>
+            
+            <h4>Dynamic Date Functions</h4>
+            <p>Use JavaScript date functions to generate current dates, timestamps, and time-based calculations:</p>
+            <div class="code-block">{ heading: "Loan Opening Date", id: "openDate", column_type: "function", function: "new Date().toISOString().split('T')[0]", data_type: "date" }
+{ heading: "Current Timestamp", id: "timestamp", column_type: "function", function: "new Date().toISOString()", data_type: "string" }
+{ heading: "Days Since Open", id: "daysOpen", column_type: "formula", formula: "Math.floor((new Date() - new Date(openDate)) / (1000 * 60 * 60 * 24))", data_type: "integer" }</div>
+
+            <h4>Mathematical Expressions</h4>
+            <p>Leverage JavaScript's Math object for complex calculations:</p>
+            <div class="code-block">{ heading: "Random ID", id: "randomId", column_type: "function", function: "Math.random().toString(36).substr(2, 9)", data_type: "string" }
+{ heading: "Compound Interest", id: "compoundInterest", column_type: "formula", formula: "principal * Math.pow(1 + (interestRate/100), loanTerm) - principal", data_type: "currency" }
+{ heading: "Payment Frequency", id: "paymentFreq", column_type: "function", function: "Math.ceil(loanTerm * 12)", data_type: "integer" }</div>
+
+            <h4>String Manipulation</h4>
+            <p>Process and format text data dynamically:</p>
+            <div class="code-block">{ heading: "Formatted Name", id: "formattedName", column_type: "formula", formula: "customerName.toUpperCase().trim()", data_type: "string" }
+{ heading: "Account Number", id: "accountNumber", column_type: "function", function: "'ACC-' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0')", data_type: "string" }
+{ heading: "Email Domain", id: "emailDomain", column_type: "formula", formula: "email.split('@')[1]", data_type: "string" }</div>
+
+            <h4>Conditional Logic</h4>
+            <p>Use ternary operators and logical expressions for dynamic behavior:</p>
+            <div class="code-block">{ heading: "Risk Level", id: "riskLevel", column_type: "formula", formula: "principal > 500000 ? 'High' : principal > 100000 ? 'Medium' : 'Low'", data_type: "string" }
+{ heading: "Approval Status", id: "approvalStatus", column_type: "formula", formula: "creditScore >= 700 && debtToIncome < 0.4 ? 'Approved' : 'Pending Review'", data_type: "string" }
+{ heading: "Interest Rate Tier", id: "rateTier", column_type: "formula", formula: "interestRate < 3 ? 'Prime' : interestRate < 5 ? 'Standard' : 'Subprime'", data_type: "string" }</div>
+
+            <h4>Array and Object Operations</h4>
+            <p>Work with complex data structures and collections:</p>
+            <div class="code-block">{ heading: "Service Count", id: "serviceCount", column_type: "formula", formula: "services.split(',').length", data_type: "integer" }
+{ heading: "First Service", id: "firstService", column_type: "formula", formula: "services.split(',')[0].trim()", data_type: "string" }
+{ heading: "Average Score", id: "avgScore", column_type: "formula", formula: "scores.split(',').reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / scores.split(',').length", data_type: "float" }</div>
+
+            <h4>Advanced Function Examples</h4>
+            <p>Combine multiple JavaScript features for sophisticated calculations:</p>
+            <div class="code-block">{ heading: "Loan Grade", id: "loanGrade", column_type: "function", function: "loanProfitGrade(profit, principal, rate, term, amort)", data_type: "string" }
+{ heading: "Processing Date", id: "processingDate", column_type: "function", function: "new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]", data_type: "date" }
+{ heading: "Unique Reference", id: "reference", column_type: "function", function: "'REF-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 4).toUpperCase()", data_type: "string" }</div>
+
+            <h3>Complete Example</h3>
+            <div class="code-block">window.appConfig = {
+    description: "Loan Calculator with Forms",
+    forms: [
+        { id: "principal", type: "number", label: "Principal Amount", value: 100000, min: 0, step: 0.01 },
+        { id: "interestRate", type: "range", label: "Interest Rate (%)", value: 5.5, min: 0, max: 30, step: 0.1 },
+        { id: "loanTerm", type: "select", label: "Loan Term", value: "15", options: [
+            { value: "10", label: "10 years" },
+            { value: "15", label: "15 years" },
+            { value: "20", label: "20 years" },
+            { value: "30", label: "30 years" }
+        ]},
+        { id: "customerName", type: "text", label: "Customer Name", value: "John Doe" }
+    ],
+    display: [
+        { heading: "Customer", id: "customerName", column_type: "form", data_type: "string" },
+        { heading: "Principal", id: "principal", column_type: "form", data_type: "currency" },
+        { heading: "Interest Rate", id: "interestRate", column_type: "form", data_type: "rate" },
+        { heading: "Loan Term", id: "loanTerm", column_type: "form", data_type: "string" },
+        { heading: "Monthly Payment", id: "monthlyPayment", column_type: "function", function: "calculateMonthlyPayment(principal, interestRate, loanTerm)", data_type: "currency" },
+        { heading: "Total Interest", id: "totalInterest", column_type: "function", function: "calculateTotalInterest(principal, interestRate, loanTerm)", data_type: "currency" },
+        { heading: "Total Cost", id: "totalCost", column_type: "formula", formula: "principal + totalInterest", data_type: "currency" }
+    ]
+};</div>
+
+            <h3>Layout and Styling</h3>
+            <p>Forms use a responsive left-right split layout:</p>
+            <ul>
+                <li><strong>Left Panel:</strong> Interactive form with all input fields</li>
+                <li><strong>Right Panel:</strong> Real-time results displayed as cards</li>
+                <li><strong>Mobile:</strong> Stacks vertically on smaller screens</li>
+                <li><strong>Independent Scrolling:</strong> Each panel scrolls independently</li>
+            </ul>
+
+            <h3>Demo Files</h3>
+            <ul>
+                <li><code>apps/demos/forms_demo.html</code> - Complete demo with all form types</li>
+                <li><code>apps/demos/simple_forms_demo.html</code> - Simplified demo focusing on core functionality</li>
+            </ul>
+        </section>
+
+        <section id="api-reference" class="section">
+            <h2>API Reference</h2>
+            
+            <h3>Core Functions</h3>
+            
+            <h4>Data Processing</h4>
+            <div class="code-block">
+// CSV parsing
+parseCSV(csvString) → Array&lt;Object&gt;
+
+// Statistics computation
+computeStatistics(data) → Object
+
+// Data filtering
+createFilterFn(filter, dataType) → Function
+            </div>
+
+            <h4>AI Functions</h4>
+            <div class="code-block">
+// Intelligent column mapping
+findBestKey(paramName, keys) → String|null
+
+// Synonym matching
+findSynonymGroup(paramName) → Array|null
+
+// Business logic
+aiIsBusiness(params) → Boolean
+            </div>
+
+            <h4>Charting Functions</h4>
+            <div class="code-block">
+// Bar chart rendering
+window.fiCharts.renderBarChart(data, container)
+
+// Pie chart rendering
+window.fiCharts.renderPieChart(data, container)
+            </div>
+
+            <h3>Financial Library Functions</h3>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>Description</th>
+                        <th>Parameters</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>checkingProfit</code></td>
+                        <td>Calculate checking account profitability</td>
+                        <td>portfolio, balance, type, interest, rate, charges, waived, deposits, withdrawals, nsf, sourceIndex</td>
+                    </tr>
+                    <tr>
+                        <td><code>loanProfit</code></td>
+                        <td>Calculate loan profitability</td>
+                        <td>portfolio, principal, rate, risk, open, type, payment, fees, maturity, term, sourceIndex</td>
+                    </tr>
+                    <tr>
+                        <td><code>calculateFtpRate</code></td>
+                        <td>Calculate funds transfer pricing</td>
+                        <td>expectedLifeMonths, depositType</td>
+                    </tr>
+                    <tr>
+                        <td><code>depositRisk</code></td>
+                        <td>Assess deposit account risk</td>
+                        <td>balance, checks, deposits, nsf, sourceIndex</td>
+                    </tr>
+                    <tr>
+                        <td><code>loanProfitGrade</code></td>
+                        <td>Calculate letter grade (A-F) based on ROE performance</td>
+                        <td>profit, principal, rate, term, amort</td>
+                    </tr>
+                    <tr>
+                        <td><code>expectedLossProvision</code></td>
+                        <td>Calculate expected loss using PD × LGD × EAD formula</td>
+                        <td>risk, principal, averagePrincipal, ltv, sourceIndex</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>ROE Grading System</h3>
+            <p>FI.js includes a sophisticated Return on Equity (ROE) grading system for loan profitability assessment. The system assigns letter grades (A-F) based on performance against institutional targets.</p>
+            
+            <h4>Grading Scale</h4>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Grade</th>
+                        <th>ROE Threshold</th>
+                        <th>Performance Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>A</strong></td>
+                        <td>≥ 18%</td>
+                        <td>Exceeds target</td>
+                    </tr>
+                    <tr>
+                        <td><strong>B</strong></td>
+                        <td>13.5% - 17.9%</td>
+                        <td>75% of target</td>
+                    </tr>
+                    <tr>
+                        <td><strong>C</strong></td>
+                        <td>9% - 13.4%</td>
+                        <td>50% of target</td>
+                    </tr>
+                    <tr>
+                        <td><strong>D</strong></td>
+                        <td>4.5% - 8.9%</td>
+                        <td>25% of target (floor)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>F</strong></td>
+                        <td>&lt; 4.5%</td>
+                        <td>Below floor</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Configuration</h4>
+            <p>The ROE target is configurable through the financial attributes:</p>
+            <div class="code-block">
+// Default ROE target (18%)
+financial.attributes.roeTarget.value = 0.18;
+
+// D grade floor is automatically calculated as target/4 (4.5%)
+const roeFloor = financial.attributes.roeTarget.value / 4;
+            </div>
+
+            <h4>Usage Example</h4>
+            <div class="code-block">
+{ heading: "Profit Grade", id: "grade", column_type: "function", function: "loanProfitGrade(profit, principal, rate, term, amort)", data_type: "string" }
+            </div>
+
+            <h4>Output Format</h4>
+            <p>The function returns a formatted string combining the letter grade with the actual ROE percentage:</p>
+            <div class="code-block">
+// Examples:
+"A  (22.45%)"  // Excellent performance
+"B  (15.99%)"  // Good performance  
+"C  (10.80%)"  // Average performance
+"D  (6.30%)"   // Below average
+"F  (2.10%)"   // Poor performance
+            </div>
+        </section>
+
+        <section id="examples" class="section">
+            <h2>Examples</h2>
+            
+            <h3>Banking Profitability Analysis</h3>
+            <div class="code-block">
+window.appConfig = {
+    description: "Checking account profitability analysis",
+    table: [
+        { heading: "Portfolio", id: "Portfolio", column_type: "data", data_type: "unique" },
+        { heading: "Balance", id: "Average_Balance", column_type: "data", data_type: "currency", source_name: "checking" },
+        { heading: "Profit", id: "checkingProfit", column_type: "function", data_type: "currency", source_name: "checking", sort: "desc" }
+    ]
+};
+            </div>
+
+            <h3>Loan Analysis with Filters</h3>
+            <div class="code-block">
+window.appConfig = {
+    description: "Loan analysis for high-value accounts",
+    table: [
+        { heading: "Portfolio", id: "Portfolio", column_type: "data", data_type: "unique" },
+        { heading: "Principal", id: "Principal", column_type: "data", data_type: "currency", source_name: "loan", where: "> 100000" },
+        { heading: "Rate", id: "Rate", column_type: "data", data_type: "rate", source_name: "loan" },
+        { heading: "Profit", id: "loanProfit", column_type: "function", data_type: "currency", source_name: "loan" }
+    ]
+};
+            </div>
+
+            <h3>Custom Formula Example</h3>
+            <div class="code-block">
+window.appConfig = {
+    description: "Custom calculations with formulas",
+    table: [
+        { heading: "ID", id: "id", column_type: "data", data_type: "unique" },
+        { heading: "Revenue", id: "revenue", column_type: "data", data_type: "currency" },
+        { heading: "Costs", id: "costs", column_type: "data", data_type: "currency" },
+        { heading: "Margin", id: "margin", column_type: "formula", data_type: "rate", formula: "(revenue - costs) / revenue" }
+    ]
+};
+            </div>
+        </section>
+
+        <section id="best-practices" class="section">
+            <h2>Best Practices</h2>
+            
+            <h3>Performance Optimization</h3>
+            <ul>
+                <li>Use Web Workers for large datasets</li>
+                <li>Implement data filtering at the source level</li>
+                <li>Cache frequently used calculations</li>
+                <li>Use appropriate data types for better formatting</li>
+            </ul>
+
+            <h3>Security Considerations</h3>
+            <ul>
+                <li>Validate all input data before processing</li>
+                <li>Use Content Security Policy headers</li>
+                <li>Implement proper error handling</li>
+                <li>Sanitize user inputs in formulas</li>
+            </ul>
+
+            <h3>Data Management</h3>
+            <ul>
+                <li>Use descriptive column headings</li>
+                <li>Implement consistent naming conventions</li>
+                <li>Document complex formulas and functions</li>
+                <li>Test with various data scenarios</li>
+            </ul>
+
+            <h3>UI/UX Guidelines</h3>
+            <ul>
+                <li>Provide clear data source selection</li>
+                <li>Use appropriate chart types for data</li>
+                <li>Implement responsive design principles</li>
+                <li>Include data export capabilities</li>
+            </ul>
+        </section>
+
+        <div class="highlight">
+            <h3>Getting Help</h3>
+            <p>For additional support, examples, and community resources, visit our documentation repository or contact the development team.</p>
+            <p><strong>Framework Version:</strong> 1.2 | <strong>Last Updated:</strong> December 2024</p>
+        </div>
+    </div>
+</body>
+</html>
