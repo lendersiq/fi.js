@@ -1,4 +1,5 @@
 // libraries/financial.js
+
 window.financial = {
   functions: {
     interestIncome: {
@@ -23,27 +24,157 @@ window.financial = {
         return ytdPerformance.toFixed(2); // returns a percentage
       }
     },
-    costofFunds: {
-      description: "Calculates the cost of funds",
-      implementation: function (principal, rate) {
-        // Access the cached treasury curve data.
-        if (!window.financial.api._cache) {
-          console.warn('Treasury data not yet loaded. Returning default value.');
-          return 0;
+
+    calculateMonthlyPayment: {
+      description: "Calculates the monthly payment for a loan based on principal, interest rate, and term",
+      implementation: function (principal, rate, term, amort = null) {
+        const monthlyRate = (rate / 100) / 12;
+        let numberOfPayments = term;
+        if (amort > term) {
+          numberOfPayments = amort;
         }
-        // Example: multiply principal with the second value from the treasury curve.
-        return principal * window.financial.api._cache.treasuryCurve.values[1];
+        if (monthlyRate === 0) return principal / numberOfPayments;
+        const payment = principal * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+        return isNaN(payment) ? 0 : payment.toFixed(2);
       }
     },
-    averagePrincipal: {
-      description: "Calculates the average balance of a loan over its term",
-      implementation: function (principal, payment, rate, maturity, sourceIndex) {
-        if (principal <= 0) return 0;
-        // Determine months until maturity using either maturity date or term
-        const { monthsUntilMaturity, yearsUntilMaturity } = financial.functions.untilMaturity.implementation(maturity);
+
+    calculateTotalInterest: {
+      description: "Calculates the total interest paid over the life of a loan",
+      implementation: function (principal, rate, term, amort = null) {
+        const monthlyRate = (rate / 100) / 12;
+        let numberOfPayments = term;
+        if (amort > term) {
+          numberOfPayments = amort;
+        }
+        if (monthlyRate === 0) return 0;
+        const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+        return ((monthlyPayment * numberOfPayments) - principal) / (numberOfPayments / 12);
+      }
+    },
+
+    costofFunds: {
+      description: "Calculates the cost of funds",
+      implementation: function (principal, rate, term) {
+        // Check if treasury data is available
+        if (!window.financial.api._cache || !window.financial.api._cache.treasuryCurve || !window.financial.api._cache.treasuryCurve.values) {
+          console.warn('Treasury data not yet loaded. Using rate-based calculation.');
+          return principal * (rate / 100);
+        }
+        
+        // Check if the term index exists in treasury curve
+        if (term >= window.financial.api._cache.treasuryCurve.values.length) {
+          console.warn(`Treasury rate not found for term ${term}. Using rate-based calculation.`);
+          return principal * (rate / 100);
+        }
+        
+        // Use treasury rate for the given term
+        const treasuryRate = window.financial.api._cache.treasuryCurve.values[term];
+        return principal * treasuryRate;
+      }
+    },
+
+    costofFundsSlice: {
+      description: "Calculates the cost of funds using slice method",
+      implementation: function (principal, rate, term, amort = null) {
+        rate = rate < 1 ? parseFloat(rate) : parseFloat(rate / 100);
+        console.log('principal, rate, term, amort', principal, rate, term, amort)
+        const treasuryCurve = window.financial.api._cache.treasuryCurve.values;
+        const payment = financial.functions.calculateMonthlyPayment.implementation(principal, rate, term, amort);
+        let sigma_COF = 0;
+        let period_principal = principal;
+        let paydown = 0;
+        let period = 0;
+        let k = .0040;
+        for (period = 1; period < term; period++) {
+          //console.log('period', period, rate, sigma_COF, paydown, period_principal, parseFloat(treasuryCurve[period] + k))
+          paydown = payment - period_principal * (rate / 100) / 12;
+          sigma_COF += parseFloat(treasuryCurve[period] + k) * paydown * period;
+          period_principal -= paydown;
+        }
+        paydown = period_principal;
+        sigma_COF += parseFloat(treasuryCurve[period] + k) * paydown * period;
+        return (sigma_COF / term).toFixed(2);
+      }
+    },
+
+    loanProfitGrade: {
+      description: "Calculates the grade of a loan based on profit",
+      implementation: function (profit, principal, rate, term, amort = null) {
+        if (principal <= 0) return "F 0.00%";
+        
         const monthlyRate = rate < 1 ? parseFloat(rate) / 12 : parseFloat(rate / 100) / 12;
-        //console.log('payment, monthly rate, monthsUntilMaturity', payment, monthlyRate, monthsUntilMaturity)
-        // Calculate the total principal over the loan period
+        const payment = financial.functions.calculateMonthlyPayment.implementation(principal, rate, term, amort);
+        let cummulativePrincipal = 0;
+        let tempPrincipal = principal;
+        var month = 0;
+        while (month < term && tempPrincipal > 0) {
+          cummulativePrincipal += tempPrincipal;
+          tempPrincipal -= payment - tempPrincipal * monthlyRate;
+          month++;
+        }
+        const averagePrincipal = cummulativePrincipal / term;
+        
+        // Calculate ROE as percentage
+        const roePercentage = (profit / (averagePrincipal * 0.09)) * 100;
+        const ROE = roePercentage.toFixed(2) + "%";
+        
+        // Get ROE target from attributes (convert to percentage)
+        const roeTarget = financial.attributes.roeTarget.value * 100; // Convert 0.18 to 18
+        const roeFloor = roeTarget / 4; // D grade floor
+        
+        // Determine letter grade based on ROE
+        let grade;
+        if (roePercentage >= roeTarget) {
+          grade = "A";
+        } else if (roePercentage >= roeTarget * 0.75) {
+          grade = "B";
+        } else if (roePercentage >= roeTarget * 0.5) {
+          grade = "C";
+        } else if (roePercentage >= roeFloor) {
+          grade = "D";
+        } else {
+          grade = "F";
+        }
+        
+        return grade + "  (" + ROE + ")";
+      }
+    },
+
+    averagePrincipalByTerm: {
+      description: "Calculates the average balance of a loan over its term using term",
+      implementation: function (principal, payment, rate, term) {
+        if (principal <= 0) return 0;
+        const monthlyRate = rate < 1 ? parseFloat(rate) / 12 : parseFloat(rate / 100) / 12;
+        let cummulativePrincipal = 0;
+        let tempPrincipal = principal;
+        var month = 0;
+        while (month < term && tempPrincipal > 0) {
+          cummulativePrincipal += tempPrincipal;
+          tempPrincipal -= payment - tempPrincipal * monthlyRate;
+          month++;
+        }
+        const averagePrincipal = cummulativePrincipal / term;
+        console.log('principal, payment, rate, term, averagePrincipal', principal, payment, rate, term, averagePrincipal)
+        return averagePrincipal.toFixed(2);
+      }
+    },
+
+    averagePrincipal: {
+      description: "Calculates the average balance of a loan over its term using maturity date",
+      implementation: function (principal, payment, rate, maturity, term, sourceIndex) {
+        if (principal <= 0) return 0;
+        
+        // Use term directly if available, otherwise use untilMaturity
+        let monthsUntilMaturity;
+        if (term) {
+          monthsUntilMaturity = term;
+        } else {
+          const maturityResult = financial.functions.untilMaturity.implementation(maturity);
+          monthsUntilMaturity = maturityResult.monthsUntilMaturity;
+        }
+        
+        const monthlyRate = rate < 1 ? parseFloat(rate) / 12 : parseFloat(rate / 100) / 12;
         let cummulativePrincipal = 0;
         let tempPrincipal = principal;
         var month = 0;
@@ -52,12 +183,11 @@ window.financial = {
           tempPrincipal -= payment - tempPrincipal * monthlyRate;
           month++;
         }
-        // Calculate average balance
         const averagePrincipal = cummulativePrincipal / monthsUntilMaturity;
-        //console.log('principal, payment, rate, maturity, average', principal, payment, rate, maturity, averagePrincipal)
         return averagePrincipal.toFixed(2);
       }
     },
+
     untilMaturity: {
       description: "Calculates the number of months and years to maturity of a financial instrument",
       implementation: function (maturity = null) {
@@ -97,6 +227,7 @@ window.financial = {
         return { monthsUntilMaturity, yearsUntilMaturity };
       }
     },
+
     sinceOpen: {
       description: "Calculates the number of months and years from the open date of a financial instrument",
       implementation: function (open = null) {
@@ -176,41 +307,64 @@ window.financial = {
         return { termInMonths, termInYears };
       }
     },
+
     depositRisk: {
       description: "Scores the risk of a checking account",
       implementation: function (balance, checks, deposits, nsf, sourceIndex) {
         if (balance === 0 || sourceIndex === null) return 0
 
+        // Validate sourceIndex and statistics data before calling getStatistic
+        if (!window.statistics || !window.statistics[sourceIndex] || typeof getStatistic !== 'function') {
+          if (window.logger) {
+            console.warn('Invalid sourceIndex or statistics data not available for depositRisk calculation');
+          }
+          return 1; // Return default risk level
+        }
+
         const balanceObject = getStatistic(sourceIndex, 'balance', 'threeStdDeviations');
         let balanceRisk = 1;
-        if (balance > getStatistic(sourceIndex, 'balance', 'threeStdDeviations')[1]) {
-          balanceRisk = 5;
-        } else if (balance > getStatistic(sourceIndex, 'balance', 'mean')) {
-          balanceRisk = 3;
+        if (balanceObject && Array.isArray(balanceObject) && balanceObject[1] !== undefined) {
+          if (balance > balanceObject[1]) {
+            balanceRisk = 5;
+          } else if (balance > getStatistic(sourceIndex, 'balance', 'mean')) {
+            balanceRisk = 3;
+          }
         }
 
 
         // issuing checks for payroll, vendor payments, or refunds during specific times of the year may have a greater risk.
         let checksRisk = 1;
-        if (checks > getStatistic(sourceIndex, 'checks', 'threeStdDeviations')[1]) {
-          checksRisk = 5;
-        } else if (checks > getStatistic(sourceIndex, 'checks', 'twoStdDeviations')[1]) {
-          checksRisk = 4;
-        } else if (checks > getStatistic(sourceIndex, 'checks', 'mean')) {
-          checksRisk = 2;
+        const checksThreeStd = getStatistic(sourceIndex, 'checks', 'threeStdDeviations');
+        const checksTwoStd = getStatistic(sourceIndex, 'checks', 'twoStdDeviations');
+        const checksMean = getStatistic(sourceIndex, 'checks', 'mean');
+        
+        if (checksThreeStd && Array.isArray(checksThreeStd) && checksThreeStd[1] !== undefined) {
+          if (checks > checksThreeStd[1]) {
+            checksRisk = 5;
+          } else if (checksTwoStd && Array.isArray(checksTwoStd) && checksTwoStd[1] !== undefined && checks > checksTwoStd[1]) {
+            checksRisk = 4;
+          } else if (checksMean && checks > checksMean) {
+            checksRisk = 2;
+          }
         }
 
         // Regular deposits (e.g., payroll or vendor payments) indicate frequency of activity--higher active accounts may indicate risk.
         let depositsRisk = 1;
-        if (deposits > getStatistic(sourceIndex, 'deposits', 'threeStdDeviations')[1]) {
-          depositsRisk = 5;
-        } else if (deposits > getStatistic(sourceIndex, 'deposits', 'twoStdDeviations')[1]) {
-          depositsRisk = 2;
+        const depositsThreeStd = getStatistic(sourceIndex, 'deposits', 'threeStdDeviations');
+        const depositsTwoStd = getStatistic(sourceIndex, 'deposits', 'twoStdDeviations');
+        
+        if (depositsThreeStd && Array.isArray(depositsThreeStd) && depositsThreeStd[1] !== undefined) {
+          if (deposits > depositsThreeStd[1]) {
+            depositsRisk = 5;
+          } else if (depositsTwoStd && Array.isArray(depositsTwoStd) && depositsTwoStd[1] !== undefined && deposits > depositsTwoStd[1]) {
+            depositsRisk = 2;
+          }
         }
 
         // High overdraft activity could signal poor account management.
         let NSFsRisk = 1;
-        if (nsf > getStatistic(sourceIndex, 'nsf', 'threeStdDeviations')[1]) {
+        const nsfThreeStd = getStatistic(sourceIndex, 'nsf', 'threeStdDeviations');
+        if (nsfThreeStd && Array.isArray(nsfThreeStd) && nsfThreeStd[1] !== undefined && nsf > nsfThreeStd[1]) {
           NSFsRisk = 5;
         }
 
@@ -305,9 +459,23 @@ window.financial = {
         //const { monthsSinceOpen, yearsSinceOpen } = financial.functions.sinceOpen.implementation(open); can be used to address aquisition costs
         // i.e annualAquisitionExpense = aquistionExpense / yearsSinceOpen
 
-        const annualDeposits = deposits ? deposits * getStatistic(sourceIndex, 'deposits', 'YTDfactor') : 0;
+        // Validate sourceIndex and statistics data before calling getStatistic
+        let annualDeposits = 0;
+        let annualWithdrawals = 0;
+        
+        if (window.statistics && window.statistics[sourceIndex] && typeof getStatistic === 'function') {
+          const depositsYtdFactor = getStatistic(sourceIndex, 'deposits', 'YTDfactor');
+          const withdrawalsYtdFactor = getStatistic(sourceIndex, 'withdrawals', 'YTDfactor');
+          
+          annualDeposits = deposits && depositsYtdFactor ? deposits * depositsYtdFactor : 0;
+          annualWithdrawals = withdrawals && withdrawalsYtdFactor ? withdrawals * withdrawalsYtdFactor : 0;
+        } else {
+          if (window.logger) {
+            console.warn('Invalid sourceIndex or statistics data not available for checkingProfit calculation');
+          }
+        }
+        
         const depositsExpense = annualDeposits * financial.attributes.depositUnitExpense.value;
-        const annualWithdrawals = withdrawals ? withdrawals * getStatistic(sourceIndex, 'withdrawals', 'YTDfactor') : 0;
         const withdrawalsExpense = annualWithdrawals * financial.attributes.withdrawalUnitExpense.value;
 
         //aiIdConsumerSmallBiz  
@@ -319,14 +487,28 @@ window.financial = {
           accountType = "Business";
         }
 
-        const interestByExpense = interest ? interest * getStatistic(sourceIndex, 'interest', 'YTDfactor') : 0;
-        const interestByRate = rate ? (rate < 1 ? parseFloat(rate) : parseFloat(rate / 100)) * getStatistic(sourceIndex, 'rate', 'YTDfactor') * balance : 0;
+        // Additional getStatistic calls with validation
+        let interestByExpense = 0;
+        let interestByRate = 0;
+        let feeIncome = 0;
+        let nsfIncome = 0;
+        
+        if (window.statistics && window.statistics[sourceIndex] && typeof getStatistic === 'function') {
+          const interestYtdFactor = getStatistic(sourceIndex, 'interest', 'YTDfactor');
+          const rateYtdFactor = getStatistic(sourceIndex, 'rate', 'YTDfactor');
+          const chargesYtdFactor = getStatistic(sourceIndex, 'charges', 'YTDfactor');
+          const nsfYtdFactor = getStatistic(sourceIndex, 'nsf', 'YTDfactor');
+          
+          interestByExpense = interest && interestYtdFactor ? interest * interestYtdFactor : 0;
+          interestByRate = rate && rateYtdFactor ? (rate < 1 ? parseFloat(rate) : parseFloat(rate / 100)) * rateYtdFactor * balance : 0;
+          
+          const chargesIncome = charges ? charges : 0;
+          const waiveIncome = waived ? waived : 0;
+          feeIncome = chargesYtdFactor ? (chargesIncome - waiveIncome) * chargesYtdFactor : 0;
+          nsfIncome = nsf && nsfYtdFactor ? nsf * nsfYtdFactor : 0;
+        }
+        
         const interestExpense = Math.max(interestByExpense, interestByRate);
-
-        const chargesIncome = charges ? charges : 0;
-        const waiveIncome = waived ? waived : 0;
-        const feeIncome = (chargesIncome - waiveIncome) * getStatistic(sourceIndex, 'charges', 'YTDfactor');
-        const nsfIncome = nsf ? nsf * getStatistic(sourceIndex, 'nsf', 'YTDfactor') : 0;
 
         var operatingExpense = 100;  //default
         if (financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType]) {
@@ -356,9 +538,23 @@ window.financial = {
         const creditRate = financial.functions.calculateFtpRate.implementation(months, sourceIndex);
         const creditForFunding = creditRate * balance;
 
-        const annualDeposits = deposits ? deposits * getStatistic(sourceIndex, 'deposits', 'YTDfactor') : 0;
+        // Validate sourceIndex and statistics data before calling getStatistic
+        let annualDeposits = 0;
+        let annualWithdrawals = 0;
+        
+        if (window.statistics && window.statistics[sourceIndex] && typeof getStatistic === 'function') {
+          const depositsYtdFactor = getStatistic(sourceIndex, 'deposits', 'YTDfactor');
+          const withdrawalsYtdFactor = getStatistic(sourceIndex, 'withdrawals', 'YTDfactor');
+          
+          annualDeposits = deposits && depositsYtdFactor ? deposits * depositsYtdFactor : 0;
+          annualWithdrawals = withdrawals && withdrawalsYtdFactor ? withdrawals * withdrawalsYtdFactor : 0;
+        } else {
+          if (window.logger) {
+            console.warn('Invalid sourceIndex or statistics data not available for savingsProfit calculation');
+          }
+        }
+        
         const depositsExpense = annualDeposits * financial.attributes.depositUnitExpense.value;
-        const annualWithdrawals = withdrawals ? withdrawals * getStatistic(sourceIndex, 'withdrawals', 'YTDfactor') : 0;
         const withdrawalsExpense = annualWithdrawals * financial.attributes.withdrawalUnitExpense.value;
 
         //aiIdConsumerSmallBiz  
@@ -370,13 +566,25 @@ window.financial = {
           accountType = "Business";
         }
 
-        const interestByExpense = interest ? interest * getStatistic(sourceIndex, 'interest', 'YTDfactor') : 0;
-        const interestByRate = rate ? (rate < 1 ? parseFloat(rate) : parseFloat(rate / 100)) * getStatistic(sourceIndex, 'rate', 'YTDfactor') * balance : 0;
+        // Additional getStatistic calls with validation
+        let interestByExpense = 0;
+        let interestByRate = 0;
+        let feeIncome = 0;
+        
+        if (window.statistics && window.statistics[sourceIndex] && typeof getStatistic === 'function') {
+          const interestYtdFactor = getStatistic(sourceIndex, 'interest', 'YTDfactor');
+          const rateYtdFactor = getStatistic(sourceIndex, 'rate', 'YTDfactor');
+          const chargesYtdFactor = getStatistic(sourceIndex, 'charges', 'YTDfactor');
+          
+          interestByExpense = interest && interestYtdFactor ? interest * interestYtdFactor : 0;
+          interestByRate = rate && rateYtdFactor ? (rate < 1 ? parseFloat(rate) : parseFloat(rate / 100)) * rateYtdFactor * balance : 0;
+          
+          const chargesIncome = charges ? charges : 0;
+          const waiveIncome = waived ? waived : 0;
+          feeIncome = chargesYtdFactor ? (chargesIncome - waiveIncome) * chargesYtdFactor : 0;
+        }
+        
         const interestExpense = Math.max(interestByExpense, interestByRate);
-
-        const chargesIncome = charges ? charges : 0;
-        const waiveIncome = waived ? waived : 0;
-        const feeIncome = (chargesIncome - waiveIncome) * getStatistic(sourceIndex, 'charges', 'YTDfactor');
 
         var operatingExpense = 50;  //default
         if (financial.dictionaries.annualOperatingExpense[sourceIndex].values[accountType]) {
@@ -406,11 +614,26 @@ window.financial = {
         const creditRate = financial.functions.calculateFtpRate.implementation(months, sourceIndex);
         const creditForFunding = creditRate * balance;
 
-        const annualDeposits = deposits ? deposits * getStatistic(sourceIndex, 'deposits', 'YTDfactor') : 0;
+        // Validate sourceIndex and statistics data before calling getStatistic
+        let annualDeposits = 0;
+        let interestByExpense = 0;
+        let interestByRate = 0;
+        
+        if (window.statistics && window.statistics[sourceIndex] && typeof getStatistic === 'function') {
+          const depositsYtdFactor = getStatistic(sourceIndex, 'deposits', 'YTDfactor');
+          const interestYtdFactor = getStatistic(sourceIndex, 'interest', 'YTDfactor');
+          const rateYtdFactor = getStatistic(sourceIndex, 'rate', 'YTDfactor');
+          
+          annualDeposits = deposits && depositsYtdFactor ? deposits * depositsYtdFactor : 0;
+          interestByExpense = interest && interestYtdFactor ? interest * interestYtdFactor : 0;
+          interestByRate = rate && rateYtdFactor ? (rate < 1 ? parseFloat(rate) : parseFloat(rate / 100)) * rateYtdFactor * balance : 0;
+        } else {
+          if (window.logger) {
+            console.warn('Invalid sourceIndex or statistics data not available for CDProfit calculation');
+          }
+        }
+        
         const depositsExpense = annualDeposits * financial.attributes.depositUnitExpense.value;
-
-        const interestByExpense = interest ? interest * getStatistic(sourceIndex, 'interest', 'YTDfactor') : 0;
-        const interestByRate = rate ? (rate < 1 ? parseFloat(rate) : parseFloat(rate / 100)) * getStatistic(sourceIndex, 'rate', 'YTDfactor') * balance : 0;
         const interestExpense = Math.max(interestByExpense, interestByRate);
 
         var operatingExpense = 100;  //default
@@ -430,44 +653,25 @@ window.financial = {
       }
     },
 
+    expectedLossProvision: {
+      description: "Calculates the expected loss provision of a loan using industry standard PD × LGD × EAD formula",
+      implementation: function (risk, principal, averagePrincipal, ltv = null, sourceIndex) {
 
-    loanProfit: {
-      description: "Calculates the profit of a variety of loans",
-      implementation: function (portfolio, principal, rate, risk, open, type, payment = null, fees = null, maturity = null, term = null, sourceIndex) {
-        if (!principal || principal === 0) return 0; // zero principal implies closed loan, so return 0 profit
-        const { monthsUntilMaturity, yearsUntilMaturity } = financial.functions.untilMaturity.implementation(maturity);
-        const monthlyRate = rate < 1 ? parseFloat(rate) / 12 : parseFloat(rate / 100) / 12;
-        const monthlyPayment = (principal * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -monthsUntilMaturity)))).toFixed(2);
-        const lifetimeInterest = monthlyPayment * monthsUntilMaturity - principal;
-        const AveragePrincipal = lifetimeInterest / (monthlyRate * monthsUntilMaturity);
-        const { termInMonths, termInYears } = financial.functions.getTerm.implementation(term, open, maturity);
-        const interestIncome = AveragePrincipal * rate;
-        const fundingRate = financial.functions.calculateFundingRate.implementation(monthsUntilMaturity);
-        const fundingExpense = AveragePrincipal * fundingRate;
-        let smallLoanMaximum = financial.attributes.smallLoanMaximum.value;  //default
-        const principalMedian = getStatistic(sourceIndex, 'principal', 'median');
-        if (principalMedian) {
-          smallLoanMaximum = principalMedian > smallLoanMaximum ? principalMedian : smallLoanMaximum;  // the median of each loan principal in the entire portfolio (50th percentile)
-        }
-
-        let isConsumerSmallBusiness = false;
-        if (payment) { //if loan payment is a valid argument test original
-          const originalPrincipal = monthlyPayment * termInMonths - lifetimeInterest;
-          isConsumerSmallBusiness = originalPrincipal < smallLoanMaximum;
-        } else {
-          isConsumerSmallBusiness = termInYears <= 5 && principal < smallLoanMaximum;
-        }
-        let complexityFactor = 1;
-        if (isConsumerSmallBusiness) {
-          complexityFactor = 0.5
-        }
-        const originationExpense = (financial.attributes.fixedOriginationExpense.value + Math.min(principal, financial.attributes.principalCostMaximum.value) * financial.attributes.variableOriginationFactor.value * complexityFactor) / Math.min(termInYears, 10);
-        const servicingExpense = (financial.attributes.fixedServicingExpense.value + principal * financial.attributes.loanServicingFactor.value / yearsUntilMaturity) * complexityFactor;
-
-        let probabilityOfDefault = 0;
+        // 1. PROBABILITY OF DEFAULT (PD) - Risk of borrower defaulting
+        let probabilityOfDefault = 0.02; // Default 2% PD
+        
         if (risk && risk !== 'NULL') {
-          const riskObject = getStatistic(sourceIndex, 'risk', 'convexProbability');
-          if (riskObject) { // risk data reached statistical signifigance
+          let riskObject = null;
+          // Validate sourceIndex/statistics before calling getStatistic
+          if (
+            sourceIndex !== null && sourceIndex !== undefined &&
+            window.statistics && window.statistics[sourceIndex] &&
+            typeof getStatistic === 'function'
+          ) {
+            riskObject = getStatistic(sourceIndex, 'risk', 'convexProbability');
+          }
+
+          if (riskObject) { // risk data reached statistical significance
             if (typeof risk === "string") {
               const match = risk.match(/^(\d+)([a-zA-Z])$/);
               if (match) {
@@ -475,15 +679,103 @@ window.financial = {
                 risk = parseInt(match[1], 10) + 0.5;
               }
             }
-            probabilityOfDefault = riskObject * .01;
-          } else {
-            //console.warn('cannot find key in convexProbability:', risk);
+            probabilityOfDefault = riskObject * 0.01; // Convert percentage to decimal
           }
-        } else {
-          probabilityOfDefault = .02;
         }
-        const lossProvision = AveragePrincipal / financial.attributes.minimumLoanToValue.value * (1 - financial.attributes.expectedRecoveryRate.value) * probabilityOfDefault;
-        const expectedLossProvision = lossProvision / yearsUntilMaturity;  // spread lossProvision cost over yearsUntilMaturity
+
+        // 2. EXPOSURE AT DEFAULT (EAD) - Amount at risk when default occurs
+        const exposureAtDefault = averagePrincipal || principal;
+
+        // 3. LOSS GIVEN DEFAULT (LGD) - Percentage of exposure lost after recovery
+        if (!ltv) {
+          ltv = financial.attributes.minimumLoanToValue.value;
+        }
+
+        // Calculate collateral value: EAD / LTV
+        const collateralValue = exposureAtDefault / ltv;
+        
+        // Calculate recovery amount: collateral value × recovery rate
+        const recoveryAmount = collateralValue * financial.attributes.expectedRecoveryRate.value;
+        
+        // LGD = (EAD - Recovery) / EAD
+        // If recovery exceeds EAD, LGD = 0 (no loss)
+        let lossGivenDefault = Math.max(0, (exposureAtDefault - recoveryAmount) / exposureAtDefault);
+        
+        // Ensure LGD is between 0 and 1 (0% to 100% loss)
+        lossGivenDefault = Math.max(0, Math.min(1, lossGivenDefault));
+
+        // 4. EXPECTED LOSS = PD × LGD × EAD
+        const expectedLoss = probabilityOfDefault * lossGivenDefault * exposureAtDefault;
+
+        console.log(`EL Calculation - EAD: $${exposureAtDefault.toLocaleString()}, LTV: ${(ltv * 100).toFixed(1)}%, Collateral: $${collateralValue.toLocaleString()}, Recovery: $${recoveryAmount.toLocaleString()}, LGD: ${(lossGivenDefault * 100).toFixed(2)}%, PD: ${(probabilityOfDefault * 100).toFixed(2)}%, Expected Loss: $${expectedLoss.toFixed(2)}`);
+        
+        return expectedLoss;
+      }
+    },
+
+    loanProfit: {
+      description: "Calculates the profit of a variety of loans",
+      implementation: function (portfolio, principal, rate, risk, open, type, payment = null, fees = null, maturity = null, term = null, amort = null, ltv = null, sourceIndex) {
+        console.log(`portfolio: ${portfolio}, principal: ${principal}, rate: ${rate}, risk: ${risk}, open: ${open}, type: ${type}, payment: ${payment}, fees: ${fees}, maturity: ${maturity}, term: ${term}, sourceIndex: ${sourceIndex}`)
+        if (!principal || principal === 0) return 0; // zero principal implies closed loan, so return 0 profit
+        
+        // Use term directly if available, otherwise use untilMaturity
+        let monthsUntilMaturity, yearsUntilMaturity;
+        if (term) {
+          monthsUntilMaturity = term;
+          yearsUntilMaturity = term / 12;
+        } else {
+          const maturityResult = financial.functions.untilMaturity.implementation(maturity);
+          monthsUntilMaturity = maturityResult.monthsUntilMaturity;
+          yearsUntilMaturity = maturityResult.yearsUntilMaturity;
+        }
+        
+        rate = rate < 1 ? parseFloat(rate) : parseFloat(rate / 100);
+        const monthlyRate = rate / 12;
+        const monthlyPayment = (principal * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -monthsUntilMaturity)))).toFixed(2);
+        const lifetimeInterest = monthlyPayment * monthsUntilMaturity - principal;
+        const averagePrincipal = lifetimeInterest / (monthlyRate * monthsUntilMaturity);
+        const { termInMonths, termInYears } = financial.functions.getTerm.implementation(term, open, maturity);
+        const interestIncome = averagePrincipal * rate;
+        const fundingExpense = financial.functions.costofFundsSlice.implementation(principal, rate, termInMonths, amort);
+
+        let complexityFactor = 1;
+        if (financial.dictionaries.complexityFactor.values && 
+          financial.dictionaries.complexityFactor.values.hasOwnProperty(type)) {
+          complexityFactor = financial.dictionaries.complexityFactor.values[type];
+        } else {
+          let smallLoanMaximum = financial.attributes.smallLoanMaximum.value;  //default
+          
+          // Validate sourceIndex and statistics data before calling getStatistic
+          if (sourceIndex !== null && sourceIndex !== undefined && 
+              window.statistics && 
+              window.statistics[sourceIndex] && 
+              typeof getStatistic === 'function') {
+            const principalMedian = getStatistic(sourceIndex, 'principal', 'median');
+            if (principalMedian && !isNaN(principalMedian) && principalMedian > 0) {
+              smallLoanMaximum = principalMedian > smallLoanMaximum ? principalMedian : smallLoanMaximum;  // the median of each loan principal in the entire portfolio (50th percentile)
+            }
+          } else {
+            if (window.logger) {
+              console.warn('Invalid sourceIndex or statistics data not available for getStatistic call');
+            }
+          }
+
+          let isConsumerSmallBusiness = false;
+          if (payment) { //if loan payment is a valid argument test original
+            const originalPrincipal = monthlyPayment * termInMonths - lifetimeInterest;
+            isConsumerSmallBusiness = originalPrincipal < smallLoanMaximum;
+          } else {
+            isConsumerSmallBusiness = termInYears <= 5 && principal < smallLoanMaximum;
+          }
+          if (isConsumerSmallBusiness) {
+            complexityFactor = 0.5
+          }
+        }
+        const originationExpense = (financial.attributes.fixedOriginationExpense.value + Math.min(principal, financial.attributes.principalCostMaximum.value) * financial.attributes.variableOriginationFactor.value * complexityFactor) / Math.min(termInYears, 10);
+        const servicingExpense = (financial.attributes.fixedServicingExpense.value + principal * financial.attributes.loanServicingFactor.value / yearsUntilMaturity) * complexityFactor;
+       
+        const lossProvision = financial.functions.expectedLossProvision.implementation(risk, principal, averagePrincipal, ltv, sourceIndex);
         const nonInterestIncome = fees !== null ? fees / termInYears : 0;
         const pretax = (interestIncome - fundingExpense - originationExpense - servicingExpense + nonInterestIncome);
         const taxFactor = 1 - organization.attributes.taxRate.value;
@@ -491,11 +783,11 @@ window.financial = {
         if (!organization.dictionaries.taxExempt.loan.values.includes(type)) {
           taxAdjusted = pretax * taxFactor;
         }
-        const profit = taxAdjusted - expectedLossProvision;
-        if (window.logger) console.log(`portfolio: ${portfolio}, principal: ${principal}, payment: ${payment}, average: ${AveragePrincipal}, risk: ${risk}, fees: ${fees}, years until maturity: ${yearsUntilMaturity}, term in years: ${termInYears}, rate: ${rate}, interest: ${interestIncome}, funding rate: ${fundingRate}, funding expense: ${fundingExpense}, origination expense: ${originationExpense}, servicing expense: ${servicingExpense}, non interest income: ${nonInterestIncome}, probability of default: ${probabilityOfDefault}, pretax: ${pretax}, expected loss: ${expectedLossProvision}, profit: ${profit.toFixed(2)}`);
+        const profit = taxAdjusted - lossProvision;
+        console.log(`portfolio: ${portfolio}, principal: ${principal}, payment: ${payment}, average: ${averagePrincipal}, risk: ${risk}, fees: ${fees}, years until maturity: ${yearsUntilMaturity}, term in years: ${termInYears}, rate: ${rate}, interest: ${interestIncome}, funding expense: ${fundingExpense}, origination expense: ${originationExpense}, servicing expense: ${servicingExpense}, non interest income: ${nonInterestIncome}, pretax: ${pretax}, ltv: ${ltv}, loss provision: ${lossProvision}, profit: ${profit.toFixed(2)}`);
         return profit;
       }
-    },
+    }  
   },
 
   api: {
@@ -642,11 +934,27 @@ window.financial = {
     capitalTarget: {
       description: "The institution capital to assets ratio target",
       value: 0.10
+    },
+    roeTarget: {
+      description: "The target Return on Equity (ROE) percentage for loan grading",
+      value: 0.18
     }
   },
 
   // supporting dictionaries
   dictionaries: {
+    complexityFactor: {
+      description: "The complexity factor for each loan type used to assign origination and servicing expenses",
+      values: {
+        "Commercial": 1,
+        "Commercial_Real_Estate": 1,
+        "Residential_Real_Estate": 0.5,
+        "Consumer": 0.5,
+        "Equipment": 0.5,
+        "Home_Equity": 0.5,
+        "Letter_of_Credit": 1
+      }
+    },
     consumerMaximum: {
       description: "The dollar threshold that can distinguish a consumer from a business account",
       values: {
@@ -750,10 +1058,30 @@ window.financial = {
   }
 };
 
+// Preload treasury data for all modes
 window.financial.api.treasuryCurve()
   .then(treasuryData => {
-    console.log('Treasury data:', treasuryData);
+    console.log('Treasury data loaded successfully:', treasuryData);
+    // Trigger a display update if forms are active
+    if (window.appConfig && window.appConfig.forms && window.processDisplayData) {
+      setTimeout(() => {
+        window.processDisplayData();
+      }, 100);
+    }
   })
   .catch(error => {
     console.error('Preloading treasury curve data failed:', error);
+    // Retry after a delay
+    setTimeout(() => {
+      window.financial.api.treasuryCurve()
+        .then(treasuryData => {
+          console.log('Treasury data loaded on retry:', treasuryData);
+          if (window.appConfig && window.appConfig.forms && window.processDisplayData) {
+            window.processDisplayData();
+          }
+        })
+        .catch(retryError => {
+          console.error('Treasury data retry also failed:', retryError);
+        });
+    }, 2000);
   });
