@@ -339,7 +339,11 @@
     if (form) {
       const formSection = document.createElement('div');
       formSection.className = 'form-section';
-      formSection.innerHTML = '<h2>FI.js Forms Demo</h2><p>This demo showcases all major HTML form elements and their integration with display processing.</p>';
+      // Get page title and appConfig description
+      const pageTitle = document.title || 'FI.js Forms';
+      const description = window.appConfig && window.appConfig.description ? window.appConfig.description : 'Interactive form with real-time calculations';
+      
+      formSection.innerHTML = `<h2>${pageTitle}</h2><p>${description}</p>`;
       formSection.appendChild(form);
       formsContainer.appendChild(formSection);
     }
