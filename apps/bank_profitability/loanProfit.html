@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="img-src 'self' data:; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://fijs.net; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="img-src 'self' data:; default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://bankersiq.com; object-src 'none';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../../styles/base.css">
   <title>Loan Profit</title>
@@ -13,10 +13,10 @@
     window.appConfig = {
       description: `<p>Calculate the profit of each loan based on market conditions and industy intelligence</p>`,
       table: [
-        { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
-        { "heading": "Loan Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "loan", "filter": "[1, 20]"},
-        { "heading": "Principal", "id": "Principal", "column_type": "data", "data_type": "currency", "source_name": "loan" },
-        { "heading": "Profit", "id": "loanProfit", "column_type": "function", "data_type": "currency", "source_name": "loan", "sort": "desc"}
+        { heading: "Portfolio", id: "Portfolio", column_type: "data", data_type: "unique" },
+        { heading: "Loan Type", id: "Class_Code", column_type: "data", data_type: "integer", source_name: "loan", where: "[1, 20]"},
+        { heading: "Principal", id: "Principal", column_type: "data", data_type: "currency", source_name: "loan" },
+        { heading: "Profit", id: "loanProfit", column_type: "function", data_type: "currency", source_name: "loan", sort: "desc"}
       ]
     }
   </script>

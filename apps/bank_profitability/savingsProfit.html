@@ -11,11 +11,11 @@
     // App configuration
     window.appConfig = {
       description: `<p>Calculate the profit of each savings account relationship based on market conditions and industy intelligence</p>`,
-        table: [
-        { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
-        { "heading": "Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "savings", "filter": "[1]" },
-        { "heading": "Balance", "id": "Previous_Average_Balance", "column_type": "data", "data_type": "currency", "source_name": "savings" },
-        { "heading": "Profit", "id": "savingsProfit", "column_type": "function", "data_type": "currency", "source_name": "savings", "sort": "desc" }
+      table: [
+        { heading: "Portfolio", id: "Portfolio", column_type: "data", data_type: "unique" },
+        { heading: "Type", id: "Class_Code", column_type: "data", data_type: "integer", source_name: "savings", where: "[1]" },
+        { heading: "Balance", id: "Previous_Average_Balance", column_type: "data", data_type: "currency", source_name: "savings" },
+        { heading: "Profit", id: "savingsProfit", column_type: "function", data_type: "currency", source_name: "savings", sort: "desc" }
       ]
     }
   </script>
