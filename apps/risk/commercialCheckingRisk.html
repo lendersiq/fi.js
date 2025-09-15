@@ -10,11 +10,11 @@
   <script>
     // App configuration
     window.appConfig = {
-      "description": "<p>This tutorial calculates and ranks the risk of each commercial checking account relationship based on several factors and their associated weights.</p>",
-      "table": [
-        { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
-        { "heading": "Checking Type", "id": "Class_Code", "column_type": "data", "data_type": "integer", "source_name": "checking", "filter": "[4, 20]" },
-        { "heading": "Risk", "id": "depositRisk", "column_type": "function", "data_type": "integer", "source_name": "checking" },
+      description: "<p>This tutorial calculates and ranks the risk of each commercial checking account relationship based on several factors and their associated weights.</p>",
+      table: [
+        { heading: "Portfolio", id: "Portfolio", column_type: "data", data_type: "unique" },
+        { heading: "Checking Type", id: "Class_Code", column_type: "data", data_type: "integer", source_name: "checking", where: "[4, 20]" },
+        { heading: "Risk", id: "depositRisk", column_type: "function", data_type: "integer", source_name: "checking" },
       ]
     }
   </script>
