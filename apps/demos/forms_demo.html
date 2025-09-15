@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../../styles/base.css">
+  <title>FI.js Forms Demo</title>
+</head>
+<body>
+  <script>
+    // App configuration with forms integration
+    window.appConfig = {
+      description: "FI.js Forms Demo - showcasing all HTML form elements and their integration with display processing",
+      forms: [
+        { 
+          id: "principal",
+          type: "number", 
+          label: "Principal Amount", 
+          value: 100000,
+          min: 0,
+          step: 1000
+        },
+        { 
+          id: "customerName",
+          type: "text", 
+          label: "Customer Name", 
+          value: "John Doe",
+          pattern: "[A-Za-z\\s]+"
+        },
+        { 
+          id: "email",
+          type: "email", 
+          label: "Email Address", 
+          value: "john.doe@example.com" 
+        },
+        { 
+          id: "interestRate",
+          type: "rate", 
+          label: "Interest Rate (%)", 
+          value: 5.5,
+          min: 0,
+          max: 30,
+          step: 0.125
+        },
+
+        { 
+          id: "loanType",
+          type: "select", 
+          label: "Loan Type", 
+          value: "20", 
+          options: [
+            { value: "1", label: "Personal Loan" },
+            { value: "20", label: "Mortgage" },
+            { value: "23", label: "Auto Loan" },
+            { value: "4", label: "Business Loan" }
+          ]
+        },
+        { 
+          id: "paymentFrequency",
+          type: "radio", 
+          label: "Payment Frequency", 
+          value: "monthly", 
+          options: [
+            { value: "monthly", label: "Monthly" },
+            { value: "quarterly", label: "Quarterly" },
+            { value: "annually", label: "Annually" }
+          ]
+        },
+        { 
+          id: "services",
+          type: "checkbox", 
+          label: "Additional Services", 
+          value: ["insurance"], 
+          options: [
+            { value: "insurance", label: "Loan Insurance" },
+            { value: "protection", label: "Payment Protection" },
+            { value: "refinance", label: "Refinance Option" }
+          ]
+        },
+        { 
+          id: "startDate",
+          type: "date", 
+          label: "Start Date", 
+          value: "2024-01-15" 
+        },
+        { 
+          id: "loanTerm",
+          type: "range", 
+          label: "Loan Term (years)", 
+          value: 15, 
+          min: 1, 
+          max: 30,
+          unit: " years"
+        },
+        { 
+          id: "notes",
+          type: "textarea", 
+          label: "Additional Notes", 
+          value: "First-time homebuyer",
+          rows: 3,
+          placeholder: "Enter any additional information..."
+        },
+        { 
+          id: "themeColor",
+          type: "color", 
+          label: "Theme Color", 
+          value: "#0063cc" 
+        },
+        { 
+          id: "website",
+          type: "url", 
+          label: "Website", 
+          value: "https://example.com" 
+        },
+        { 
+          id: "phone",
+          type: "tel", 
+          label: "Phone Number", 
+          value: "(555) 123-4567" 
+        },
+        { 
+          id: "password",
+          type: "password", 
+          label: "Password", 
+          value: "securepass123" 
+        },
+        { 
+          id: "sessionId",
+          type: "hidden", 
+          label: "Session ID", 
+          value: "sess_12345" 
+        }
+      ],
+      display: [
+        { heading: "Customer", id: "customerName", column_type: "form", data_type: "string" },
+        { heading: "Principal", id: "principal", column_type: "form", data_type: "currency" },
+        { heading: "Interest Rate", id: "interestRate", column_type: "form", data_type: "rate" },
+        { heading: "Loan Type", id: "loanType", column_type: "form", data_type: "string" },
+        { heading: "Payment Frequency", id: "paymentFrequency", column_type: "form", data_type: "string" },
+        { heading: "Services", id: "services", column_type: "form", data_type: "string" },
+        { heading: "Start Date", id: "startDate", column_type: "form", data_type: "date" },
+        { heading: "Loan Term", id: "loanTerm", column_type: "form", data_type: "integer" },
+        { heading: "Monthly Payment", id: "monthlyPayment", column_type: "function", function: "calculateMonthlyPayment(principal, interestRate, loanTerm)", data_type: "currency" },
+        { heading: "Total Interest", id: "totalInterest", column_type: "function", function: "calculateTotalInterest(principal, interestRate, loanTerm)", data_type: "currency" },
+        { heading: "Total Cost", id: "totalCost", column_type: "formula", formula: "principal + totalInterest", data_type: "currency" },
+        { heading: "Interest Income", id: "interestIncome", column_type: "function", function: "costofFunds(principal, interestRate, loanTerm)", data_type: "currency" }
+      ]
+    };
+  </script>
+  <script src="../../core/fi.js" defer></script>
+</body>
+</html>
