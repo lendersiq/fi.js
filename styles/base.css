@@ -780,3 +780,362 @@ tr:last-child {
     .stats-content { flex-direction: column; gap: 10px; }
     .stats-card { flex: 1 1 100%; }
 }
+
+/* ========================================
+   FI.js Forms Styles
+   ======================================== */
+
+/* Main container for forms apps with y-overflow support */
+.forms-app-container {
+    height: 100vh;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+}
+
+.forms-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin: 20px auto;
+    max-width: 1400px;
+    padding: 0 20px;
+    min-height: calc(100vh - 40px);
+    align-items: start;
+}
+
+/* Ensure display container is in the right column */
+.forms-container .display-container {
+    grid-column: 2;
+    order: 2;
+}
+
+.forms-container .form-section {
+    grid-column: 1;
+    order: 1;
+}
+
+.display-container {
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--fijs-bg) 0%, rgba(0, 245, 105, 0.05) 100%);
+    border-radius: 12px;
+    border: 1px solid var(--fijs-muted);
+    box-shadow: 0 8px 25px rgba(0, 99, 43, 0.1);
+    backdrop-filter: blur(10px);
+    animation: slideInUp 0.6s ease-out;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.display-container h2 {
+    margin: 0 0 20px 0;
+    color: var(--fijs-primary);
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 99, 43, 0.1);
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.result-card {
+    background: linear-gradient(135deg, rgba(0, 99, 43, 0.08), rgba(0, 245, 105, 0.08));
+    border: 1px solid var(--fijs-muted);
+    border-left: 4px solid var(--fijs-primary);
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    min-height: 80px;
+}
+
+.result-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--fijs-primary), var(--fijs-gradient2));
+}
+
+.result-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 99, 43, 0.2);
+    border-left-color: var(--fijs-gradient2);
+}
+
+.result-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fijs-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    opacity: 0.8;
+}
+
+.result-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-color);
+    word-break: break-word;
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.form-section {
+    background: linear-gradient(135deg, var(--fijs-bg) 0%, rgba(0, 99, 43, 0.02) 100%);
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid var(--fijs-muted);
+    box-shadow: 0 8px 32px rgba(0, 99, 43, 0.1);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.results-section {
+    background: linear-gradient(135deg, rgba(0, 245, 105, 0.1), rgba(0, 99, 43, 0.1));
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--fijs-muted);
+    border-left: 4px solid var(--fijs-primary);
+}
+
+.fi-forms-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    align-items: start;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--fijs-muted);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--fijs-primary);
+    box-shadow: 0 0 0 2px rgba(0, 99, 43, 0.2);
+}
+
+.form-group input[type="radio"],
+.form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+    margin-bottom: 0;
+}
+
+.radio-group,
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.radio-group label,
+.checkbox-group label {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 0;
+}
+
+.radio-group label:hover,
+.checkbox-group label:hover {
+    background-color: rgba(0, 99, 43, 0.05);
+    border-radius: 4px;
+}
+
+.range-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.range-container input[type="range"] {
+    flex: 1;
+    margin: 0;
+}
+
+.range-container span {
+    min-width: 60px;
+    text-align: right;
+    font-weight: bold;
+    color: var(--fijs-primary);
+}
+
+/* Submit button removed - using live updates only */
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: var(--fijs-bg);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.results-table th,
+.results-table td {
+    border: 1px solid var(--fijs-muted);
+    padding: 12px;
+    text-align: left;
+}
+
+.results-table th {
+    background: var(--fijs-primary);
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.results-table tr:nth-child(even) {
+    background-color: rgba(0, 99, 43, 0.05);
+}
+
+.results-table tr:hover {
+    background-color: rgba(0, 99, 43, 0.1);
+}
+
+/* Form validation styles */
+.form-group input:invalid {
+    border-color: var(--color-error);
+}
+
+.form-group input:valid {
+    border-color: var(--fijs-primary);
+}
+
+/* Responsive forms */
+@media (max-width: 1024px) {
+    .forms-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 0 15px;
+    }
+    
+    .form-section,
+    .display-container {
+        position: static;
+        max-height: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .forms-container {
+        padding: 0 15px;
+        gap: 15px;
+    }
+    
+    .fi-forms-form {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .form-section {
+        padding: 20px;
+    }
+    
+    .display-container {
+        padding: 20px;
+    }
+    
+    .radio-group,
+    .checkbox-group {
+        flex-direction: column;
+    }
+    
+    .range-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .range-container span {
+        text-align: center;
+        margin-top: 5px;
+    }
+    
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .forms-container {
+        margin: 10px 0;
+        padding: 0 10px;
+    }
+    
+    .form-section,
+    .results-section {
+        padding: 10px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+    
+    /* Submit button removed - using live updates only */
+    
+    .results-table th,
+    .results-table td {
+        padding: 8px;
+        font-size: 13px;
+    }
+}
