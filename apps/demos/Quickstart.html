@@ -11,13 +11,13 @@
   <script>
     // App configuration
     window.appConfig = {
-      "description": "Show average principal, branch, and officer of every loan opened beweeen October 31, 2020 and November 3, 2024 sorted in descending order",
-      "table": [
-        { "heading": "Portfolio", "id": "Portfolio", "column_type": "data", "data_type": "unique" },
-        { "heading": "Branch", "id": "Branch", "column_type": "data", "data_type": "integer", "source_name": "loan" },
-        { "heading": "Officer", "id": "Owner_Code", "column_type": "data", "data_type": "integer", "source_name": "loan" },
-        { "heading": "Open Date", "id": "Date_Opened", "column_type": "data", "data_type": "date", "source_name": "loan", "filter":  "> 2020-10-31 && < 2024-11-03" },
-        { "heading": "Average Principal", "id": "averagePrincipal", "column_type": "function", "data_type": "currency", "source_name": "loan", "filter": "> 0", "sort": "desc"  }
+      description: "Show average principal, branch, and officer of every loan opened beweeen October 31, 2020 and November 3, 2024 sorted in descending order",
+      table: [
+        { heading: "Portfolio", id: "Portfolio", column_type: "data", data_type: "unique" },
+        { heading: "Branch", id: "Branch", column_type: "data", data_type: "integer", source_name: "loan" },
+        { heading: "Officer", id: "Owner_Code", column_type: "data", data_type: "integer", source_name: "loan" },
+        { heading: "Open Date", id: "Date_Opened", column_type: "data", data_type: "date", source_name: "loan", where:  "> 2020-10-31 && < 2024-11-03" },
+        { heading: "Average Principal", id: "averagePrincipal", column_type: "function", data_type: "currency", source_name: "loan", where: "> 0", sort: "desc"  }
       ]
     };
   </script>
