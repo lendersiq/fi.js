@@ -159,13 +159,13 @@
     sourceConfigCache[sourceName] = relevantColumns;
 
     const filterConfigs = appConfig.table.filter(
-      c => c.source_name === sourceName && c.filter && c.column_type === "data"
+      c => c.source_name === sourceName && c.where && c.column_type === "data"
     );
-    // Only grab filters that match this sourceName, have a filter, and are "data" type
+    // Only grab filters that match this sourceName, have a where, and are "data" type
     if (filterConfigs.length) {
       filterCache[sourceName] = filterConfigs.map(cfg => ({
         column: cfg.id,
-        fn: createFilterFn(cfg.filter, cfg.data_type)
+        fn: createFilterFn(cfg.where, cfg.data_type)
       }));
     }
   });
@@ -570,14 +570,14 @@
   // used to apply to totals
   function applyFilters() {
     const filterConfigs = appConfig.table.filter(
-      c => c.filter && c.column_type === "data"
+      c => c.where && c.column_type === "data"
     );
     if (!filterConfigs.length) return;
 
     const parsedFilters = filterConfigs.map(cfg => {
       return {
         column: cfg.id,
-        fn: createFilterFn(cfg.filter, cfg.data_type)
+        fn: createFilterFn(cfg.where, cfg.data_type)
       };
     });
 

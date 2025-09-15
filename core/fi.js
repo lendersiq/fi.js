@@ -44,13 +44,19 @@
     console.log("ai.js loaded");
     loadScript("../../core/fiCharts.js", () => {
       console.log("fiCharts.js loaded");
-      loadScript("../../libraries/organization.js", () => {
-        console.log("libraries/organization.js loaded");
-        loadScript("../../libraries/financial.js", () => {
-          console.log("libraries/financial.js loaded");
+      loadScript("../../core/ui.js", () => {
+        console.log("ui.js loaded");
+        loadScript("../../libraries/organization.js", () => {
+          console.log("libraries/organization.js loaded");
+          loadScript("../../libraries/financial.js", () => {
+            console.log("libraries/financial.js loaded");
           // function tests
           console.log('Function Tests')
-          console.log ('Function parameter test: ', getFunctionParameters(window.financial.functions['loanProfit'].implementation));
+          if (window.financial && window.financial.functions && window.financial.functions['loanProfit']) {
+            console.log ('Function parameter test: ', getFunctionParameters(window.financial.functions['loanProfit'].implementation));
+          } else {
+            console.log('Financial functions not yet loaded');
+          }
           const fn = createFilterFn('>= 730', 'date');
           // Suppose you're around 2025-03-23 when you run this
           console.log( fn('2023-03-24') );  // Expect: ???
@@ -70,6 +76,7 @@
           const filterFn3 = createFilterFn("!<= 2024-01-01", "date");
           console.log(filterFn3("2024-06-15")); // true (not <= Jan 1, 2024)
           console.log(filterFn3("2023-06-15")); // false (is <= Jan 1, 2024)
+          });
         });
       });
     });
@@ -77,15 +84,29 @@
   const base64Svg = "data:image/png;base64,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";
   renderFavicon(base64Svg);
 
+  // Make initializeDisplay globally available for ui.js to call
+  window.initializeDisplay = initializeDisplay;
 
-  // 2) Identify the unique column config (exactly one assumed)
+  // 2) Identify the unique column config (exactly one assumed) - only for table-based apps
+  if (appConfig.table) {
+    const uniqueConfig = appConfig.table.find(
+      cfg => cfg.column_type === "data" && cfg.data_type === "unique"
+    );
+    if (!uniqueConfig) {
+      console.error("No unique column configuration found (data_type = 'unique').");
+      return;
+    }
+  }
+  
+  // Only proceed with table-based processing if table exists
+  if (!appConfig.table) {
+    console.log("Forms-based app detected - skipping table processing");
+    return;
+  }
+  
   const uniqueConfig = appConfig.table.find(
     cfg => cfg.column_type === "data" && cfg.data_type === "unique"
   );
-  if (!uniqueConfig) {
-    console.error("No unique column configuration found (data_type = 'unique').");
-    return;
-  }
   const uniqueColumn = uniqueConfig.id; // e.g. "Portfolio"
 
   // 3) Prepare global data structures
@@ -162,13 +183,13 @@
   const filterCache = {};
   uniqueSources.forEach(sourceName => {
     const filterConfigs = appConfig.table.filter(
-      c => c.source_name === sourceName && c.filter && c.column_type === "data"
+      c => c.source_name === sourceName && c.where && c.column_type === "data"
     );
-    // Only grab filters that match this sourceName, have a filter, and are "data" type
+    // Only grab filters that match this sourceName, have a where, and are "data" type
     if (filterConfigs.length) {
       filterCache[sourceName] = filterConfigs.map(cfg => ({
         column: cfg.id,
-        fn: createFilterFn(cfg.filter, cfg.data_type)
+        fn: createFilterFn(cfg.where, cfg.data_type)
       }));
     }
   });
@@ -537,14 +558,14 @@
   // used to apply to totals
   function applyFiltersToTotals() {
     const filterConfigs = appConfig.table.filter(
-      c => c.filter && c.column_type === "data"
+      c => c.where && c.column_type === "data"
     );
     if (!filterConfigs.length) return;
 
     const parsedFilters = filterConfigs.map(cfg => {
       return {
         column: cfg.heading, // Filter on the final heading key
-        fn: createFilterFn(cfg.filter, cfg.data_type)
+        fn: createFilterFn(cfg.where, cfg.data_type)
       };
     });
 
@@ -2516,17 +2537,17 @@ function getFriendlyFilterDescriptions(appConfig) {
   const isoDateRE = /^\d{4}-\d{2}-\d{2}$/;   // quick ISO‑date test
 
   return appConfig.table
-    .filter(col => col.filter)
+    .filter(col => col.where)
     .map(col => {
       const heading  = col.heading.trim();
-      const filter   = col.filter.trim();
+      const where   = col.where.trim();
       const dataType = col.data_type;
 
-      /* ---------- Case 1 – list filter like "[A, B, C]" ---------- */
-      if (/^\[.*\]$/.test(filter)) {
+      /* ---------- Case 1 – list filter like "[A, B, C]" ---------- */
+      if (/^\[.*\]$/.test(where)) {
         try {
           const parsed = JSON.parse(
-            filter.replace(/\s*,\s*/g, ',').replace(/\s+/g, '')
+            where.replace(/\s*,\s*/g, ',').replace(/\s+/g, '')
           );
           if (Array.isArray(parsed)) {
             return `${heading}: one of (${parsed.join(', ')})`;
@@ -2536,8 +2557,8 @@ function getFriendlyFilterDescriptions(appConfig) {
         }
       }
 
-      /* ---------- Case 2 – logical filters, e.g. "> X && <= Y" ---------- */
-      const orParts = filter.split(/\s*\|\|\s*/).map(p => p.trim());
+      /* ---------- Case 2 – logical filters, e.g. "> X && <= Y" ---------- */
+      const orParts = where.split(/\s*\|\|\s*/).map(p => p.trim());
 
       const friendlyOrs = orParts.map(orClause => {
         let negated = false;
@@ -2580,6 +2601,280 @@ function getFriendlyFilterDescriptions(appConfig) {
 
       return `${heading}: ${friendlyOrs.join(' or ')}`;
     });
+}
+
+// Display functionality for forms-based apps
+function initializeDisplay() {
+  if (!window.appConfig || !window.appConfig.display) return;
+
+  // Create display container (initially hidden)
+  const displayContainer = document.createElement('div');
+  displayContainer.className = 'display-container';
+  displayContainer.id = 'fiDisplayContainer';
+  displayContainer.style.display = 'none'; // Hidden until form is complete
+
+  // Add to forms container if it exists, otherwise to body
+  const formsContainer = document.querySelector('.forms-container');
+  if (formsContainer) {
+    // Always append to forms container - CSS grid will handle positioning
+    formsContainer.appendChild(displayContainer);
+  } else {
+    document.body.appendChild(displayContainer);
+  }
+
+  // Make processDisplayData globally available
+  window.processDisplayData = processDisplayData;
+
+  // Process initial display data
+  setTimeout(() => {
+    console.log('Calling processDisplayData after display initialization');
+    processDisplayData();
+  }, 200);
+}
+
+function processDisplayData() {
+  if (!window.appConfig || !window.appConfig.display) return;
+
+  const displayContainer = document.getElementById('fiDisplayContainer');
+  if (!displayContainer) {
+    console.log('Display container not found');
+    return;
+  }
+
+  // Check if form has any valid data (more lenient check)
+  const hasValidData = window.appConfig.forms.some(form => {
+    if (form.type === 'hidden') return true;
+    const value = form.value;
+    return value !== null && value !== undefined && value !== '';
+  });
+  
+  if (!hasValidData) {
+    displayContainer.style.display = 'none';
+    return;
+  }
+
+  // Show display container
+  displayContainer.style.display = 'block';
+
+  // Create results cards
+  displayContainer.innerHTML = '<h2>Calculated Results</h2><div class="results-grid"></div>';
+  const resultsGrid = displayContainer.querySelector('.results-grid');
+
+  window.appConfig.display.forEach(col => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    
+    const label = document.createElement('div');
+    label.className = 'result-label';
+    label.textContent = col.heading;
+    
+    const value = document.createElement('div');
+    value.className = 'result-value';
+    
+    if (col.column_type === 'form') {
+      // Get value from forms
+      const formConfig = window.appConfig.forms.find(f => f.id === col.id);
+      if (formConfig) {
+        value.textContent = formatValue(formConfig.value, col.data_type);
+      } else {
+        value.textContent = 'N/A';
+      }
+    } else if (col.column_type === 'function') {
+      // Execute function with form values
+      const result = executeFunction(col.function, col.id);
+      value.textContent = formatValue(result, col.data_type);
+    } else if (col.column_type === 'formula') {
+      // Execute formula with form values
+      const result = executeFormula(col.formula, col.id);
+      value.textContent = formatValue(result, col.data_type);
+    }
+    
+    card.appendChild(label);
+    card.appendChild(value);
+    resultsGrid.appendChild(card);
+  });
+}
+
+function checkFormCompletion() {
+  if (!window.appConfig || !window.appConfig.forms) return false;
+  
+  // Check if all required form fields have values
+  return window.appConfig.forms.every(form => {
+    if (form.type === 'hidden') return true; // Hidden fields are always "complete"
+    const value = form.value;
+    // More lenient check - just ensure it's not empty string
+    return value !== null && value !== undefined && value !== '';
+  });
+}
+
+// Resolve a function parameter from the display config into a runtime value
+function resolveParam(param) {
+  if (param === null || param === undefined) return 0;
+  const trimmed = String(param).trim();
+
+  // Handle explicit null/undefined/booleans
+  if (trimmed === 'null') return null;
+  if (trimmed === 'undefined') return undefined;
+  if (trimmed === 'true') return true;
+  if (trimmed === 'false') return false;
+
+  // Handle quoted strings
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith('\'') && trimmed.endsWith('\''))) {
+    return trimmed.slice(1, -1);
+  }
+
+  // Handle numeric literals (including negatives and decimals)
+  if (!isNaN(Number(trimmed)) && trimmed !== '') {
+    return Number(trimmed);
+  }
+
+  // Handle simple JS expressions (e.g., new Date().toISOString().split('T')[0])
+  // Designers control appConfig; evaluate in this local context
+  try {
+    if (/[()\.\+\-*/]|new\s+Date/.test(trimmed)) {
+      // eslint-disable-next-line no-eval
+      const evaluated = eval(trimmed);
+      return evaluated;
+    }
+  } catch (e) {
+    // fall through to function call detection
+  }
+
+  // Handle function calls (e.g., calculateMonthlyPayment(principal, rate, term, amort))
+  if (trimmed.includes('(') && trimmed.includes(')')) {
+    try {
+      return executeFunction(trimmed, 'temp');
+    } catch (e) {
+      console.warn(`Error executing function in parameter: ${trimmed}`, e);
+      return 0;
+    }
+  }
+
+  // Check if this is a reference to another display item by id
+  if (window.appConfig && window.appConfig.display) {
+    const displayItem = window.appConfig.display.find(item => item.id === trimmed);
+    if (displayItem) {
+      // This is a reference to another display item, execute it
+      if (displayItem.column_type === 'function') {
+        return executeFunction(displayItem.function, displayItem.id);
+      } else if (displayItem.column_type === 'formula') {
+        return executeFormula(displayItem.formula, displayItem.id);
+      } else if (displayItem.column_type === 'form') {
+        return getFormValue(trimmed);
+      }
+    }
+  }
+
+  // Treat as identifier referencing a form value
+  return getFormValue(trimmed);
+}
+
+function executeFunction(functionName, resultId) {
+  // Parse function name and parameters
+  const funcMatch = functionName.match(/^(\w+)\((.*)\)$/);
+  if (!funcMatch) {
+    return 0;
+  }
+  
+  const funcName = funcMatch[1];
+  const params = funcMatch[2].split(',').map(p => p.trim());
+  
+  // Get parameter values
+  const paramValues = params.map(param => resolveParam(param));
+  
+  // Check if function exists in financial library
+  if (window.financial && window.financial.functions && window.financial.functions[funcName]) {
+    try {
+      return window.financial.functions[funcName].implementation(...paramValues);
+    } catch (error) {
+      console.error(`Error executing function ${funcName}:`, error);
+      return 0;
+    }
+  }
+  
+  // Fallback for functions not in library
+  console.warn(`Function ${funcName} not found in financial library`);
+  return 0;
+}
+
+function executeFormula(formula, resultId) {
+  // Simple formula execution - replace variable names with values
+  let processedFormula = formula;
+  
+  // Replace form field references with their values
+  const formFields = window.appConfig.forms.map(f => f.id);
+  formFields.forEach(fieldId => {
+    const value = getFormValue(fieldId);
+    const regex = new RegExp(`\\b${fieldId}\\b`, 'g');
+    processedFormula = processedFormula.replace(regex, value);
+  });
+  
+  try {
+    const result = eval(processedFormula);
+    return result;
+  } catch (error) {
+    return 0;
+  }
+}
+
+function getFormValue(formId) {
+  // First try to get the current form data
+  if (window.formData && window.formData.hasOwnProperty(formId)) {
+    const value = window.formData[formId];
+    // Handle different data types appropriately
+    if (typeof value === 'string') {
+      // Try to parse as number, but return string if it's not a valid number
+      const numValue = parseFloat(value);
+      return isNaN(numValue) ? value : numValue;
+    }
+    return value;
+  }
+  
+  // Fallback to form config default value
+  if (window.appConfig && window.appConfig.forms) {
+    const formConfig = window.appConfig.forms.find(f => f.id === formId);
+    if (formConfig) {
+      const value = formConfig.value;
+      if (typeof value === 'string') {
+        const numValue = parseFloat(value);
+        return isNaN(numValue) ? value : numValue;
+      }
+      return value;
+    }
+  }
+  
+  return 0;
+}
+
+function formatValue(value, dataType) {
+  if (value === null || value === undefined) return '';
+  
+  // Handle arrays (checkbox groups)
+  if (Array.isArray(value)) {
+    return value.join(', ');
+  }
+  
+  switch (dataType) {
+    case 'currency':
+      const numValue = parseFloat(value) || 0;
+      return new Intl.NumberFormat('en-US', { 
+        style: 'currency', 
+        currency: 'USD' 
+      }).format(numValue);
+    case 'rate':
+      const rateValue = parseFloat(value) || 0;
+      return `${rateValue.toFixed(2)}%`;
+    case 'date':
+      return new Date(value).toLocaleDateString();
+    case 'integer':
+      const intValue = parseInt(value) || 0;
+      return intValue.toLocaleString();
+    case 'float':
+      const floatValue = parseFloat(value) || 0;
+      return floatValue.toFixed(2);
+    default:
+      return String(value);
+  }
 }
 
 function renderFavicon(base64Svg) {
