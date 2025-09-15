@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../../styles/base.css">
+  <title>LendersIQ</title>
+</head>
+<body>
+  <script>
+    // App configuration with forms integration
+    window.appConfig = {
+      description: "FI.js Forms Demo - showcasing all HTML form elements and their integration with display processing",
+      forms: [
+        { 
+          id: "customerName",
+          type: "text", 
+          label: "Customer Name", 
+          value: "",
+          pattern: "[A-Za-z\\s]+"
+        },
+        { 
+          id: "type",
+          type: "select", 
+          label: "Loan Type", 
+          value: "", 
+          options: [
+            { value: "Commercial", label: "Commercial" },
+            { value: "Commercial_Real_Estate", label: "Commercial Real Estate" },
+            { value: "Residential_Real_Estate", label: "Residential Real Estate" },
+            { value: "Consumer", label: "Consumer" },
+            { value: "Equipment", label: "Equipment" },
+            { value: "Home_Equity", label: "Home Equity" },
+            { value: "Letter_of_Credit", label: "Letter of Credit" }
+          ]
+        },
+        { 
+          id: "principal",
+          type: "number", 
+          label: "Principal Amount", 
+          value: 0,
+          min: 0,
+          step: 1000
+        },
+        { 
+          id: "rate",
+          type: "rate", 
+          label: "Proposed Rate (%)", 
+          value: 8,
+          min: 0,
+          max: 30,
+          step: 0.125
+        },
+
+        { 
+          id: "term",
+          type: "range", 
+          label: "Contractual Term (months)", 
+          value: 60, 
+          min: 1, 
+          max: 360,
+          step: 1,
+          unit: " months"
+        },
+        { 
+          id: "amort",
+          type: "range", 
+          label: "Amortization Term (months)", 
+          value: 0, 
+          min: 0, 
+          max: 360,
+          step: 1,
+          unit: " months"
+        },
+        { 
+          id: "fees",
+          type: "number", 
+          label: "Fees Collected", 
+          value: 0,
+          min: 0,
+          step: 100
+        },
+        { 
+          id: "ltv",
+          type: "radio", 
+          label: "Loan to Value", 
+          value: ".80", 
+          options: [
+            { value: ".80", label: "80%" },
+            { value: ".90", label: "90%" },
+            { value: ".95", label: "95%" },
+            { value: "1.00", label: "100%" }
+          ]
+        },
+        { 
+          id: "risk",
+          type: "select", 
+          label: "Risk Rating", 
+          value: "3", 
+          options: [
+            { value: "1", label: "1 - Excellent" },
+            { value: "2", label: "2 - Good" },
+            { value: "3", label: "3 - Average" },
+            { value: "4", label: "4 - Below Average" },
+            { value: "5", label: "5 - Poor" }
+          ]
+        },
+        { 
+          id: "notes",
+          type: "textarea", 
+          label: "Additional Notes", 
+          value: "",
+          rows: 3,
+          placeholder: "Enter any additional information..."
+        }
+      ],
+      display: [
+        { heading: "Customer", id: "customerName", column_type: "form", data_type: "string" },
+        { heading: "Loan Type", id: "type", column_type: "form", data_type: "string" },
+        { heading: "Loan Request", id: "principal", column_type: "form", data_type: "currency" },
+        { heading: "Monthly Payment", id: "payment", column_type: "function", function: "calculateMonthlyPayment(principal, rate, term, amort)", data_type: "currency" },
+        { heading: "Total Interest", id: "totalInterest", column_type: "function", function: "calculateTotalInterest(principal, rate, term, amort)", data_type: "currency" },
+        { heading: "Cost of Funds", id: "costOfFunds", column_type: "function", function: "costofFundsSlice(principal, rate, term, amort)", data_type: "currency" },
+        { heading: "Average Principal", id: "averagePrincipal", column_type: "function", function: "averagePrincipalByTerm(principal, payment, rate, term)", data_type: "currency" },
+        { heading: "Expected Loss Provision", id: "expectedLossProvision", column_type: "function", function: "expectedLossProvision(risk, principal, averagePrincipal, ltv, null)", data_type: "currency" },
+        { heading: "Profit", id: "loanProfit", column_type: "function", function: "loanProfit(1, principal, rate, risk, new Date().toISOString().split('T')[0], type, payment, fees, null, term, amort, ltv, null)", data_type: "currency" },
+        { heading: "Profit Grade", id: "grade", column_type: "function", function: "loanProfitGrade(loanProfit, principal, rate, term, amort)", data_type: "string" }
+    ]
+    };
+  </script>
+  <script src="../../core/fi.js" defer></script>
+</body>
+</html>
