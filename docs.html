@@ -106,7 +106,7 @@
         <div class="docs-header">
             <h1>FI.js Framework Documentation</h1>
             <p>A Local-First JavaScript Framework for Data-Driven Applications</p>
-            <p>Version 1.2 | Last Updated: December 2024</p>
+            <p>Version 1.3 | Last Updated: December 2024</p>
         </div>
 
         <nav class="docs-nav">
@@ -116,6 +116,7 @@
                 <li><a href="#getting-started">Getting Started</a></li>
                 <li><a href="#configuration">Configuration</a></li>
                 <li><a href="#forms">Forms</a></li>
+                <li><a href="#attributes-dictionaries">Attributes & Dictionaries</a></li>
                 <li><a href="#api-reference">API Reference</a></li>
                 <li><a href="#examples">Examples</a></li>
                 <li><a href="#best-practices">Best Practices</a></li>
@@ -249,7 +250,7 @@ fi.js-main/
             <h2>Configuration</h2>
             
             <h3>appConfig Object</h3>
-            <p>The <code>appConfig</code> object is the heart of any FI.js application. It defines how data is processed, displayed, and manipulated.</p>
+            <p>The <code>appConfig</code> object is the heart of any FI.js application. It defines how data is processed, displayed, and manipulated. For the underlying business parameters and institutional settings that drive these configurations, see the <a href="#attributes-dictionaries">Attributes & Dictionaries</a> section.</p>
 
             <h4>Basic Structure</h4>
             <div class="code-block">
@@ -293,6 +294,11 @@ window.appConfig = {
                         <td><code>formula</code></td>
                         <td>Mathematical expressions</td>
                         <td>Custom calculations</td>
+                    </tr>
+                    <tr>
+                        <td><code>call</code></td>
+                        <td>Clickable links that pass row data as URL parameters</td>
+                        <td>Deep linking, navigation between applications</td>
                     </tr>
                 </tbody>
             </table>
@@ -339,6 +345,64 @@ window.appConfig = {
                     </tr>
                 </tbody>
             </table>
+
+            <h3>Call Links (Deep Linking)</h3>
+            <p>The <code>call</code> column type creates clickable links in table cells that pass all row data as URL parameters to another FI.js application. This enables seamless navigation between related applications with pre-populated data.</p>
+            <p><strong>Important:</strong> Call links are only supported in <code>appConfig.table</code> configurations. They are not available in <code>appConfig.display</code> (forms-based applications).</p>
+            
+            <h4>Configuration</h4>
+            <div class="code-block">
+{ 
+  heading: "Open Lender's IQ", 
+  id: "lendersiq", 
+  column_type: "call", 
+  url: "lendersiq.html" 
+}
+            </div>
+
+            <h4>How It Works</h4>
+            <p>When a call link is clicked, FI.js automatically:</p>
+            <ul>
+                <li><strong>Collects all row data</strong> - Every column value in the current row is included as a URL parameter</li>
+                <li><strong>URL-encodes parameters</strong> - Special characters are properly encoded for URL transmission</li>
+                <li><strong>Opens in new tab</strong> - The target application opens with pre-populated data</li>
+                <li><strong>Works in all table rows</strong> - Totals, sub-rows, and grand totals all support call links</li>
+            </ul>
+
+            <h4>Generated URL Example</h4>
+            <p>When clicked, the call link generates a URL like:</p>
+            <div class="code-block">
+lendersiq.html?Portfolio=Commercial&Class_Code=5&Principal=250000&profit=12500.50
+            </div>
+
+            <h4>Use Cases</h4>
+            <ul>
+                <li><strong>Workflow Navigation</strong> - Move from loan portfolio view to detailed analysis</li>
+                <li><strong>Data Drill-Down</strong> - Click on a portfolio to see detailed breakdown</li>
+                <li><strong>Cross-Application Analysis</strong> - Pass calculated values between related tools</li>
+                <li><strong>Reporting Integration</strong> - Generate reports with specific data selections</li>
+                <li><strong>Audit Trails</strong> - Link to detailed transaction records</li>
+            </ul>
+
+            <h4>Export Behavior</h4>
+            <p>Call columns are intelligently handled during data exports to ensure clean, professional output:</p>
+            <ul>
+                <li><strong>CSV Exports</strong> - Call columns are automatically excluded from CSV data</li>
+                <li><strong>JSON Exports</strong> - Call columns are filtered out of JSON structure</li>
+                <li><strong>Excel Exports</strong> - Call columns are removed from spreadsheet data</li>
+                <li><strong>HTML Exports</strong> - Call columns are included with functional buttons for interactivity</li>
+            </ul>
+            <p>This ensures that data exports contain only relevant business data while HTML exports maintain full interactivity.</p>
+
+            <h4>Advanced Features</h4>
+            <ul>
+                <li><strong>Automatic Parameter Collection</strong> - No manual configuration needed</li>
+                <li><strong>Data Type Handling</strong> - Numbers, strings, booleans properly encoded</li>
+                <li><strong>Exclusion Logic</strong> - Call columns don't include themselves in parameters</li>
+                <li><strong>Visual Styling</strong> - Professional button-like appearance</li>
+                <li><strong>New Tab Opening</strong> - Preserves original application state</li>
+                <li><strong>Smart Export Filtering</strong> - Automatic exclusion from data exports</li>
+            </ul>
         </section>
 
         <section id="forms" class="section">
@@ -349,6 +413,7 @@ window.appConfig = {
             <ul>
                 <li><strong>All HTML Input Types:</strong> Support for text, number, email, select, radio, checkbox, range, date, color, and more</li>
                 <li><strong>Live Updates:</strong> Results update when you finish editing a field - no submit button needed</li>
+                <li><strong>URL Parameters:</strong> Pre-populate forms via query parameters (e.g., ?customerName=John&principal=100000)</li>
                 <li><strong>Function Integration:</strong> Form values can be used in calculations and functions</li>
                 <li><strong>Formula Support:</strong> Create custom formulas using form field values</li>
                 <li><strong>Dynamic Expressions:</strong> Use JavaScript expressions for dates, math, strings, and conditional logic</li>
@@ -384,6 +449,77 @@ window.appConfig = {
     ]
 };</div>
 
+            <h3>URL Parameters</h3>
+            <p>FI.js Forms supports URL parameters to pre-populate form fields. This enables deep linking, bookmarking specific scenarios, and integration with external systems.</p>
+            
+            <h4>Parameter Format</h4>
+            <div class="code-block">
+// URL format: ?fieldId=value&fieldId2=value2
+// Example: ?customerName=John%20Doe&principal=150000&rate=7.5&term=36
+
+// Access the form with pre-populated values
+lendersiq.html?customerName=Test%20Customer&principal=150000&rate=7.5&term=36&amort=0&risk=2&ltv=.90
+            </div>
+
+            <h4>Supported Data Types</h4>
+            <table class="api-table">
+                <thead>
+                    <tr>
+                        <th>Form Type</th>
+                        <th>Parameter Format</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>text</code></td>
+                        <td>URL-encoded string</td>
+                        <td><code>?name=John%20Doe</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>number</code></td>
+                        <td>Numeric value</td>
+                        <td><code>?principal=150000</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>range</code></td>
+                        <td>Numeric value</td>
+                        <td><code>?term=36</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>checkbox</code></td>
+                        <td>true/false or 1/0</td>
+                        <td><code>?agreed=true</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>radio</code></td>
+                        <td>Option value</td>
+                        <td><code>?risk=2</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>select</code></td>
+                        <td>Option value</td>
+                        <td><code>?type=Commercial</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Implementation Details</h4>
+            <ul>
+                <li><strong>Automatic Type Conversion:</strong> Parameters are automatically converted to the appropriate data type based on the form field configuration</li>
+                <li><strong>Validation:</strong> Invalid values fall back to the form's default value</li>
+                <li><strong>URL Encoding:</strong> Special characters in parameter values must be URL-encoded (e.g., spaces as %20)</li>
+                <li><strong>Case Sensitive:</strong> Parameter names must exactly match the form field IDs</li>
+            </ul>
+
+            <h4>Use Cases</h4>
+            <ul>
+                <li><strong>Deep Linking:</strong> Bookmark specific loan scenarios or customer profiles</li>
+                <li><strong>Integration:</strong> Pre-populate forms from external systems or databases</li>
+                <li><strong>Testing:</strong> Quickly test different parameter combinations during development</li>
+                <li><strong>Sharing:</strong> Share specific form configurations with colleagues or clients</li>
+            </ul>
+
             <h3>Form Field Types</h3>
             <table class="api-table">
                 <thead>
@@ -397,68 +533,112 @@ window.appConfig = {
                     <tr>
                         <td><code>text</code></td>
                         <td>Single-line text input</td>
-                        <td>pattern, placeholder</td>
+                        <td>pattern, placeholder, disabled</td>
                     </tr>
                     <tr>
                         <td><code>number</code></td>
                         <td>Numeric input with validation</td>
-                        <td>min, max, step</td>
+                        <td>min, max, step, disabled</td>
                     </tr>
                     <tr>
                         <td><code>rate</code></td>
                         <td>Rate/percentage input (specialized number)</td>
-                        <td>min, max, step, data-type="rate"</td>
+                        <td>min, max, step, data-type="rate", disabled</td>
                     </tr>
                     <tr>
                         <td><code>email</code></td>
                         <td>Email address input</td>
-                        <td>Built-in email validation</td>
+                        <td>Built-in email validation, disabled</td>
                     </tr>
                     <tr>
                         <td><code>select</code></td>
                         <td>Dropdown selection</td>
-                        <td>options array with value/label pairs</td>
+                        <td>options array with value/label pairs, disabled</td>
                     </tr>
                     <tr>
                         <td><code>radio</code></td>
                         <td>Radio button group</td>
-                        <td>options array with value/label pairs</td>
+                        <td>options array with value/label pairs, disabled</td>
                     </tr>
                     <tr>
                         <td><code>checkbox</code></td>
                         <td>Checkbox group (multiple selection)</td>
-                        <td>options array with value/label pairs</td>
+                        <td>options array with value/label pairs, disabled</td>
                     </tr>
                     <tr>
                         <td><code>range</code></td>
                         <td>Slider input</td>
-                        <td>min, max, step, unit</td>
+                        <td>min, max, step, unit, disabled</td>
                     </tr>
                     <tr>
                         <td><code>date</code></td>
                         <td>Date picker</td>
-                        <td>Built-in date validation</td>
+                        <td>Built-in date validation, disabled</td>
                     </tr>
                     <tr>
                         <td><code>color</code></td>
                         <td>Color picker</td>
-                        <td>Returns hex color value</td>
+                        <td>Returns hex color value, disabled</td>
                     </tr>
                     <tr>
                         <td><code>textarea</code></td>
                         <td>Multi-line text input</td>
-                        <td>rows, placeholder</td>
+                        <td>rows, placeholder, disabled</td>
                     </tr>
                     <tr>
                         <td><code>hidden</code></td>
                         <td>Hidden field (not displayed)</td>
-                        <td>Used for storing session data, etc.</td>
+                        <td>Used for storing session data, etc., disabled</td>
                     </tr>
                 </tbody>
             </table>
 
+            <h3>Disabled Fields (Read-Only)</h3>
+            <p>FI.js Forms supports disabled form fields that display values but cannot be edited by users. This is useful for calculated values, system-generated data, or fields that should be visible but not modifiable.</p>
+            
+            <h4>Usage</h4>
+            <div class="code-block">
+{ 
+  id: "currentProfit",
+  type: "number", 
+  label: "Current Profit", 
+  value: 0,
+  min: 0,
+  step: 0,
+  disabled: true  // Makes field read-only
+}
+            </div>
+
+            <h4>Visual Styling</h4>
+            <p>Disabled fields are automatically styled with:</p>
+            <ul>
+                <li><strong>Grayed out appearance</strong> - Reduced opacity and muted colors</li>
+                <li><strong>Not-allowed cursor</strong> - Indicates the field cannot be edited</li>
+                <li><strong>No focus states</strong> - Disabled fields don't respond to focus</li>
+                <li><strong>Consistent styling</strong> - Works across all form field types</li>
+            </ul>
+
+            <h4>Supported Field Types</h4>
+            <p>All form field types support the <code>disabled</code> property:</p>
+            <ul>
+                <li><strong>Input fields</strong> - text, number, email, date, color, url, tel, password</li>
+                <li><strong>Selection fields</strong> - select, radio, checkbox groups</li>
+                <li><strong>Range sliders</strong> - range inputs with visual feedback</li>
+                <li><strong>Text areas</strong> - Multi-line text inputs</li>
+                <li><strong>Hidden fields</strong> - For system data storage</li>
+            </ul>
+
+            <h4>Use Cases</h4>
+            <ul>
+                <li><strong>Calculated Values</strong> - Display computed results that users shouldn't modify</li>
+                <li><strong>System Data</strong> - Show timestamps, IDs, or other system-generated information</li>
+                <li><strong>Read-Only Reports</strong> - Present data for review without allowing changes</li>
+                <li><strong>Conditional Fields</strong> - Disable fields based on other form selections</li>
+                <li><strong>Audit Trails</strong> - Show historical data that must remain unchanged</li>
+            </ul>
+
             <h3>Display Configuration</h3>
-            <p>The <code>display</code> array defines how form data and calculations are presented. It supports three column types:</p>
+            <p>The <code>display</code> array defines how form data and calculations are presented. It supports four column types:</p>
             
             <h4>Form Values</h4>
             <div class="code-block">{ heading: "Customer Name", id: "customerName", column_type: "form", data_type: "string" }</div>
@@ -468,6 +648,10 @@ window.appConfig = {
             
             <h4>Custom Formulas</h4>
             <div class="code-block">{ heading: "Total Cost", id: "totalCost", column_type: "formula", formula: "principal + totalInterest", data_type: "currency" }</div>
+            
+            <h4>Call Links (Table Only)</h4>
+            <div class="code-block">{ heading: "Open Lender's IQ", id: "lendersiq", column_type: "call", url: "lendersiq.html" }</div>
+            <p><strong>Note:</strong> Call links are only supported in <code>appConfig.table</code> configurations, not in <code>appConfig.display</code> (forms-based applications).</p>
 
             <h3>Creative Display Configuration</h3>
             <p>FI.js Forms supports dynamic JavaScript expressions in function calls and formulas, enabling powerful real-time calculations and data manipulation.</p>
@@ -507,6 +691,52 @@ window.appConfig = {
             <div class="code-block">{ heading: "Loan Grade", id: "loanGrade", column_type: "function", function: "loanProfitGrade(profit, principal, rate, term, amort)", data_type: "string" }
 { heading: "Processing Date", id: "processingDate", column_type: "function", function: "new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]", data_type: "date" }
 { heading: "Unique Reference", id: "reference", column_type: "function", function: "'REF-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 4).toUpperCase()", data_type: "string" }</div>
+
+            <h3>Call Links (Deep Linking)</h3>
+            <p>The <code>call</code> column type creates clickable links that pass all form and display values as URL parameters to another FI.js application. This enables seamless navigation between related applications with pre-populated data.</p>
+            
+            <h4>How It Works</h4>
+            <p>When a call link is clicked, FI.js automatically:</p>
+            <ul>
+                <li><strong>Collects all form values</strong> - Every form field value is included as a URL parameter</li>
+                <li><strong>Collects all display values</strong> - Calculated function and formula results are included</li>
+                <li><strong>URL-encodes parameters</strong> - Special characters are properly encoded for URL transmission</li>
+                <li><strong>Opens in new tab</strong> - The target application opens with pre-populated data</li>
+            </ul>
+
+            <h4>Configuration</h4>
+            <div class="code-block">
+{ 
+  heading: "Open Lender's IQ", 
+  id: "lendersiq", 
+  column_type: "call", 
+  url: "../bank_profitability/lendersiq.html" 
+}
+            </div>
+
+            <h4>Generated URL Example</h4>
+            <p>When clicked, the call link generates a URL like:</p>
+            <div class="code-block">
+lendersiq.html?customerName=John%20Doe&principal=150000&rate=7.5&term=36&monthlyPayment=1234.56&totalInterest=44441.60&totalCost=194441.60
+            </div>
+
+            <h4>Use Cases</h4>
+            <ul>
+                <li><strong>Workflow Navigation</strong> - Move from loan application to detailed analysis</li>
+                <li><strong>Data Sharing</strong> - Pass calculated results between related applications</li>
+                <li><strong>Deep Linking</strong> - Bookmark specific scenarios with all parameters</li>
+                <li><strong>Integration</strong> - Connect different FI.js applications seamlessly</li>
+                <li><strong>Reporting</strong> - Generate reports with pre-populated data from calculations</li>
+            </ul>
+
+            <h4>Advanced Features</h4>
+            <ul>
+                <li><strong>Automatic Parameter Collection</strong> - No manual configuration needed</li>
+                <li><strong>Data Type Handling</strong> - Numbers, strings, booleans properly encoded</li>
+                <li><strong>Exclusion Logic</strong> - Call columns don't include themselves in parameters</li>
+                <li><strong>Visual Styling</strong> - Professional button-like appearance</li>
+                <li><strong>New Tab Opening</strong> - Preserves original application state</li>
+            </ul>
 
             <h3>Complete Example</h3>
             <div class="code-block">window.appConfig = {
@@ -631,7 +861,7 @@ window.fiCharts.renderPieChart(data, container)
             </table>
 
             <h3>ROE Grading System</h3>
-            <p>FI.js includes a sophisticated Return on Equity (ROE) grading system for loan profitability assessment. The system assigns letter grades (A-F) based on performance against institutional targets.</p>
+            <p>FI.js includes a sophisticated Return on Equity (ROE) grading system for loan profitability assessment. The system assigns letter grades (A-F) based on performance against institutional targets. <strong>This system is fully customizable</strong> and can be modified to suit your institution's internal processes and risk management principles.</p>
             
             <h4>Grading Scale</h4>
             <table class="api-table">
@@ -696,6 +926,134 @@ const roeFloor = financial.attributes.roeTarget.value / 4;
 "D  (6.30%)"   // Below average
 "F  (2.10%)"   // Poor performance
             </div>
+        </section>
+
+        <section id="attributes-dictionaries" class="section">
+            <h2>Attributes & Dictionaries</h2>
+            <p>Attributes and dictionaries are the <strong>foundational underpinnings</strong> of all modeling done in FI.js. These configuration objects define institutional parameters, business rules, and operational constants that drive every calculation and decision in the framework.</p>
+            
+            <h3>Attributes</h3>
+            <p>Attributes represent <strong>institution-specific parameters</strong> that control business logic and calculations. They are stored in <code>libraries/financial.js</code> and <code>libraries/organization.js</code>.</p>
+            
+            <h4>Financial Attributes</h4>
+            <div class="code-block">
+// Example financial attributes
+financial.attributes = {
+  roeTarget: {
+    description: "The target Return on Equity (ROE) percentage for loan grading",
+    value: 0.18  // 18% target
+  },
+  smallLoanMaximum: {
+    description: "The dollar threshold that distinguishes small business loans",
+    value: 100000
+  },
+  expectedRecoveryRate: {
+    description: "Expected recovery rate for defaulted loans",
+    value: 0.60  // 60%
+  },
+  capitalTarget: {
+    description: "Institution capital to assets ratio target",
+    value: 0.10  // 10%
+  }
+};
+            </div>
+
+            <h4>Organization Attributes</h4>
+            <div class="code-block">
+// Example organization attributes (libraries/organization.js)
+organization.attributes = {
+  taxRate: {
+    description: "Corporate tax rate",
+    value: 0.25  // 25%
+  },
+  institutionName: {
+    description: "Name of the financial institution",
+    value: "Community Bank"
+  }
+};
+            </div>
+
+            <h3>Dictionaries</h3>
+            <p>Dictionaries contain <strong>structured data sets</strong> that define business rules, risk factors, and operational parameters. They enable complex decision-making logic throughout the framework.</p>
+            
+            <h4>Complexity Factor Dictionary</h4>
+            <div class="code-block">
+// Loan complexity factors by type
+financial.dictionaries.complexityFactor = {
+  description: "Complexity factors for loan origination and servicing costs",
+  values: {
+    "Commercial": 1.0,
+    "Commercial_Real_Estate": 1.0,
+    "Residential_Real_Estate": 0.5,
+    "Consumer": 0.5,
+    "Equipment": 0.5,
+    "Home_Equity": 0.5,
+    "Letter_of_Credit": 1.0
+  }
+};
+            </div>
+
+            <h4>Risk Weights Dictionary</h4>
+            <div class="code-block">
+// Deposit risk assessment weights
+financial.dictionaries.depositRiskWeights = {
+  description: "Weights for deposit account risk criteria",
+  "checks": 5,      // Check activity weight
+  "balance": 5,     // Balance volatility weight
+  "deposits": 3,    // Deposit frequency weight
+  "nsf": 1          // NSF activity weight
+};
+            </div>
+
+            <h4>Tax Exempt Dictionary</h4>
+            <div class="code-block">
+// Tax-exempt product types
+organization.dictionaries.taxExempt = {
+  loan: {
+    values: ["Municipal", "Government", "Non-Profit"]
+  },
+  checking: {
+    values: ["Municipal", "Government"]
+  },
+  savings: {
+    values: ["Municipal", "Government"]
+  }
+};
+            </div>
+
+            <h3>Customization for Your Institution</h3>
+            <p><strong>All attributes and dictionaries can be customized</strong> to match your institution's specific:</p>
+            <ul>
+                <li><strong>Risk Management Policies</strong> - Adjust risk weights, thresholds, and scoring models</li>
+                <li><strong>Pricing Strategies</strong> - Modify ROE targets, complexity factors, and fee structures</li>
+                <li><strong>Regulatory Requirements</strong> - Update tax rates, reserve requirements, and compliance parameters</li>
+                <li><strong>Operational Models</strong> - Customize expense factors, processing costs, and service levels</li>
+                <li><strong>Business Rules</strong> - Define product hierarchies, customer segments, and approval criteria</li>
+            </ul>
+
+            <h4>Implementation Example</h4>
+            <div class="code-block">
+// Customize for a credit union
+financial.attributes.roeTarget.value = 0.15;  // 15% target (vs 18% for banks)
+financial.attributes.smallLoanMaximum.value = 50000;  // Lower threshold
+
+// Add credit union-specific product types
+financial.dictionaries.complexityFactor.values["Member_Loan"] = 0.3;
+financial.dictionaries.complexityFactor.values["Auto_Loan"] = 0.4;
+
+// Update risk weights for member-focused approach
+financial.dictionaries.depositRiskWeights.balance = 3;  // Lower balance volatility weight
+financial.dictionaries.depositRiskWeights.deposits = 5; // Higher deposit frequency weight
+            </div>
+
+            <h3>Best Practices</h3>
+            <ul>
+                <li><strong>Document Changes</strong> - Always include descriptions explaining the business rationale</li>
+                <li><strong>Version Control</strong> - Track attribute changes as part of your configuration management</li>
+                <li><strong>Test Thoroughly</strong> - Validate calculations after modifying core parameters</li>
+                <li><strong>Maintain Consistency</strong> - Ensure related attributes and dictionaries remain aligned</li>
+                <li><strong>Regular Review</strong> - Periodically assess if parameters reflect current business conditions</li>
+            </ul>
         </section>
 
         <section id="examples" class="section">
