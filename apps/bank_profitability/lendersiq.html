@@ -13,7 +13,7 @@
       description: "FI.js Forms Demo - showcasing all HTML form elements and their integration with display processing",
       forms: [
         { 
-          id: "customerName",
+          id: "name",
           type: "text", 
           label: "Customer Name", 
           value: "",
@@ -33,6 +33,15 @@
             { value: "Home_Equity", label: "Home Equity" },
             { value: "Letter_of_Credit", label: "Letter of Credit" }
           ]
+        },
+        { 
+          id: "currentProfit",
+          type: "number", 
+          label: "Current Profit", 
+          value: 0,
+          min: 0,
+          step: 0,
+          disabled: true
         },
         { 
           id: "principal",
@@ -82,10 +91,11 @@
         },
         { 
           id: "ltv",
-          type: "radio", 
+          type: "select", 
           label: "Loan to Value", 
           value: ".80", 
           options: [
+            { value: ".70", label: "70%" },
             { value: ".80", label: "80%" },
             { value: ".90", label: "90%" },
             { value: ".95", label: "95%" },
@@ -115,7 +125,7 @@
         }
       ],
       display: [
-        { heading: "Customer", id: "customerName", column_type: "form", data_type: "string" },
+        { heading: "Borrower", id: "name", column_type: "form", data_type: "string" },
         { heading: "Loan Type", id: "type", column_type: "form", data_type: "string" },
         { heading: "Loan Request", id: "principal", column_type: "form", data_type: "currency" },
         { heading: "Monthly Payment", id: "payment", column_type: "function", function: "calculateMonthlyPayment(principal, rate, term, amort)", data_type: "currency" },
