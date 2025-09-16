@@ -212,6 +212,211 @@ td {
     box-shadow: none;
 }
 
+/* Disabled form elements */
+input:disabled,
+select:disabled,
+textarea:disabled {
+    background-color: #f5f5f5;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.7;
+    border-color: #ddd;
+}
+
+input:disabled:focus,
+select:disabled:focus,
+textarea:disabled:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Disabled radio and checkbox groups */
+.radio-group:has(input:disabled),
+.checkbox-group:has(input:disabled) {
+    opacity: 0.7;
+}
+
+.radio-group input:disabled + label,
+.checkbox-group input:disabled + label {
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* Disabled range slider */
+input[type="range"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Read-only styling for better UX */
+input[readonly] {
+    background-color: #f9f9f9;
+    color: #333;
+    cursor: default;
+}
+
+/* Call link styling */
+.call-link {
+    display: inline-block;
+    padding: 4px 8px;
+    background: linear-gradient(135deg, var(--fijs-primary), var(--fijs-gradient2));
+    color: white;
+    text-decoration: none;
+    border-radius: 3px;
+    font-weight: 500;
+    font-size: 0.85em;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.call-link:hover {
+    background: linear-gradient(135deg, var(--fijs-gradient1), var(--fijs-gradient2));
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+    color: white;
+    text-decoration: none;
+}
+
+.call-link:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Export Form Styling */
+.export-form-container {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.export-form-header {
+    margin-bottom: 24px;
+    text-align: center;
+    border-bottom: 2px solid var(--fijs-primary);
+    padding-bottom: 16px;
+}
+
+.export-form-header h3 {
+    margin: 0;
+    color: var(--fijs-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.export-form-group {
+    margin-bottom: 20px;
+}
+
+.export-form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.export-form-input-container {
+    display: flex;
+    align-items: center;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+}
+
+.export-form-input-container:focus-within {
+    border-color: var(--fijs-primary);
+    box-shadow: 0 0 0 3px rgba(0, 99, 43, 0.1);
+}
+
+.export-form-input {
+    flex: 1;
+    border: none;
+    padding: 12px 16px;
+    font-size: 1rem;
+    outline: none;
+    background: white;
+}
+
+.export-form-extension {
+    background: #f8f9fa;
+    padding: 12px 16px;
+    color: #666;
+    font-weight: 500;
+    border-left: 1px solid #e0e0e0;
+    font-size: 0.9rem;
+}
+
+.export-form-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.export-form-select:focus {
+    outline: none;
+    border-color: var(--fijs-primary);
+    box-shadow: 0 0 0 3px rgba(0, 99, 43, 0.1);
+}
+
+.export-form-checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.export-form-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--fijs-primary);
+    cursor: pointer;
+}
+
+.export-form-checkbox-label {
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+}
+
+.export-form-submit {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--fijs-primary), var(--fijs-gradient2));
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 99, 43, 0.2);
+}
+
+.export-form-submit:hover {
+    background: linear-gradient(135deg, var(--fijs-gradient1), var(--fijs-gradient2));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 99, 43, 0.3);
+}
+
+.export-form-submit:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 99, 43, 0.2);
+}
+
 tr:last-child {
     background-color: rgba(0, 171, 75, 0.1); /* var(--fijs-gradient2) with opacity */
     font-weight: 600;
