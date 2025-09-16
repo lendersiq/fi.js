@@ -16,6 +16,7 @@
       input.value = config.value || '';
       if (config.pattern) input.pattern = config.pattern;
       if (config.placeholder) input.placeholder = config.placeholder;
+      if (config.disabled) input.disabled = true;
       return input;
     },
 
@@ -28,6 +29,7 @@
       if (config.min !== undefined) input.min = config.min;
       if (config.max !== undefined) input.max = config.max;
       if (config.step !== undefined) input.step = config.step;
+      if (config.disabled) input.disabled = true;
       return input;
     },
 
@@ -37,6 +39,7 @@
       input.id = config.id;
       input.name = config.id;
       input.value = config.value || '';
+      if (config.disabled) input.disabled = true;
       return input;
     },
 
@@ -55,6 +58,7 @@
         });
       }
       
+      if (config.disabled) select.disabled = true;
       return select;
     },
 
@@ -70,6 +74,7 @@
           input.name = config.id;
           input.value = option.value;
           if (option.value === config.value) input.checked = true;
+          if (config.disabled) input.disabled = true;
           
           label.appendChild(input);
           label.appendChild(document.createTextNode(option.label));
@@ -93,6 +98,7 @@
           input.name = config.id;
           input.value = option.value;
           if (values.includes(option.value)) input.checked = true;
+          if (config.disabled) input.disabled = true;
           
           label.appendChild(input);
           label.appendChild(document.createTextNode(option.label));
@@ -109,6 +115,7 @@
       input.id = config.id;
       input.name = config.id;
       input.value = config.value || '';
+      if (config.disabled) input.disabled = true;
       return input;
     },
 
@@ -125,6 +132,7 @@
       if (config.min !== undefined) input.min = config.min;
       if (config.max !== undefined) input.max = config.max;
       if (config.step !== undefined) input.step = config.step;
+      if (config.disabled) input.disabled = true;
       
       // Set value after min/max to ensure proper positioning
       input.value = config.value || config.min || 0;
@@ -154,6 +162,7 @@
       textarea.value = config.value || '';
       if (config.rows) textarea.rows = config.rows;
       if (config.placeholder) textarea.placeholder = config.placeholder;
+      if (config.disabled) textarea.disabled = true;
       return textarea;
     },
 
@@ -163,6 +172,7 @@
       input.id = config.id;
       input.name = config.id;
       input.value = config.value || '#000000';
+      if (config.disabled) input.disabled = true;
       return input;
     },
 
@@ -172,6 +182,7 @@
       input.id = config.id;
       input.name = config.id;
       input.value = config.value || '';
+      if (config.disabled) input.disabled = true;
       return input;
     },
 
@@ -181,6 +192,7 @@
       input.id = config.id;
       input.name = config.id;
       input.value = config.value || '';
+      if (config.disabled) input.disabled = true;
       return input;
     },
 
@@ -190,6 +202,7 @@
       input.id = config.id;
       input.name = config.id;
       input.value = config.value || '';
+      if (config.disabled) input.disabled = true;
       return input;
     },
 
@@ -199,6 +212,7 @@
       input.id = config.id;
       input.name = config.id;
       input.value = config.value || '';
+      if (config.disabled) input.disabled = true;
       return input;
     },
 
@@ -211,6 +225,7 @@
       if (config.min !== undefined) input.min = config.min;
       if (config.max !== undefined) input.max = config.max;
       if (config.step !== undefined) input.step = config.step;
+      if (config.disabled) input.disabled = true;
       input.setAttribute('data-type', 'rate');
       return input;
     }
@@ -322,9 +337,57 @@
     }
   }
 
+  // Parse URL parameters and apply to form configs
+  function parseUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramData = {};
+    
+    // Extract all URL parameters
+    for (const [key, value] of urlParams.entries()) {
+      paramData[key] = value;
+    }
+    
+    // Apply parameters to form configurations
+    if (window.appConfig && window.appConfig.forms) {
+      window.appConfig.forms.forEach(formConfig => {
+        if (paramData.hasOwnProperty(formConfig.id)) {
+          let paramValue = paramData[formConfig.id];
+          
+          // Convert value based on form type
+          switch (formConfig.type) {
+            case 'number':
+            case 'range':
+              paramValue = parseFloat(paramValue);
+              if (isNaN(paramValue)) paramValue = formConfig.value;
+              break;
+            case 'checkbox':
+              paramValue = paramValue === 'true' || paramValue === '1';
+              break;
+            case 'radio':
+            case 'select':
+              // Keep as string, will be validated against options
+              break;
+            default:
+              // Keep as string for text, email, etc.
+              break;
+          }
+          
+          // Update the form config value
+          formConfig.value = paramValue;
+        }
+      });
+    }
+    
+    return paramData;
+  }
+
   // Initialize forms when DOM is ready
   function initializeForms() {
     if (!window.appConfig || !window.appConfig.forms) return;
+
+    // Parse URL parameters first
+    const urlParams = parseUrlParameters();
+    console.log('URL parameters parsed:', urlParams);
 
     // Create main app container with y-overflow support
     const appContainer = document.createElement('div');

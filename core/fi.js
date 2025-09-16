@@ -1122,12 +1122,12 @@
 
       // Display columns are defined by the appConfig
       const displayCols = appConfig.table.filter(c =>
-          ["data", "function", "formula"].includes(c.column_type)
+          ["data", "function", "formula", "call"].includes(c.column_type)
       );
 
       displayCols.forEach((col, colIndex) => {
         const th = document.createElement("th");
-        if (col.data_type.toLowerCase() === 'unique' || col.data_type.toLowerCase() === 'integer') {
+        if (col.data_type && (col.data_type.toLowerCase() === 'unique' || col.data_type.toLowerCase() === 'integer')) {
           const mashUpButton = document.createElement('button');
           mashUpButton.textContent = col.heading
           mashUpButton.className = 'button';
@@ -1137,7 +1137,8 @@
           }));
           th.appendChild(mashUpButton);
         } else {
-          th.innerText = col.heading; // Use heading for the header title
+          // Use 'Open' as header for call columns, otherwise use the original heading
+          th.innerText = col.column_type === 'call' ? 'Open' : col.heading;
         }
         headerRow.appendChild(th);  
       });
@@ -1184,9 +1185,55 @@
 
           displayCols.forEach(col => {
               const td = document.createElement("td");
-              // Fetch value from totals object using the unique heading key
-              const rawValue = totals[col.heading];
-              td.innerText = formatValue(rawValue, col.data_type);
+              
+              if (col.column_type === 'call') {
+                  // Create call link for totals row
+                  const link = document.createElement('a');
+                  link.href = '#';
+                  link.textContent = col.heading || 'Open';
+                  link.className = 'call-link';
+                  
+                  // Build URL with all row data as parameters
+                  const baseUrl = col.url || '#';
+                  const params = new URLSearchParams();
+                  
+                  // Add all column values as parameters
+                  displayCols.forEach(displayCol => {
+                      if (displayCol.id !== col.id && displayCol.column_type !== 'call') {
+                          const rawValue = totals[displayCol.heading];
+                          if (rawValue !== undefined && rawValue !== null && rawValue !== '') {
+                              let paramValue = rawValue;
+                              if (typeof paramValue === 'string') {
+                                  paramValue = encodeURIComponent(paramValue);
+                              } else if (typeof paramValue === 'boolean') {
+                                  paramValue = paramValue ? 'true' : 'false';
+                              } else if (typeof paramValue === 'number') {
+                                  paramValue = paramValue.toString();
+                              }
+                              params.append(displayCol.id, paramValue);
+                          }
+                      }
+                  });
+                  
+                  // Construct final URL
+                  const finalUrl = baseUrl + (params.toString() ? '?' + params.toString() : '');
+                  link.href = finalUrl;
+                  
+                  // Add click handler for navigation
+                  link.addEventListener('click', (e) => {
+                      e.preventDefault();
+                      if (baseUrl !== '#') {
+                          window.open(finalUrl, '_blank');
+                      }
+                  });
+                  
+                  td.appendChild(link);
+              } else {
+                  // Fetch value from totals object using the unique heading key
+                  const rawValue = totals[col.heading];
+                  td.innerText = formatValue(rawValue, col.data_type);
+              }
+              
               totalsRow.appendChild(td);
           });
           tbody.appendChild(totalsRow);
@@ -1199,9 +1246,16 @@
                   subTr.classList.add(`subrow-${uniqueVal}`, "groupRow");
                   displayCols.forEach(col => {
                       const subTd = document.createElement("td");
-                      // Fetch value from sub-row object using the unique heading key
-                      const rawValue = sRow[col.heading];
-                      subTd.innerText = formatValue(rawValue, col.data_type);
+                      
+                      if (col.column_type === 'call') {
+                          // Don't show call links in sub-rows
+                          subTd.innerText = '';
+                      } else {
+                          // Fetch value from sub-row object using the unique heading key
+                          const rawValue = sRow[col.heading];
+                          subTd.innerText = formatValue(rawValue, col.data_type);
+                      }
+                      
                       subTr.appendChild(subTd);
                   });
                   tbody.appendChild(subTr);
@@ -1218,14 +1272,19 @@
 
       displayCols.forEach(col => {
           const td = document.createElement("td");
+          
           // Use heading of the unique column to identify it for the label
           if (col.heading === uniqueConfig.heading) {
               td.innerText = "Grand Totals";
+          } else if (col.column_type === 'call') {
+              // Don't show call links in grand totals row
+              td.innerText = '';
           } else {
               // Fetch value from grandTotals object using the unique heading key
               const rawValue = grandTotals[col.heading];
               td.innerText = formatValue(rawValue, col.data_type);
           }
+          
           grandTotalsRow.appendChild(td);
       });
       tbody.appendChild(grandTotalsRow);
@@ -1599,48 +1658,65 @@
     const dateStr = `${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}-${today.getFullYear()}`;
     const defaultFileName = `${document.title}_${dateStr}`;
 
-    // Create form
+    // Create form with improved design
     const form = document.createElement('form');
     form.id = 'export-form';
-    form.className = 'config-container';
+    form.className = 'export-form-container';
 
-    // Create filename group
+    // Create form header
+    const formHeader = document.createElement('div');
+    formHeader.className = 'export-form-header';
+    const headerTitle = document.createElement('h3');
+    headerTitle.textContent = 'Export Data';
+    formHeader.appendChild(headerTitle);
+
+    // Create filename group with better styling
     const fileNameGroup = document.createElement('div');
-    fileNameGroup.className = 'form-group';
+    fileNameGroup.className = 'export-form-group';
 
     const fileNameLabel = document.createElement('label');
     fileNameLabel.htmlFor = 'fileName';
-    fileNameLabel.textContent = 'File Name:';
+    fileNameLabel.textContent = 'File Name';
+    fileNameLabel.className = 'export-form-label';
+
+    const fileNameContainer = document.createElement('div');
+    fileNameContainer.className = 'export-form-input-container';
 
     const fileNameInput = document.createElement('input');
     fileNameInput.type = 'text';
     fileNameInput.id = 'fileName';
     fileNameInput.value = defaultFileName;
     fileNameInput.required = true;
+    fileNameInput.className = 'export-form-input';
 
     const fileExtensionSpan = document.createElement('span');
     fileExtensionSpan.id = 'fileExtension';
     fileExtensionSpan.textContent = '.csv';
+    fileExtensionSpan.className = 'export-form-extension';
 
+    fileNameContainer.appendChild(fileNameInput);
+    fileNameContainer.appendChild(fileExtensionSpan);
     fileNameGroup.appendChild(fileNameLabel);
-    fileNameGroup.appendChild(fileNameInput);
-    fileNameGroup.appendChild(fileExtensionSpan);
+    fileNameGroup.appendChild(fileNameContainer);
 
-    // Create format group
+    // Create format group with better styling
     const formatGroup = document.createElement('div');
-    formatGroup.className = 'form-group';
+    formatGroup.className = 'export-form-group';
 
     const formatLabel = document.createElement('label');
-    formatLabel.textContent = 'Export Format:';
+    formatLabel.textContent = 'Export Format';
+    formatLabel.className = 'export-form-label';
 
     const formatSelect = document.createElement('select');
     formatSelect.id = 'exportFormat';
+    formatSelect.className = 'export-form-select';
 
-    // Define available formats
+    // Define available formats (added HTML)
     const formats = [
         { value: 'csv', text: 'CSV', ext: '.csv' },
         { value: 'json', text: 'JSON', ext: '.json' },
-        { value: 'xlsx', text: 'Excel (XLSX)', ext: '.xlsx' }
+        { value: 'xlsx', text: 'Excel (XLSX)', ext: '.xlsx' },
+        { value: 'html', text: 'HTML', ext: '.html' }
     ];
 
     // Add format options
@@ -1654,29 +1730,35 @@
     formatGroup.appendChild(formatLabel);
     formatGroup.appendChild(formatSelect);
 
+    // Create checkbox group with better styling
+    const checkboxGroup = document.createElement('div');
+    checkboxGroup.className = 'export-form-group export-form-checkbox-group';
+
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.id = 'groupUnique';
     checkbox.checked = true;
+    checkbox.className = 'export-form-checkbox';
 
-    const label = document.createElement('label');
-    label.htmlFor = 'groupUnique';
-    label.textContent = 'group unique';
+    const checkboxLabel = document.createElement('label');
+    checkboxLabel.htmlFor = 'groupUnique';
+    checkboxLabel.textContent = 'Group unique values';
+    checkboxLabel.className = 'export-form-checkbox-label';
 
-    const groupContainer = document.createElement('div');
-    groupContainer.appendChild(checkbox);
-    groupContainer.appendChild(label);
+    checkboxGroup.appendChild(checkbox);
+    checkboxGroup.appendChild(checkboxLabel);
 
-    // Create submit button
+    // Create submit button with better styling
     const submitButton = document.createElement('button');
     submitButton.type = 'submit';
-    submitButton.className = 'action-button';
+    submitButton.className = 'export-form-submit';
     submitButton.textContent = 'Export Data';
 
     // Assemble form
+    form.appendChild(formHeader);
     form.appendChild(fileNameGroup);
     form.appendChild(formatGroup);
-    form.appendChild(groupContainer);
+    form.appendChild(checkboxGroup);
     form.appendChild(submitButton);
     exportSection.appendChild(form);
 
@@ -1936,15 +2018,352 @@
     return { success: true, filename };
   }
 
+  function generateHTMLExport(tableData, headers, fileName) {
+    const currentDate = new Date().toLocaleDateString();
+    const currentTime = new Date().toLocaleTimeString();
+    
+    // Get app title and description
+    const appTitle = document.title || fileName;
+    const appDescription = window.appConfig?.description || 'Data Export Report';
+    
+    // Get the embedded CSS from the current page
+    const embeddedCSS = `
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          background-color: #f8f9fa;
+          padding: 20px;
+        }
+        
+        .export-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+        }
+        
+        .export-header {
+          background: linear-gradient(135deg, #00632b, #00ab4b);
+          color: white;
+          padding: 24px;
+          text-align: center;
+        }
+        
+        .export-title {
+          font-size: 2rem;
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+        
+        .export-subtitle {
+          font-size: 1.1rem;
+          opacity: 0.9;
+        }
+        
+        .export-meta {
+          background: #f8f9fa;
+          padding: 16px 24px;
+          border-bottom: 1px solid #e0e0e0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px;
+        }
+        
+        .export-info {
+          display: flex;
+          gap: 24px;
+          flex-wrap: wrap;
+        }
+        
+        .export-info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        
+        .export-info-label {
+          font-size: 0.85rem;
+          color: #666;
+          font-weight: 500;
+        }
+        
+        .export-info-value {
+          font-weight: 600;
+          color: #333;
+        }
+        
+        .table-container {
+          overflow-x: auto;
+          padding: 24px;
+        }
+        
+        .export-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.9rem;
+          background: white;
+        }
+        
+        .export-table th {
+          background: linear-gradient(135deg, #00632b, #00ab4b);
+          color: white;
+          padding: 16px 12px;
+          text-align: left;
+          font-weight: 600;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          border: none;
+        }
+        
+        .export-table td {
+          padding: 12px;
+          border-bottom: 1px solid #e0e0e0;
+          vertical-align: top;
+        }
+        
+        .export-table tbody tr:hover {
+          background-color: #f8f9fa;
+        }
+        
+        .export-table tbody tr:nth-child(even) {
+          background-color: #fafafa;
+        }
+        
+        .export-table tbody tr:nth-child(even):hover {
+          background-color: #f0f0f0;
+        }
+        
+        .export-table tbody tr:last-child {
+          background-color: rgba(0, 171, 75, 0.1);
+          font-weight: 600;
+          border-top: 2px solid rgba(0, 99, 43, 0.5);
+        }
+        
+        .export-table tbody tr:last-child:hover {
+          background-color: rgba(0, 171, 75, 0.15);
+        }
+        
+        .export-footer {
+          background: #f8f9fa;
+          padding: 16px 24px;
+          text-align: center;
+          color: #666;
+          font-size: 0.85rem;
+          border-top: 1px solid #e0e0e0;
+        }
+        
+        .export-footer a {
+          color: #00632b;
+          text-decoration: none;
+          font-weight: 500;
+        }
+        
+        .export-footer a:hover {
+          text-decoration: underline;
+        }
+        
+        .export-call-link {
+          display: inline-block;
+          padding: 4px 8px;
+          background: linear-gradient(135deg, #00632b, #00ab4b);
+          color: white;
+          text-decoration: none;
+          border-radius: 3px;
+          font-weight: 500;
+          font-size: 0.8rem;
+          transition: all 0.3s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .export-call-link:hover {
+          background: linear-gradient(135deg, #004d1f, #008a3a);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+          color: white;
+          text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+          body {
+            padding: 10px;
+          }
+          
+          .export-header {
+            padding: 16px;
+          }
+          
+          .export-title {
+            font-size: 1.5rem;
+          }
+          
+          .export-meta {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          
+          .export-info {
+            flex-direction: column;
+            gap: 12px;
+          }
+          
+          .table-container {
+            padding: 16px;
+          }
+          
+          .export-table {
+            font-size: 0.8rem;
+          }
+          
+          .export-table th,
+          .export-table td {
+            padding: 8px 6px;
+          }
+        }
+      </style>
+    `;
+    
+    // Get call column configuration from appConfig
+    const callColumns = window.appConfig?.table?.filter(col => col.column_type === 'call') || [];
+    
+    const htmlTableRows = tableData.map((row, rowIndex) => {
+      const cells = headers.map(header => {
+        const value = row[header];
+        let displayValue = value !== undefined && value !== null ? value : '';
+        
+        // Check if this is a call column and create a link (but not for Grand Totals)
+        // If header is "Open", find the call column (there should only be one)
+        const callColumn = header === 'Open' ? callColumns[0] : null;
+        
+        const isGrandTotalsRow = Object.values(row).some(val => 
+          val === 'Grand Totals' || val === 'Grand Total' || 
+          (typeof val === 'string' && val.includes('Grand Totals'))
+        );
+        
+        if (callColumn && !isGrandTotalsRow) {
+          // Build URL with all row data as parameters
+          const baseUrl = callColumn.url || '#';
+          const params = new URLSearchParams();
+          
+          // Add all other column values as parameters
+          headers.forEach(headerName => {
+            if (headerName !== header) {
+              const rowValue = row[headerName];
+              if (rowValue !== undefined && rowValue !== null && rowValue !== '') {
+                let paramValue = rowValue;
+                if (typeof paramValue === 'string') {
+                  paramValue = encodeURIComponent(paramValue);
+                } else if (typeof paramValue === 'boolean') {
+                  paramValue = paramValue ? 'true' : 'false';
+                } else if (typeof paramValue === 'number') {
+                  paramValue = paramValue.toString();
+                }
+                params.append(headerName, paramValue);
+              }
+            }
+          });
+          
+          const finalUrl = baseUrl + (params.toString() ? '?' + params.toString() : '');
+          displayValue = `<a href="${finalUrl}" class="export-call-link" target="_blank">${callColumn.heading}</a>`;
+        }
+        
+        return `<td>${displayValue}</td>`;
+      }).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+    
+    const htmlTableHeaders = headers.map(header => {
+      // Check if this is a call column and use 'Open' as header
+      const callColumn = callColumns.find(col => col.heading === header);
+      const headerText = callColumn ? 'Open' : header;
+      return `<th>${headerText}</th>`;
+    }).join('');
+    
+    // Get favicon from current page
+    const favicon = document.querySelector('link[rel="icon"]') || document.querySelector('link[rel="shortcut icon"]');
+    const faviconHtml = favicon ? favicon.outerHTML : '<link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'.9em\' font-size=\'90\'>📊</text></svg>">';
+    
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${fileName} - Export</title>
+    ${faviconHtml}
+    ${embeddedCSS}
+</head>
+<body>
+    <div class="export-container">
+        <div class="export-header">
+            <h1 class="export-title">${appTitle}</h1>
+            <p class="export-subtitle">${appDescription}</p>
+        </div>
+        
+        <div class="export-meta">
+            <div class="export-info">
+                <div class="export-info-item">
+                    <span class="export-info-label">Export Date</span>
+                    <span class="export-info-value">${currentDate}</span>
+                </div>
+                <div class="export-info-item">
+                    <span class="export-info-label">Export Time</span>
+                    <span class="export-info-value">${currentTime}</span>
+                </div>
+                <div class="export-info-item">
+                    <span class="export-info-label">Total Records</span>
+                    <span class="export-info-value">${tableData.length}</span>
+                </div>
+                <div class="export-info-item">
+                    <span class="export-info-label">Generated By</span>
+                    <span class="export-info-value">FI.js Framework</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table class="export-table">
+                <thead>
+                    <tr>${htmlTableHeaders}</tr>
+                </thead>
+                <tbody>
+                    ${htmlTableRows}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="export-footer">
+            <p>Generated by <a href="https://github.com/fijs/fi.js" target="_blank">FI.js Framework</a> | Local-First Data Management</p>
+        </div>
+    </div>
+</body>
+</html>`;
+  }
+
   function handleExport(event) {
     event.preventDefault();
     const fileName = document.getElementById('fileName').value;
     const exportFormat = document.getElementById('exportFormat').value;
+    
+    // Exclude call columns from CSV, JSON, and Excel exports
+    const excludeCallColumns = exportFormat !== 'html';
+    
     // Extract data from the table
-    const tableData = extractTableData();
+    const tableData = extractTableData(true, excludeCallColumns);
 
     // Define headers based on the table headers
-    const headers = getTableHeaders();
+    const headers = getTableHeaders(excludeCallColumns);
 
     let blob, fileExtension;
 
@@ -1982,6 +2401,15 @@
             });
             return; // Early return as downloadExcel handles the download
 
+        case 'html':
+            // For HTML export, include call columns
+            const htmlTableData = extractTableData(true, false);
+            const htmlHeaders = getTableHeaders(false);
+            const htmlContent = generateHTMLExport(htmlTableData, htmlHeaders, fileName);
+            blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+            fileExtension = '.html';
+            break;
+
         default:
             console.error('Unsupported format');
             return;
@@ -1999,7 +2427,7 @@
 /**
  * Extract headers from the table
  */
-function getTableHeaders() {
+function getTableHeaders(excludeCallColumns = false) {
     const table = document.getElementById('mainTable');
     if (!table) {
         console.error('Table not found');
@@ -2013,7 +2441,7 @@ function getTableHeaders() {
     }
 
     // Extract header texts, cleaning up button elements
-    return Array.from(headerRow.querySelectorAll('th')).map(th => {
+    let headers = Array.from(headerRow.querySelectorAll('th')).map(th => {
         // If header contains a button, use the button text
         const button = th.querySelector('button');
         if (button) {
@@ -2021,6 +2449,26 @@ function getTableHeaders() {
         }
         return th.textContent.trim();
     });
+
+    // Filter out call columns if requested
+    if (excludeCallColumns && window.appConfig?.table) {
+        // Find call columns and filter out call column headers
+        const callColumns = window.appConfig.table.filter(col => col.column_type === 'call');
+        if (callColumns.length > 0) {
+            // Filter out any header that matches call column patterns
+            headers = headers.filter(header => {
+                const isCallColumn = callColumns.some(col => 
+                    header === 'Open' || 
+                    header === col.heading || 
+                    header.includes('Open') ||
+                    header.includes('IQ')
+                );
+                return !isCallColumn;
+            });
+        }
+    }
+
+    return headers;
 }
 
 /**
@@ -2028,14 +2476,14 @@ function getTableHeaders() {
  * @param {boolean} includeGroupRows - Whether to include grouped/hidden rows
  * @param {boolean} includeTotal - Whether to include the total row
  */
-function extractTableData(includeTotal = true) {
+function extractTableData(includeTotal = true, excludeCallColumns = false) {
     const table = document.getElementById('mainTable');
     if (!table) {
         console.error('Table not found');
         return [];
     }
 
-    const headers = getTableHeaders();
+    const headers = getTableHeaders(excludeCallColumns);
     const rows = table.querySelectorAll('tbody tr');
     const data = [];
     const includeGroupRows = document.getElementById('groupUnique').checked;
