@@ -76,18 +76,17 @@ window.financial = {
 
     costofFundsSlice: {
       description: "Calculates the cost of funds using slice method",
-      implementation: function (principal, rate, term, amort = null) {
+      implementation: function (principal, rate, term, amort = null, newRelationship = false) {
+        const fundingBalance = newRelationship == true || newRelationship == "true" ? principal * .90 : principal;
         rate = rate < 1 ? parseFloat(rate) : parseFloat(rate / 100);
-        console.log('principal, rate, term, amort', principal, rate, term, amort)
         const treasuryCurve = window.financial.api._cache.treasuryCurve.values;
-        const payment = financial.functions.calculateMonthlyPayment.implementation(principal, rate, term, amort);
+        const payment = financial.functions.calculateMonthlyPayment.implementation(fundingBalance, rate, term, amort);
         let sigma_COF = 0;
-        let period_principal = principal;
+        let period_principal = fundingBalance;
         let paydown = 0;
         let period = 0;
         let k = .0040;
         for (period = 1; period < term; period++) {
-          //console.log('period', period, rate, sigma_COF, paydown, period_principal, parseFloat(treasuryCurve[period] + k))
           paydown = payment - period_principal * (rate / 100) / 12;
           sigma_COF += parseFloat(treasuryCurve[period] + k) * paydown * period;
           period_principal -= paydown;
@@ -715,9 +714,9 @@ window.financial = {
 
     loanProfit: {
       description: "Calculates the profit of a variety of loans",
-      implementation: function (portfolio, principal, rate, risk, open, type, payment = null, fees = null, maturity = null, term = null, amort = null, ltv = null, sourceIndex) {
+      implementation: function (portfolio, principal, rate, risk, open, type, payment = null, fees = null, maturity = null, term = null, amort = null, ltv = null, newRelationship = false, profit = 0, sourceIndex) {
         console.log(`portfolio: ${portfolio}, principal: ${principal}, rate: ${rate}, risk: ${risk}, open: ${open}, type: ${type}, payment: ${payment}, fees: ${fees}, maturity: ${maturity}, term: ${term}, sourceIndex: ${sourceIndex}`)
-        if (!principal || principal === 0) return 0; // zero principal implies closed loan, so return 0 profit
+        if (!principal || principal === 0) return 0;
         
         // Use term directly if available, otherwise use untilMaturity
         let monthsUntilMaturity, yearsUntilMaturity;
@@ -737,7 +736,7 @@ window.financial = {
         const averagePrincipal = lifetimeInterest / (monthlyRate * monthsUntilMaturity);
         const { termInMonths, termInYears } = financial.functions.getTerm.implementation(term, open, maturity);
         const interestIncome = averagePrincipal * rate;
-        const fundingExpense = financial.functions.costofFundsSlice.implementation(principal, rate, termInMonths, amort);
+        const fundingExpense = financial.functions.costofFundsSlice.implementation(principal, rate, termInMonths, amort, newRelationship);
 
         let complexityFactor = 1;
         if (financial.dictionaries.complexityFactor.values && 
@@ -783,9 +782,9 @@ window.financial = {
         if (!organization.dictionaries.taxExempt.loan.values.includes(type)) {
           taxAdjusted = pretax * taxFactor;
         }
-        const profit = taxAdjusted - lossProvision;
-        console.log(`portfolio: ${portfolio}, principal: ${principal}, payment: ${payment}, average: ${averagePrincipal}, risk: ${risk}, fees: ${fees}, years until maturity: ${yearsUntilMaturity}, term in years: ${termInYears}, rate: ${rate}, interest: ${interestIncome}, funding expense: ${fundingExpense}, origination expense: ${originationExpense}, servicing expense: ${servicingExpense}, non interest income: ${nonInterestIncome}, pretax: ${pretax}, ltv: ${ltv}, loss provision: ${lossProvision}, profit: ${profit.toFixed(2)}`);
-        return profit;
+        const loanProfit = taxAdjusted - lossProvision + profit;
+        console.log(`portfolio: ${portfolio}, principal: ${principal}, payment: ${payment}, average: ${averagePrincipal}, risk: ${risk}, fees: ${fees}, years until maturity: ${yearsUntilMaturity}, term in years: ${termInYears}, rate: ${rate}, interest: ${interestIncome}, funding expense: ${fundingExpense}, new relationship: ${newRelationship}, origination expense: ${originationExpense}, servicing expense: ${servicingExpense}, non interest income: ${nonInterestIncome}, pretax: ${pretax}, ltv: ${ltv}, loss provision: ${lossProvision}, existing profit: ${profit}, new profit: ${loanProfit.toFixed(2)}`);
+        return loanProfit.toFixed(2);
       }
     }  
   },
