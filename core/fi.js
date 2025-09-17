@@ -3080,6 +3080,117 @@ function initializeDisplay() {
   }, 200);
 }
 
+function printDisplayContainer() {
+  const displayContainer = document.getElementById('fiDisplayContainer');
+  if (!displayContainer) return;
+
+  // Create a new window for printing
+  const printWindow = window.open('', '_blank', 'width=800,height=600');
+  
+  // Get the current page title and app description
+  const pageTitle = document.title || 'FI.js Results';
+  const appDescription = window.appConfig?.description || 'Calculated Results';
+  
+  // Create the print content
+  const printContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>${pageTitle} - Print</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          margin: 20px;
+          line-height: 1.6;
+          color: #333;
+        }
+        .print-header {
+          border-bottom: 2px solid #007bff;
+          padding-bottom: 10px;
+          margin-bottom: 20px;
+        }
+        .print-title {
+          font-size: 24px;
+          font-weight: bold;
+          color: #007bff;
+          margin: 0;
+        }
+        .print-subtitle {
+          font-size: 14px;
+          color: #666;
+          margin: 5px 0 0 0;
+        }
+        .print-date {
+          font-size: 12px;
+          color: #999;
+          margin: 5px 0 0 0;
+        }
+        .results-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 15px;
+          margin-top: 20px;
+        }
+        .result-card {
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          padding: 15px;
+          background: #f9f9f9;
+          page-break-inside: avoid;
+        }
+        .result-card h4 {
+          margin: 0 0 10px 0;
+          color: #007bff;
+          font-size: 16px;
+          font-weight: 600;
+        }
+        .result-value {
+          font-size: 18px;
+          font-weight: bold;
+          color: #333;
+        }
+        .result-value.currency {
+          color: #28a745;
+        }
+        .result-value.rate {
+          color: #007bff;
+        }
+        .result-value.integer {
+          color: #6c757d;
+        }
+        .result-value.string {
+          color: #495057;
+        }
+        @media print {
+          body { margin: 0; }
+          .print-header { border-bottom: 1px solid #000; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="print-header">
+        <h1 class="print-title">${pageTitle}</h1>
+        <p class="print-subtitle">${appDescription}</p>
+        <p class="print-date">Generated: ${new Date().toLocaleString()}</p>
+      </div>
+      <div class="results-grid">
+        ${displayContainer.innerHTML.replace(/<div class="display-header">[\s\S]*?<\/div>/, '')}
+      </div>
+    </body>
+    </html>
+  `;
+  
+  printWindow.document.write(printContent);
+  printWindow.document.close();
+  
+  // Wait for content to load, then print
+  printWindow.onload = function() {
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+}
+
 function processDisplayData() {
   if (!window.appConfig || !window.appConfig.display) return;
 
@@ -3104,9 +3215,38 @@ function processDisplayData() {
   // Show display container
   displayContainer.style.display = 'block';
 
-  // Create results cards
-  displayContainer.innerHTML = '<h2>Calculated Results</h2><div class="results-grid"></div>';
-  const resultsGrid = displayContainer.querySelector('.results-grid');
+  // Create results cards (preserve existing header if it exists)
+  const existingHeader = displayContainer.querySelector('.display-header');
+  if (!existingHeader) {
+    // Create header if it doesn't exist
+    const displayHeader = document.createElement('div');
+    displayHeader.className = 'display-header';
+    
+    const displayTitle = document.createElement('h3');
+    displayTitle.textContent = 'Calculated Results';
+    displayTitle.className = 'display-title';
+    
+    const printButton = document.createElement('button');
+    printButton.className = 'print-button';
+    printButton.innerHTML = '🖨️';
+    printButton.title = 'Print Results';
+    printButton.onclick = () => printDisplayContainer();
+    
+    displayHeader.appendChild(displayTitle);
+    displayHeader.appendChild(printButton);
+    displayContainer.appendChild(displayHeader);
+  }
+
+  // Create or update results grid
+  let resultsGrid = displayContainer.querySelector('.results-grid');
+  if (!resultsGrid) {
+    resultsGrid = document.createElement('div');
+    resultsGrid.className = 'results-grid';
+    displayContainer.appendChild(resultsGrid);
+  } else {
+    // Clear existing results
+    resultsGrid.innerHTML = '';
+  }
 
   window.appConfig.display.forEach(col => {
     const card = document.createElement('div');
