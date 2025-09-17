@@ -106,7 +106,7 @@
         <div class="docs-header">
             <h1>FI.js Framework Documentation</h1>
             <p>A Local-First JavaScript Framework for Data-Driven Applications</p>
-            <p>Version 1.3 | Last Updated: December 2024</p>
+            <p>Version 1.4 | Last Updated: December 2024</p>
         </div>
 
         <nav class="docs-nav">
@@ -346,6 +346,37 @@ window.appConfig = {
                 </tbody>
             </table>
 
+            <h3>Print Functionality</h3>
+            <p>FI.js applications automatically include print functionality for both table-based and forms-based applications, enabling professional print output of all data and calculations.</p>
+            
+            <h4>Print Features</h4>
+            <ul>
+                <li><strong>One-Click Printing</strong> - Printer icon (🖨️) appears in display headers</li>
+                <li><strong>Professional Layout</strong> - Clean, print-optimized formatting</li>
+                <li><strong>Dynamic Headers</strong> - Includes page title, app description, and generation date</li>
+                <li><strong>Print-Specific Styling</strong> - Optimized colors and layout for paper output</li>
+                <li><strong>Page Break Control</strong> - Prevents content from breaking across pages</li>
+                <li><strong>Auto-Close Window</strong> - Print window closes automatically after printing</li>
+            </ul>
+
+            <h4>Print Output Includes</h4>
+            <ul>
+                <li><strong>Application Title</strong> - From document.title</li>
+                <li><strong>Description</strong> - From appConfig.description</li>
+                <li><strong>Generation Date</strong> - Current timestamp</li>
+                <li><strong>Complete Data</strong> - All table rows or display cards with proper formatting</li>
+                <li><strong>Data Type Styling</strong> - Color-coded values (currency, rates, etc.)</li>
+            </ul>
+
+            <h4>Use Cases</h4>
+            <ul>
+                <li><strong>Reports & Documentation</strong> - Generate professional reports</li>
+                <li><strong>Client Presentations</strong> - Print results for meetings</li>
+                <li><strong>Record Keeping</strong> - Create permanent records of data and calculations</li>
+                <li><strong>Compliance</strong> - Generate audit trails and documentation</li>
+                <li><strong>Sharing Results</strong> - Distribute data and calculations via print</li>
+            </ul>
+
             <h3>Call Links (Deep Linking)</h3>
             <p>The <code>call</code> column type creates clickable links in table cells that pass all row data as URL parameters to another FI.js application. This enables seamless navigation between related applications with pre-populated data.</p>
             <p><strong>Important:</strong> Call links are only supported in <code>appConfig.table</code> configurations. They are not available in <code>appConfig.display</code> (forms-based applications).</p>
@@ -419,6 +450,7 @@ lendersiq.html?Portfolio=Commercial&Class_Code=5&Principal=250000&profit=12500.5
                 <li><strong>Dynamic Expressions:</strong> Use JavaScript expressions for dates, math, strings, and conditional logic</li>
                 <li><strong>Responsive Design:</strong> Left-right split layout with independent scrolling</li>
                 <li><strong>Form Validation:</strong> Built-in validation and completion checking</li>
+                <li><strong>Print Functionality:</strong> One-click printing with professional formatting for all display results</li>
             </ul>
 
             <h3>Basic Forms Structure</h3>
@@ -652,6 +684,37 @@ lendersiq.html?customerName=Test%20Customer&principal=150000&rate=7.5&term=36&am
             <h4>Call Links (Table Only)</h4>
             <div class="code-block">{ heading: "Open Lender's IQ", id: "lendersiq", column_type: "call", url: "lendersiq.html" }</div>
             <p><strong>Note:</strong> Call links are only supported in <code>appConfig.table</code> configurations, not in <code>appConfig.display</code> (forms-based applications).</p>
+
+            <h3>Print Functionality</h3>
+            <p>All display containers automatically include a print button (🖨️) in the top-right corner, enabling professional print output of calculated results.</p>
+            
+            <h4>Print Features</h4>
+            <ul>
+                <li><strong>One-Click Printing</strong> - Click the printer icon to open print dialog</li>
+                <li><strong>Professional Layout</strong> - Clean, print-optimized formatting</li>
+                <li><strong>Dynamic Headers</strong> - Includes page title, app description, and generation date</li>
+                <li><strong>Print-Specific Styling</strong> - Optimized colors and layout for paper output</li>
+                <li><strong>Page Break Control</strong> - Prevents cards from breaking across pages</li>
+                <li><strong>Auto-Close Window</strong> - Print window closes automatically after printing</li>
+            </ul>
+
+            <h4>Print Output Includes</h4>
+            <ul>
+                <li><strong>Application Title</strong> - From document.title</li>
+                <li><strong>Description</strong> - From appConfig.description</li>
+                <li><strong>Generation Date</strong> - Current timestamp</li>
+                <li><strong>All Display Cards</strong> - Complete results with proper formatting</li>
+                <li><strong>Data Type Styling</strong> - Color-coded values (currency, rates, etc.)</li>
+            </ul>
+
+            <h4>Use Cases</h4>
+            <ul>
+                <li><strong>Reports & Documentation</strong> - Generate professional reports</li>
+                <li><strong>Client Presentations</strong> - Print results for meetings</li>
+                <li><strong>Record Keeping</strong> - Create permanent records of calculations</li>
+                <li><strong>Compliance</strong> - Generate audit trails and documentation</li>
+                <li><strong>Sharing Results</strong> - Distribute calculated results via print</li>
+            </ul>
 
             <h3>Creative Display Configuration</h3>
             <p>FI.js Forms supports dynamic JavaScript expressions in function calls and formulas, enabling powerful real-time calculations and data manipulation.</p>
