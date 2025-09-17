@@ -13,7 +13,7 @@
       description: "FI.js Forms Demo - showcasing all HTML form elements and their integration with display processing",
       forms: [
         { 
-          id: "name",
+          id: "Portfolio",
           type: "text", 
           label: "Customer Name", 
           value: "",
@@ -35,7 +35,7 @@
           ]
         },
         { 
-          id: "currentProfit",
+          id: "Profit",
           type: "number", 
           label: "Current Profit", 
           value: 0,
@@ -60,7 +60,14 @@
           max: 30,
           step: 0.125
         },
-
+        { 
+          id: "fees",
+          type: "number", 
+          label: "Fees Collected", 
+          value: 0,
+          min: 0,
+          step: 100
+        },
         { 
           id: "term",
           type: "range", 
@@ -80,14 +87,6 @@
           max: 360,
           step: 1,
           unit: " months"
-        },
-        { 
-          id: "fees",
-          type: "number", 
-          label: "Fees Collected", 
-          value: 0,
-          min: 0,
-          step: 100
         },
         { 
           id: "ltv",
@@ -116,6 +115,15 @@
           ]
         },
         { 
+          id: "newRelationship",
+          type: "checkbox", 
+          label: "New Relationship", 
+          value: ["insurance"], 
+          options: [
+            { value: true, label: "new operating account" }
+          ]
+        },
+        { 
           id: "notes",
           type: "textarea", 
           label: "Additional Notes", 
@@ -125,15 +133,15 @@
         }
       ],
       display: [
-        { heading: "Borrower", id: "name", column_type: "form", data_type: "string" },
+        { heading: "Borrower", id: "Portfolio", column_type: "form", data_type: "string" },
         { heading: "Loan Type", id: "type", column_type: "form", data_type: "string" },
-        { heading: "Loan Request", id: "principal", column_type: "form", data_type: "currency" },
+        { heading: "Loan Request", id: "Principal", column_type: "form", data_type: "currency" },
         { heading: "Monthly Payment", id: "payment", column_type: "function", function: "calculateMonthlyPayment(principal, rate, term, amort)", data_type: "currency" },
         { heading: "Total Interest", id: "totalInterest", column_type: "function", function: "calculateTotalInterest(principal, rate, term, amort)", data_type: "currency" },
         { heading: "Cost of Funds", id: "costOfFunds", column_type: "function", function: "costofFundsSlice(principal, rate, term, amort)", data_type: "currency" },
         { heading: "Average Principal", id: "averagePrincipal", column_type: "function", function: "averagePrincipalByTerm(principal, payment, rate, term)", data_type: "currency" },
         { heading: "Expected Loss Provision", id: "expectedLossProvision", column_type: "function", function: "expectedLossProvision(risk, principal, averagePrincipal, ltv, null)", data_type: "currency" },
-        { heading: "Profit", id: "loanProfit", column_type: "function", function: "loanProfit(1, principal, rate, risk, new Date().toISOString().split('T')[0], type, payment, fees, null, term, amort, ltv, null)", data_type: "currency" },
+        { heading: "Profit", id: "loanProfit", column_type: "function", function: "loanProfit(1, principal, rate, risk, new Date().toISOString().split('T')[0], type, payment, fees, null, term, amort, ltv, newRelationship, Profit, null)", data_type: "currency" },
         { heading: "Profit Grade", id: "grade", column_type: "function", function: "loanProfitGrade(loanProfit, principal, rate, term, amort)", data_type: "string" }
     ]
     };
