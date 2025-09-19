@@ -337,6 +337,92 @@
     }
   }
 
+  // Create parameter mapping to handle ID conflicts between URL parameters and form fields
+  function createParameterMapping(paramData) {
+    const mapping = {};
+    
+    // Common parameter name mappings
+    const commonMappings = {
+      // Table column IDs -> Form field IDs
+      'loanProfit': 'profit',
+      'Class_Code': 'type',
+      'Average_Balance': 'principal',
+      'checkingProfit': 'profit',
+      'savingsProfit': 'profit',
+      'CDProfit': 'profit',
+      
+      // Alternative naming conventions
+      'customerName': 'Portfolio',
+      'customer_name': 'Portfolio',
+      'borrower': 'Portfolio',
+      'loanType': 'type',
+      'loan_type': 'type',
+      'principalAmount': 'principal',
+      'principal_amount': 'principal',
+      'loanAmount': 'principal',
+      'loan_amount': 'principal',
+      'interestRate': 'rate',
+      'interest_rate': 'rate',
+      'loanRate': 'rate',
+      'loan_rate': 'rate',
+      'loanTerm': 'term',
+      'loan_term': 'term',
+      'contractualTerm': 'term',
+      'contractual_term': 'term',
+      'amortizationTerm': 'amort',
+      'amortization_term': 'amort',
+      'amortTerm': 'amort',
+      'amort_term': 'amort',
+      'loanFees': 'fees',
+      'loan_fees': 'fees',
+      'feesCollected': 'fees',
+      'fees_collected': 'fees',
+      'riskLevel': 'risk',
+      'risk_level': 'risk',
+      'ltvRatio': 'ltv',
+      'ltv_ratio': 'ltv',
+      'ltv': 'ltv'
+    };
+    
+    // Apply mappings for parameters that exist
+    Object.keys(paramData).forEach(paramKey => {
+      // Check if there's a direct mapping
+      if (commonMappings[paramKey]) {
+        mapping[commonMappings[paramKey]] = paramData[paramKey];
+        return;
+      }
+      
+      // Check for case-insensitive matches
+      const lowerParamKey = paramKey.toLowerCase();
+      Object.keys(commonMappings).forEach(mappingKey => {
+        if (mappingKey.toLowerCase() === lowerParamKey) {
+          mapping[commonMappings[mappingKey]] = paramData[paramKey];
+        }
+      });
+    });
+    
+    // Add fuzzy matching for unmatched parameters
+    const unmatchedParams = Object.keys(paramData).filter(key => 
+      !Object.values(mapping).includes(paramData[key])
+    );
+    
+    unmatchedParams.forEach(paramKey => {
+      const lowerParamKey = paramKey.toLowerCase();
+      
+      // Try to find partial matches
+      Object.keys(commonMappings).forEach(mappingKey => {
+        const lowerMappingKey = mappingKey.toLowerCase();
+        
+        // Check if paramKey contains mappingKey or vice versa
+        if (lowerParamKey.includes(lowerMappingKey) || lowerMappingKey.includes(lowerParamKey)) {
+          mapping[commonMappings[mappingKey]] = paramData[paramKey];
+        }
+      });
+    });
+    
+    return mapping;
+  }
+
   // Parse URL parameters and apply to form configs
   function parseUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -344,20 +430,51 @@
     
     // Extract all URL parameters
     for (const [key, value] of urlParams.entries()) {
-      paramData[key] = value;
+      // Handle double-encoded values by decoding multiple times if needed
+      let decodedValue = value;
+      let previousValue = '';
+      
+      // Keep decoding until no more changes occur (handles double/triple encoding)
+      while (decodedValue !== previousValue) {
+        previousValue = decodedValue;
+        try {
+          const testDecode = decodeURIComponent(decodedValue);
+          if (testDecode !== decodedValue) {
+            decodedValue = testDecode;
+          }
+        } catch (e) {
+          // If decoding fails, stop
+          break;
+        }
+      }
+      
+      paramData[key] = decodedValue;
     }
+
+    // Create parameter mapping to handle ID conflicts
+    const parameterMapping = createParameterMapping(paramData);
     
-    // Apply parameters to form configurations
+    // Apply parameters to form configurations using mapping
     if (window.appConfig && window.appConfig.forms) {
       window.appConfig.forms.forEach(formConfig => {
-        if (paramData.hasOwnProperty(formConfig.id)) {
-          let paramValue = paramData[formConfig.id];
+        // Check for direct match first
+        let paramValue = paramData[formConfig.id];
+        
+        // If no direct match, check parameter mapping
+        if (paramValue === undefined && parameterMapping[formConfig.id]) {
+          paramValue = parameterMapping[formConfig.id];
+        }
+        
+        if (paramValue !== undefined) {
           
           // Convert value based on form type
           switch (formConfig.type) {
             case 'number':
             case 'range':
-              paramValue = parseFloat(paramValue);
+            case 'rate':
+              // Remove special characters (currency symbols, commas, etc.) for numeric fields
+              const cleanValue = paramValue.replace(/[$,%]/g, '');
+              paramValue = parseFloat(cleanValue);
               if (isNaN(paramValue)) paramValue = formConfig.value;
               break;
             case 'checkbox':

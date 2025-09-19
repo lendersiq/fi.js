@@ -46,14 +46,14 @@
       console.log("fiCharts.js loaded");
       loadScript("../../core/ui.js", () => {
         console.log("ui.js loaded");
-        loadScript("../../libraries/organization.js", () => {
-          console.log("libraries/organization.js loaded");
-          loadScript("../../libraries/financial.js", () => {
-            console.log("libraries/financial.js loaded");
+      loadScript("../../libraries/organization.js", () => {
+        console.log("libraries/organization.js loaded");
+        loadScript("../../libraries/financial.js", () => {
+          console.log("libraries/financial.js loaded");
           // function tests
           console.log('Function Tests')
           if (window.financial && window.financial.functions && window.financial.functions['loanProfit']) {
-            console.log ('Function parameter test: ', getFunctionParameters(window.financial.functions['loanProfit'].implementation));
+          console.log ('Function parameter test: ', getFunctionParameters(window.financial.functions['loanProfit'].implementation));
           } else {
             console.log('Financial functions not yet loaded');
           }
@@ -89,13 +89,13 @@
 
   // 2) Identify the unique column config (exactly one assumed) - only for table-based apps
   if (appConfig.table) {
-    const uniqueConfig = appConfig.table.find(
-      cfg => cfg.column_type === "data" && cfg.data_type === "unique"
-    );
-    if (!uniqueConfig) {
-      console.error("No unique column configuration found (data_type = 'unique').");
-      return;
-    }
+  const uniqueConfig = appConfig.table.find(
+    cfg => cfg.column_type === "data" && cfg.data_type === "unique"
+  );
+  if (!uniqueConfig) {
+    console.error("No unique column configuration found (data_type = 'unique').");
+    return;
+  }
   }
   
   // Only proceed with table-based processing if table exists
@@ -1197,12 +1197,29 @@
                   const baseUrl = col.url || '#';
                   const params = new URLSearchParams();
                   
-                  // Add all column values as parameters
+                  // Add all column values as parameters (use formatted display values, cleanse numeric)
                   displayCols.forEach(displayCol => {
                       if (displayCol.id !== col.id && displayCol.column_type !== 'call') {
                           const rawValue = totals[displayCol.heading];
                           if (rawValue !== undefined && rawValue !== null && rawValue !== '') {
-                              let paramValue = rawValue;
+                              // Use formatted display value instead of raw value
+                              // First decode any already-encoded values in the raw data
+                              let decodedRawValue = rawValue;
+                              if (typeof rawValue === 'string' && rawValue.includes('%')) {
+                                  try {
+                                      decodedRawValue = decodeURIComponent(rawValue);
+                                  } catch (e) {
+                                      // If decoding fails, use original value
+                                      decodedRawValue = rawValue;
+                                  }
+                              }
+                              
+                              const formattedValue = formatValue(decodedRawValue, displayCol.data_type);
+                              // Cleanse numeric arguments (remove $, commas, %)
+                              const cleansed = sanitizeForUrlParam(formattedValue, displayCol.data_type);
+                              let paramValue = cleansed;
+                              
+                              // Encode the formatted value for URL
                               if (typeof paramValue === 'string') {
                                   paramValue = encodeURIComponent(paramValue);
                               } else if (typeof paramValue === 'boolean') {
@@ -1229,9 +1246,9 @@
                   
                   td.appendChild(link);
               } else {
-                  // Fetch value from totals object using the unique heading key
-                  const rawValue = totals[col.heading];
-                  td.innerText = formatValue(rawValue, col.data_type);
+              // Fetch value from totals object using the unique heading key
+              const rawValue = totals[col.heading];
+              td.innerText = formatValue(rawValue, col.data_type);
               }
               
               totalsRow.appendChild(td);
@@ -1248,12 +1265,107 @@
                       const subTd = document.createElement("td");
                       
                       if (col.column_type === 'call') {
-                          // Don't show call links in sub-rows
-                          subTd.innerText = '';
+                          // Generate call link for sub-row using sub-row data
+                          const link = document.createElement('a');
+                          link.className = 'call-link';
+                          link.innerText = 'Open';
+                          
+                          // Build URL with sub-row data as parameters
+                          const baseUrl = col.url || '#';
+                          const params = new URLSearchParams();
+                          
+                          // Add all column values as parameters using sub-row data
+                          displayCols.forEach(displayCol => {
+                              if (displayCol.id !== col.id && displayCol.column_type !== 'call') {
+                                  // Get value from sub-row data using the same logic as table display
+                                  let rawValue = sRow[displayCol.heading];
+                                  if (rawValue === undefined || rawValue === null) {
+                                      rawValue = sRow[displayCol.id];
+                                  }
+                                  // If still not found, try to find by matching the column heading to any key in the row
+                                  if (rawValue === undefined || rawValue === null) {
+                                      const matchingKey = Object.keys(sRow).find(key => 
+                                          key.toLowerCase() === displayCol.heading.toLowerCase() || 
+                                          key.toLowerCase() === displayCol.id.toLowerCase()
+                                      );
+                                      if (matchingKey) {
+                                          rawValue = sRow[matchingKey];
+                                      }
+                                  }
+                                  
+                                  // If we still haven't found the value, try to find it by index
+                                  if (rawValue === undefined || rawValue === null) {
+                                      // Try to find by index in the displayCols array
+                                      const colIndex = displayCols.findIndex(c => c.id === displayCol.id);
+                                      if (colIndex >= 0 && sRow[colIndex] !== undefined) {
+                                          rawValue = sRow[colIndex];
+                                      }
+                                  }
+                                  
+                                  // If we still haven't found the value, try to find it by matching the column heading to any key in the row
+                                  if (rawValue === undefined || rawValue === null) {
+                                      // Try to find by matching the column heading to any key in the row
+                                      const matchingKey = Object.keys(sRow).find(key => 
+                                          key.toLowerCase() === displayCol.heading.toLowerCase() || 
+                                          key.toLowerCase() === displayCol.id.toLowerCase()
+                                      );
+                                      if (matchingKey) {
+                                          rawValue = sRow[matchingKey];
+                                      }
+                                  }
+                                  
+                                  // If we still haven't found the value, try to find it by matching the column heading to any key in the row
+                                  if (rawValue === undefined || rawValue === null) {
+                                      // Try to find by matching the column heading to any key in the row
+                                      const matchingKey = Object.keys(sRow).find(key => 
+                                          key.toLowerCase() === displayCol.heading.toLowerCase() || 
+                                          key.toLowerCase() === displayCol.id.toLowerCase()
+                                      );
+                                      if (matchingKey) {
+                                          rawValue = sRow[matchingKey];
+                                      }
+                                  }
+                                  
+                                  if (rawValue !== undefined && rawValue !== null && rawValue !== '') {
+                                      const formattedValue = formatValue(rawValue, displayCol.data_type);
+                                      let paramValue = sanitizeForUrlParam(formattedValue, displayCol.data_type);
+                                      
+                                      // Encode the value for URL
+                                      if (typeof paramValue === 'string') {
+                                          paramValue = encodeURIComponent(paramValue);
+                                      } else if (typeof paramValue === 'boolean') {
+                                          paramValue = paramValue ? 'true' : 'false';
+                                      } else if (typeof paramValue === 'number') {
+                                          paramValue = paramValue.toString();
+                                      }
+                                      params.append(displayCol.id, paramValue);
+                                  }
+                              }
+                          });
+                          
+                          // Construct final URL
+                          const finalUrl = baseUrl + (params.toString() ? '?' + params.toString() : '');
+                          link.href = finalUrl;
+                          
+                          subTd.appendChild(link);
                       } else {
-                          // Fetch value from sub-row object using the unique heading key
-                          const rawValue = sRow[col.heading];
-                          subTd.innerText = formatValue(rawValue, col.data_type);
+                          // Fetch value from sub-row object
+                          // Sub-row data uses original CSV column names, so try both heading and id
+                          let rawValue = sRow[col.heading];
+                          if (rawValue === undefined || rawValue === null) {
+                              rawValue = sRow[col.id];
+                          }
+                          // If still not found, try to find by matching the column heading to any key in the row
+                          if (rawValue === undefined || rawValue === null) {
+                              const matchingKey = Object.keys(sRow).find(key => 
+                                  key.toLowerCase() === col.heading.toLowerCase() || 
+                                  key.toLowerCase() === col.id.toLowerCase()
+                              );
+                              if (matchingKey) {
+                                  rawValue = sRow[matchingKey];
+                              }
+                          }
+                      subTd.innerText = formatValue(rawValue, col.data_type);
                       }
                       
                       subTr.appendChild(subTd);
@@ -1293,8 +1405,20 @@
       tableContainer.appendChild(table);
       document.getElementById(tableContainerID).appendChild(tableContainer);
 
-      // Event listener for toggling sub-rows
+      // Event listener for toggling sub-rows and handling call links
       table.addEventListener("click", e => {
+          // Check if it's a call link click
+          const callLink = e.target.closest("a.call-link");
+          if (callLink) {
+              e.preventDefault();
+              const href = callLink.getAttribute('href');
+              if (href && href !== '#') {
+                  window.open(href, '_blank');
+              }
+              return;
+          }
+          
+          // Check if it's a sub-row toggle click
           const tr = e.target.closest("tr[data-toggle]");
           if (!tr) return;
           const key = tr.getAttribute("data-toggle");
@@ -2106,6 +2230,8 @@
         
         .table-container {
           overflow-x: auto;
+          overflow-y: auto;
+          max-height: 80vh;
           padding: 24px;
         }
         
@@ -2126,6 +2252,9 @@
           text-transform: uppercase;
           letter-spacing: 0.5px;
           border: none;
+          position: sticky;
+          top: 0;
+          z-index: 10;
         }
         
         .export-table td {
@@ -2221,6 +2350,7 @@
           
           .table-container {
             padding: 16px;
+            max-height: 70vh;
           }
           
           .export-table {
@@ -2241,7 +2371,14 @@
     const htmlTableRows = tableData.map((row, rowIndex) => {
       const cells = headers.map(header => {
         const value = row[header];
-        let displayValue = value !== undefined && value !== null ? value : '';
+        
+        // Find the column configuration to get data_type and id
+        const colConfig = (window.appConfig?.table || []).find(c => (c.heading === header) || (c.id === header));
+        const dataType = colConfig?.data_type || undefined;
+        const columnId = colConfig?.id || header;
+        
+        // Format the value according to its data_type
+        let displayValue = value !== undefined && value !== null ? formatValue(value, dataType) : '';
         
         // Check if this is a call column and create a link (but not for Grand Totals)
         // If header is "Open", find the call column (there should only be one)
@@ -2257,12 +2394,20 @@
           const baseUrl = callColumn.url || '#';
           const params = new URLSearchParams();
           
-          // Add all other column values as parameters
+          // Add all other column values as parameters (cleanse numeric)
           headers.forEach(headerName => {
             if (headerName !== header) {
               const rowValue = row[headerName];
               if (rowValue !== undefined && rowValue !== null && rowValue !== '') {
-                let paramValue = rowValue;
+                // Find column config for this header to get data_type and id
+                const headerColConfig = (window.appConfig?.table || []).find(c => (c.heading === headerName) || (c.id === headerName));
+                const headerDataType = headerColConfig?.data_type || undefined;
+                const headerColumnId = headerColConfig?.id || headerName;
+                
+                // Format the value first, then cleanse for URL
+                const formattedValue = formatValue(rowValue, headerDataType);
+                const cleansed = sanitizeForUrlParam(formattedValue, headerDataType);
+                let paramValue = cleansed;
                 if (typeof paramValue === 'string') {
                   paramValue = encodeURIComponent(paramValue);
                 } else if (typeof paramValue === 'boolean') {
@@ -2270,7 +2415,8 @@
                 } else if (typeof paramValue === 'number') {
                   paramValue = paramValue.toString();
                 }
-                params.append(headerName, paramValue);
+                // Use the column ID as the parameter name, not the header
+                params.append(headerColumnId, paramValue);
               }
             }
           });
@@ -2422,6 +2568,18 @@
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+// Sanitize a value for URL parameters: strip currency/percent formatting from numbers
+function sanitizeForUrlParam(value, dataType) {
+  if (value === null || value === undefined) return '';
+  // If data type suggests numeric, strip $ , % and spaces before encoding
+  const numericTypes = ['currency', 'integer', 'float', 'rate', 'number'];
+  if (numericTypes.includes((dataType || '').toLowerCase())) {
+    const str = String(value);
+    return str.replace(/[$,%\s]/g, '');
+  }
+  return String(value);
 }
 
 /**
