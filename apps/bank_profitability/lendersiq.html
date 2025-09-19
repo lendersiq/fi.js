@@ -35,7 +35,7 @@
           ]
         },
         { 
-          id: "Profit",
+          id: "totalProfit",
           type: "number", 
           label: "Current Profit", 
           value: 0,
@@ -44,7 +44,7 @@
           disabled: true
         },
         { 
-          id: "principal",
+          id: "newPrincipal",
           type: "number", 
           label: "Principal Amount", 
           value: 0,
@@ -130,19 +130,25 @@
           value: "",
           rows: 3,
           placeholder: "Enter any additional information..."
+        },
+        { 
+          id: "principal",
+          type: "hidden", 
+          label: "Principal", 
+          value: 0 
         }
       ],
       display: [
         { heading: "Borrower", id: "Portfolio", column_type: "form", data_type: "string" },
         { heading: "Loan Type", id: "type", column_type: "form", data_type: "string" },
-        { heading: "Loan Request", id: "Principal", column_type: "form", data_type: "currency" },
-        { heading: "Monthly Payment", id: "payment", column_type: "function", function: "calculateMonthlyPayment(principal, rate, term, amort)", data_type: "currency" },
-        { heading: "Total Interest", id: "totalInterest", column_type: "function", function: "calculateTotalInterest(principal, rate, term, amort)", data_type: "currency" },
-        { heading: "Cost of Funds", id: "costOfFunds", column_type: "function", function: "costofFundsSlice(principal, rate, term, amort)", data_type: "currency" },
-        { heading: "Average Principal", id: "averagePrincipal", column_type: "function", function: "averagePrincipalByTerm(principal, payment, rate, term)", data_type: "currency" },
-        { heading: "Expected Loss Provision", id: "expectedLossProvision", column_type: "function", function: "expectedLossProvision(risk, principal, averagePrincipal, ltv, null)", data_type: "currency" },
-        { heading: "Profit", id: "loanProfit", column_type: "function", function: "loanProfit(1, principal, rate, risk, new Date().toISOString().split('T')[0], type, payment, fees, null, term, amort, ltv, newRelationship, Profit, null)", data_type: "currency" },
-        { heading: "Profit Grade", id: "grade", column_type: "function", function: "loanProfitGrade(loanProfit, principal, rate, term, amort)", data_type: "string" }
+        { heading: "Loan Request", id: "newPrincipal", column_type: "form", data_type: "currency" },
+        { heading: "Monthly Payment", id: "payment", column_type: "function", function: "calculateMonthlyPayment(newPrincipal, rate, term, amort)", data_type: "currency" },
+        { heading: "Total Interest", id: "totalInterest", column_type: "function", function: "calculateTotalInterest(newPrincipal, rate, term, amort)", data_type: "currency" },
+        { heading: "Cost of Funds", id: "costOfFunds", column_type: "function", function: "costofFundsSlice(newPrincipal, rate, term, amort)", data_type: "currency" },
+        { heading: "Average Principal", id: "averagePrincipal", column_type: "function", function: "averagePrincipalByTerm(newPrincipal, payment, rate, term)", data_type: "currency" },
+        { heading: "Expected Loss Provision", id: "expectedLossProvision", column_type: "function", function: "expectedLossProvision(risk, newPrincipal, averagePrincipal, ltv, null)", data_type: "currency" },
+        { heading: "Profit", id: "newProfit", column_type: "function", function: "loanProfit(1, newPrincipal, rate, risk, new Date().toISOString().split('T')[0], type, payment, fees, null, term, amort, ltv, newRelationship, totalProfit, null)", data_type: "currency" },
+        { heading: "Profit Grade", id: "grade", column_type: "function", function: "loanProfitGrade(newProfit, newPrincipal, rate, term, amort, principal)", data_type: "string" }
     ]
     };
   </script>

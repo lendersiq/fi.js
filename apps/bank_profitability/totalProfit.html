@@ -19,7 +19,8 @@
         { heading: "Checking Type", id: "Class_Code", column_type: "data", data_type: "integer", source_name: "checking" },
         { heading: "Balance", id: "Average_Balance", column_type: "data", data_type: "currency", source_name: "checking" },
         { heading: "Checking Profit", id: "checkingProfit", column_type: "function", data_type: "currency", source_name: "checking"},
-        { heading: "Total Profit", id: "profit", column_type: "formula", formula: "checkingProfit + loanProfit - 1000", data_type: "currency", sort: "desc" }
+        { heading: "Total Profit", id: "totalProfit", column_type: "formula", formula: "checkingProfit + loanProfit", data_type: "currency", sort: "desc" },
+        { heading: "LendersIQ", id: "lendersiq", column_type: "call", url: "lendersiq.html" }
       ]
     }
   </script>
