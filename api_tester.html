@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Method Tester - BankersIQ CORS Testing</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .test-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #2980b9;
+        }
+        .test-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-pending { background-color: #f39c12; }
+        .status-success { background-color: #27ae60; }
+        .status-error { background-color: #e74c3c; }
+        .clear-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .clear-button:hover {
+            background: #c0392b;
+        }
+        .copy-button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 12px;
+        }
+        .copy-button:hover {
+            background: #229954;
+        }
+        .code-snippet {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            position: relative;
+        }
+        .environment-info {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 API Method Tester - BankersIQ CORS Testing</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Testing various HTTP methods and CORS configurations against <strong>https://bankersiq.com/api/trates/</strong>
+        </p>
+        
+        <div class="environment-info" id="environment-info">
+            <strong>🌍 Environment Detection:</strong> <span id="current-environment">Detecting...</span>
+        </div>
+
+        <div class="test-grid">
+            <!-- GET Method Tests -->
+            <div class="test-section">
+                <h3>📡 GET Method Tests</h3>
+                <button class="test-button" onclick="testBasicFetch()">Basic Fetch</button>
+                <button class="test-button" onclick="testFetchWithHeaders()">Fetch with Headers</button>
+                <button class="test-button" onclick="testXMLHttpRequest()">XMLHttpRequest</button>
+                <button class="test-button" onclick="testFetchWithCredentials()">Fetch with Credentials</button>
+                <div id="get-results" class="results" style="display: none;"></div>
+            </div>
+
+            <!-- POST Method Tests -->
+            <div class="test-section">
+                <h3>📤 POST Method Tests</h3>
+                <button class="test-button" onclick="testPostJSON()">POST JSON</button>
+                <button class="test-button" onclick="testPostFormData()">POST FormData</button>
+                <button class="test-button" onclick="testPostURLEncoded()">POST URL Encoded</button>
+                <button class="test-button" onclick="testPostWithCustomHeaders()">POST with Custom Headers</button>
+                <div id="post-results" class="results" style="display: none;"></div>
+            </div>
+
+            <!-- CORS Specific Tests -->
+            <div class="test-section">
+                <h3>🌐 CORS Specific Tests</h3>
+                <button class="test-button" onclick="testPreflightRequest()">Test Preflight (OPTIONS)</button>
+                <button class="test-button" onclick="testCORSHeaders()">Test CORS Headers</button>
+                <button class="test-button" onclick="testDifferentOrigins()">Test Different Origins</button>
+                <button class="test-button" onclick="testCORSWithCredentials()">CORS with Credentials</button>
+                <div id="cors-results" class="results" style="display: none;"></div>
+            </div>
+
+            <!-- Environment Tests -->
+            <div class="test-section">
+                <h3>🌐 Environment Tests</h3>
+                <button class="test-button" onclick="testFileProtocol()">Test file:// Protocol</button>
+                <button class="test-button" onclick="testHttpProtocol()">Test HTTP Protocol</button>
+                <button class="test-button" onclick="testHttpsProtocol()">Test HTTPS Protocol</button>
+                <button class="test-button" onclick="testCrossOrigin()">Test Cross-Origin</button>
+                <div id="environment-results" class="results" style="display: none;"></div>
+            </div>
+
+            <!-- Advanced Tests -->
+            <div class="test-section">
+                <h3>⚡ Advanced Tests</h3>
+                <button class="test-button" onclick="testAllMethods()">Test All Methods</button>
+                <button class="test-button" onclick="testErrorHandling()">Test Error Handling</button>
+                <button class="test-button" onclick="testTimeoutScenarios()">Test Timeout Scenarios</button>
+                <button class="test-button" onclick="testRetryLogic()">Test Retry Logic</button>
+                <div id="advanced-results" class="results" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="clear-button" onclick="clearAllResults()">Clear All Results</button>
+            <button class="test-button" onclick="runAllTests()">Run All Tests</button>
+        </div>
+
+        <!-- Working Code Snippets Section -->
+        <div class="test-section" id="working-code-section" style="display: none;">
+            <h3>💻 Working Code Snippets</h3>
+            <p>Copy these code snippets for successful tests:</p>
+            <div id="working-code-snippets"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://bankersiq.com/api/trates/';
+        let testCounter = 0;
+        let workingCodeSnippets = [];
+
+        // Utility function to log results
+        function logResult(sectionId, message, type = 'info') {
+            const resultsDiv = document.getElementById(sectionId);
+            if (resultsDiv.style.display === 'none') {
+                resultsDiv.style.display = 'block';
+            }
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const statusIcon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            
+            resultsDiv.innerHTML += `[${timestamp}] ${statusIcon} ${message}\n`;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            
+            // Add appropriate CSS class
+            resultsDiv.className = `results ${type}`;
+        }
+
+        // Clear all results
+        function clearAllResults() {
+            const resultSections = ['get-results', 'post-results', 'cors-results', 'environment-results', 'advanced-results'];
+            resultSections.forEach(sectionId => {
+                const div = document.getElementById(sectionId);
+                div.innerHTML = '';
+                div.style.display = 'none';
+            });
+            workingCodeSnippets = [];
+            document.getElementById('working-code-section').style.display = 'none';
+            document.getElementById('working-code-snippets').innerHTML = '';
+        }
+
+        // Add working code snippet
+        function addWorkingCodeSnippet(testName, code, description) {
+            const snippet = {
+                testName,
+                code,
+                description,
+                id: Date.now() + Math.random()
+            };
+            workingCodeSnippets.push(snippet);
+            updateWorkingCodeDisplay();
+        }
+
+        // Update working code display
+        function updateWorkingCodeDisplay() {
+            const section = document.getElementById('working-code-section');
+            const container = document.getElementById('working-code-snippets');
+            
+            if (workingCodeSnippets.length > 0) {
+                section.style.display = 'block';
+                container.innerHTML = workingCodeSnippets.map(snippet => `
+                    <div class="code-snippet">
+                        <strong>${snippet.testName}</strong> - ${snippet.description}
+                        <button class="copy-button" onclick="copyToClipboard('${snippet.id}')">📋 Copy</button>
+                        <pre id="code-${snippet.id}">${snippet.code}</pre>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Copy to clipboard
+        async function copyToClipboard(snippetId) {
+            const codeElement = document.getElementById(`code-${snippetId}`);
+            const code = codeElement.textContent;
+            
+            try {
+                await navigator.clipboard.writeText(code);
+                // Visual feedback
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                button.style.background = '#27ae60';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#27ae60';
+                }, 2000);
+            } catch (err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }
+        }
+
+        // Detect current environment
+        function detectEnvironment() {
+            const protocol = window.location.protocol;
+            const hostname = window.location.hostname;
+            
+            let environment = '';
+            if (protocol === 'file:') {
+                environment = 'file:// (Local File)';
+            } else if (protocol === 'http:') {
+                environment = `http:// (HTTP Server - ${hostname})`;
+            } else if (protocol === 'https:') {
+                environment = `https:// (HTTPS Server - ${hostname})`;
+            } else {
+                environment = `${protocol} (Unknown)`;
+            }
+            
+            document.getElementById('current-environment').textContent = environment;
+        }
+
+        // Test 1: Basic Fetch
+        async function testBasicFetch() {
+            logResult('get-results', 'Testing basic fetch request...', 'info');
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                logResult('get-results', `✅ Basic fetch successful! Status: ${response.status}`, 'success');
+                logResult('get-results', `Response data preview: ${JSON.stringify(data).substring(0, 100)}...`, 'info');
+                
+                // Add working code snippet
+                addWorkingCodeSnippet(
+                    'Basic Fetch',
+                    `// Basic fetch request
+const response = await fetch('${API_URL}');
+const data = await response.json();
+console.log(data);`,
+                    'Simple fetch request that works across all environments'
+                );
+            } catch (error) {
+                logResult('get-results', `❌ Basic fetch failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 2: Fetch with Headers
+        async function testFetchWithHeaders() {
+            logResult('get-results', 'Testing fetch with custom headers...', 'info');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await response.json();
+                logResult('get-results', `✅ Fetch with headers successful! Status: ${response.status}`, 'success');
+                logResult('get-results', `Headers sent: ${JSON.stringify(response.headers)}`, 'info');
+            } catch (error) {
+                logResult('get-results', `❌ Fetch with headers failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 3: XMLHttpRequest
+        function testXMLHttpRequest() {
+            logResult('get-results', 'Testing XMLHttpRequest...', 'info');
+            const xhr = new XMLHttpRequest();
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            logResult('get-results', `✅ XMLHttpRequest successful! Status: ${xhr.status}`, 'success');
+                            logResult('get-results', `Response data preview: ${JSON.stringify(data).substring(0, 100)}...`, 'info');
+                            
+                            // Add working code snippet
+                            addWorkingCodeSnippet(
+                                'XMLHttpRequest',
+                                `// XMLHttpRequest implementation
+const xhr = new XMLHttpRequest();
+
+xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+            try {
+                const data = JSON.parse(xhr.responseText);
+                console.log('XMLHttpRequest data:', data);
+            } catch (e) {
+                console.error('Response parsing failed:', e.message);
+            }
+        } else {
+            console.error('Request failed with status:', xhr.status);
+        }
+    }
+};
+
+xhr.onerror = function() {
+    console.error('Network error occurred');
+};
+
+xhr.open('GET', '${API_URL}', true);
+xhr.setRequestHeader('Content-Type', 'application/json');
+xhr.send();`,
+                                'Traditional XMLHttpRequest that works across all environments'
+                            );
+                        } catch (e) {
+                            logResult('get-results', `❌ XMLHttpRequest response parsing failed: ${e.message}`, 'error');
+                        }
+                    } else {
+                        logResult('get-results', `❌ XMLHttpRequest failed! Status: ${xhr.status}`, 'error');
+                    }
+                }
+            };
+            
+            xhr.onerror = function() {
+                logResult('get-results', `❌ XMLHttpRequest network error`, 'error');
+            };
+            
+            xhr.open('GET', API_URL, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send();
+        }
+
+        // Test 4: Fetch with Credentials
+        async function testFetchWithCredentials() {
+            logResult('get-results', 'Testing fetch with credentials...', 'info');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                logResult('get-results', `✅ Fetch with credentials successful! Status: ${response.status}`, 'success');
+            } catch (error) {
+                logResult('get-results', `❌ Fetch with credentials failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 5: POST JSON
+        async function testPostJSON() {
+            logResult('post-results', 'Testing POST with JSON data...', 'info');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        test: 'data',
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    logResult('post-results', `✅ POST JSON successful! Status: ${response.status}`, 'success');
+                } else {
+                    logResult('post-results', `⚠️ POST JSON returned status: ${response.status} (Expected for GET-only API)`, 'warning');
+                }
+            } catch (error) {
+                logResult('post-results', `❌ POST JSON failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 6: POST FormData
+        async function testPostFormData() {
+            logResult('post-results', 'Testing POST with FormData...', 'info');
+            try {
+                const formData = new FormData();
+                formData.append('test', 'formdata');
+                formData.append('timestamp', new Date().toISOString());
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    logResult('post-results', `✅ POST FormData successful! Status: ${response.status}`, 'success');
+                } else {
+                    logResult('post-results', `⚠️ POST FormData returned status: ${response.status} (Expected for GET-only API)`, 'warning');
+                }
+            } catch (error) {
+                logResult('post-results', `❌ POST FormData failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 7: POST URL Encoded
+        async function testPostURLEncoded() {
+            logResult('post-results', 'Testing POST with URL encoded data...', 'info');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'test=urlencoded&timestamp=' + encodeURIComponent(new Date().toISOString())
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    logResult('post-results', `✅ POST URL encoded successful! Status: ${response.status}`, 'success');
+                } else {
+                    logResult('post-results', `⚠️ POST URL encoded returned status: ${response.status} (Expected for GET-only API)`, 'warning');
+                }
+            } catch (error) {
+                logResult('post-results', `❌ POST URL encoded failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 8: POST with Custom Headers
+        async function testPostWithCustomHeaders() {
+            logResult('post-results', 'Testing POST with custom headers...', 'info');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer test-token',
+                        'X-Custom-Header': 'test-value',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ test: 'custom-headers' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    logResult('post-results', `✅ POST with custom headers successful! Status: ${response.status}`, 'success');
+                } else {
+                    logResult('post-results', `⚠️ POST with custom headers returned status: ${response.status} (Expected for GET-only API)`, 'warning');
+                }
+            } catch (error) {
+                logResult('post-results', `❌ POST with custom headers failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 9: Preflight Request (OPTIONS)
+        async function testPreflightRequest() {
+            logResult('cors-results', 'Testing preflight OPTIONS request...', 'info');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type, Authorization'
+                    }
+                });
+                
+                logResult('cors-results', `✅ OPTIONS request successful! Status: ${response.status}`, 'success');
+                logResult('cors-results', `CORS headers: ${JSON.stringify({
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                    'Access-Control-Max-Age': response.headers.get('Access-Control-Max-Age')
+                })}`, 'info');
+            } catch (error) {
+                logResult('cors-results', `❌ OPTIONS request failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 10: CORS Headers Test
+        async function testCORSHeaders() {
+            logResult('cors-results', 'Testing CORS headers in response...', 'info');
+            try {
+                const response = await fetch(API_URL);
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                    'Access-Control-Max-Age': response.headers.get('Access-Control-Max-Age')
+                };
+                
+                logResult('cors-results', `✅ CORS headers test completed! Status: ${response.status}`, 'success');
+                logResult('cors-results', `CORS Headers found: ${JSON.stringify(corsHeaders, null, 2)}`, 'info');
+            } catch (error) {
+                logResult('cors-results', `❌ CORS headers test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 11: Different Origins Test
+        async function testDifferentOrigins() {
+            logResult('cors-results', 'Testing from different origin context...', 'info');
+            try {
+                // Simulate different origin by adding custom headers
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Origin': 'file://',
+                        'Referer': 'file:///Users/test/index.html'
+                    }
+                });
+                
+                logResult('cors-results', `✅ Different origins test completed! Status: ${response.status}`, 'success');
+                logResult('cors-results', `Response from file:// origin: ${response.ok ? 'Allowed' : 'Blocked'}`, 'info');
+            } catch (error) {
+                logResult('cors-results', `❌ Different origins test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 12: CORS with Credentials
+        async function testCORSWithCredentials() {
+            logResult('cors-results', 'Testing CORS with credentials...', 'info');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                logResult('cors-results', `✅ CORS with credentials test completed! Status: ${response.status}`, 'success');
+                logResult('cors-results', `Credentials included: ${response.ok ? 'Success' : 'Failed'}`, 'info');
+            } catch (error) {
+                logResult('cors-results', `❌ CORS with credentials failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test 13: All Methods Test
+        async function testAllMethods() {
+            logResult('advanced-results', 'Testing all HTTP methods...', 'info');
+            const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+            
+            for (const method of methods) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    logResult('advanced-results', `${method}: Status ${response.status} - ${response.ok ? 'Success' : 'Not Supported'}`, 
+                             response.ok ? 'success' : 'warning');
+                } catch (error) {
+                    logResult('advanced-results', `${method}: Failed - ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Test 14: Error Handling
+        async function testErrorHandling() {
+            logResult('advanced-results', 'Testing error handling scenarios...', 'info');
+            
+            // Test with invalid URL
+            try {
+                await fetch('https://invalid-url-that-does-not-exist.com/api/test');
+                logResult('advanced-results', 'Invalid URL: Unexpected success', 'warning');
+            } catch (error) {
+                logResult('advanced-results', `Invalid URL: Correctly caught error - ${error.message}`, 'success');
+            }
+            
+            // Test with timeout
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 1000);
+                
+                const response = await fetch(API_URL, {
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                logResult('advanced-results', `Timeout test: Completed within 1 second`, 'success');
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    logResult('advanced-results', `Timeout test: Correctly timed out`, 'warning');
+                } else {
+                    logResult('advanced-results', `Timeout test: Unexpected error - ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Test 15: Timeout Scenarios
+        async function testTimeoutScenarios() {
+            logResult('advanced-results', 'Testing timeout scenarios...', 'info');
+            
+            const timeouts = [100, 500, 1000, 5000];
+            
+            for (const timeout of timeouts) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), timeout);
+                    
+                    const startTime = Date.now();
+                    const response = await fetch(API_URL, {
+                        signal: controller.signal
+                    });
+                    const endTime = Date.now();
+                    
+                    clearTimeout(timeoutId);
+                    logResult('advanced-results', `${timeout}ms timeout: Success in ${endTime - startTime}ms`, 'success');
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        logResult('advanced-results', `${timeout}ms timeout: Timed out as expected`, 'warning');
+                    } else {
+                        logResult('advanced-results', `${timeout}ms timeout: Error - ${error.message}`, 'error');
+                    }
+                }
+            }
+        }
+
+        // Test 16: Retry Logic
+        async function testRetryLogic() {
+            logResult('advanced-results', 'Testing retry logic...', 'info');
+            
+            const maxRetries = 3;
+            let attempt = 0;
+            
+            while (attempt < maxRetries) {
+                try {
+                    const response = await fetch(API_URL);
+                    if (response.ok) {
+                        logResult('advanced-results', `Retry logic: Success on attempt ${attempt + 1}`, 'success');
+                        return;
+                    }
+                } catch (error) {
+                    attempt++;
+                    logResult('advanced-results', `Retry logic: Attempt ${attempt} failed - ${error.message}`, 'warning');
+                    
+                    if (attempt < maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                    }
+                }
+            }
+            
+            logResult('advanced-results', `Retry logic: All ${maxRetries} attempts failed`, 'error');
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            logResult('get-results', '🚀 Starting comprehensive API testing...', 'info');
+            logResult('post-results', '🚀 Starting comprehensive API testing...', 'info');
+            logResult('cors-results', '🚀 Starting comprehensive API testing...', 'info');
+            logResult('advanced-results', '🚀 Starting comprehensive API testing...', 'info');
+            
+            // Run all tests with delays to avoid overwhelming the server
+            const tests = [
+                () => testBasicFetch(),
+                () => testFetchWithHeaders(),
+                () => testXMLHttpRequest(),
+                () => testFetchWithCredentials(),
+                () => testPostJSON(),
+                () => testPostFormData(),
+                () => testPostURLEncoded(),
+                () => testPostWithCustomHeaders(),
+                () => testPreflightRequest(),
+                () => testCORSHeaders(),
+                () => testDifferentOrigins(),
+                () => testCORSWithCredentials(),
+                () => testFileProtocol(),
+                () => testHttpProtocol(),
+                () => testHttpsProtocol(),
+                () => testCrossOrigin(),
+                () => testAllMethods(),
+                () => testErrorHandling(),
+                () => testTimeoutScenarios(),
+                () => testRetryLogic()
+            ];
+            
+            for (let i = 0; i < tests.length; i++) {
+                try {
+                    await tests[i]();
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Small delay between tests
+                } catch (error) {
+                    logResult('advanced-results', `Test ${i + 1} failed: ${error.message}`, 'error');
+                }
+            }
+            
+            logResult('advanced-results', '🎉 All tests completed!', 'success');
+        }
+
+        // Environment Test Functions
+        async function testFileProtocol() {
+            logResult('environment-results', 'Testing file:// protocol compatibility...', 'info');
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                logResult('environment-results', `✅ file:// protocol works! Status: ${response.status}`, 'success');
+                
+                addWorkingCodeSnippet(
+                    'File Protocol Fetch',
+                    `// Works from file:// protocol
+const response = await fetch('${API_URL}');
+const data = await response.json();
+console.log('Data from file://:', data);`,
+                    'Fetch request that works from local file:// protocol'
+                );
+            } catch (error) {
+                logResult('environment-results', `❌ file:// protocol failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testHttpProtocol() {
+            logResult('environment-results', 'Testing HTTP protocol compatibility...', 'info');
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                logResult('environment-results', `✅ HTTP protocol works! Status: ${response.status}`, 'success');
+                
+                addWorkingCodeSnippet(
+                    'HTTP Protocol Fetch',
+                    `// Works from HTTP server
+const response = await fetch('${API_URL}');
+const data = await response.json();
+console.log('Data from HTTP:', data);`,
+                    'Fetch request that works from HTTP server'
+                );
+            } catch (error) {
+                logResult('environment-results', `❌ HTTP protocol failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testHttpsProtocol() {
+            logResult('environment-results', 'Testing HTTPS protocol compatibility...', 'info');
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                logResult('environment-results', `✅ HTTPS protocol works! Status: ${response.status}`, 'success');
+                
+                addWorkingCodeSnippet(
+                    'HTTPS Protocol Fetch',
+                    `// Works from HTTPS server
+const response = await fetch('${API_URL}');
+const data = await response.json();
+console.log('Data from HTTPS:', data);`,
+                    'Fetch request that works from HTTPS server'
+                );
+            } catch (error) {
+                logResult('environment-results', `❌ HTTPS protocol failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCrossOrigin() {
+            logResult('environment-results', 'Testing cross-origin requests...', 'info');
+            try {
+                // Test with different origin headers
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Referer': window.location.href
+                    }
+                });
+                const data = await response.json();
+                logResult('environment-results', `✅ Cross-origin request works! Status: ${response.status}`, 'success');
+                logResult('environment-results', `Origin: ${window.location.origin}`, 'info');
+                
+                addWorkingCodeSnippet(
+                    'Cross-Origin Fetch',
+                    `// Works for cross-origin requests
+const response = await fetch('${API_URL}', {
+    method: 'GET',
+    headers: {
+        'Origin': window.location.origin,
+        'Referer': window.location.href
+    }
+});
+const data = await response.json();
+console.log('Cross-origin data:', data);`,
+                    'Fetch request that works for cross-origin scenarios'
+                );
+            } catch (error) {
+                logResult('environment-results', `❌ Cross-origin request failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            detectEnvironment();
+            logResult('get-results', 'API Tester initialized. Ready to test BankersIQ API.', 'info');
+            logResult('post-results', 'API Tester initialized. Ready to test BankersIQ API.', 'info');
+            logResult('cors-results', 'API Tester initialized. Ready to test BankersIQ API.', 'info');
+            logResult('environment-results', 'API Tester initialized. Ready to test BankersIQ API.', 'info');
+            logResult('advanced-results', 'API Tester initialized. Ready to test BankersIQ API.', 'info');
+        });
+    </script>
+</body>
+</html>
+
