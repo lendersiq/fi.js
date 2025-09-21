@@ -121,15 +121,8 @@
           value: ["insurance"], 
           options: [
             { value: true, label: "new operating account" }
-          ]
-        },
-        { 
-          id: "notes",
-          type: "textarea", 
-          label: "Additional Notes", 
-          value: "",
-          rows: 3,
-          placeholder: "Enter any additional information..."
+          ],
+          display: true
         },
         { 
           id: "principal",
@@ -148,8 +141,9 @@
         { heading: "Average Principal", id: "averagePrincipal", column_type: "function", function: "averagePrincipalByTerm(newPrincipal, payment, rate, term)", data_type: "currency" },
         { heading: "Expected Loss Provision", id: "expectedLossProvision", column_type: "function", function: "expectedLossProvision(risk, newPrincipal, averagePrincipal, ltv, null)", data_type: "currency" },
         { heading: "Profit", id: "newProfit", column_type: "function", function: "loanProfit(1, newPrincipal, rate, risk, new Date().toISOString().split('T')[0], type, payment, fees, null, term, amort, ltv, newRelationship, totalProfit, null)", data_type: "currency" },
-        { heading: "Profit Grade", id: "grade", column_type: "function", function: "loanProfitGrade(newProfit, newPrincipal, rate, term, amort, principal)", data_type: "string" }
-    ]
+        { heading: "Profit Grade", id: "grade", column_type: "function", function: "loanProfitGrade(newProfit, newPrincipal, rate, term, amort, principal)", data_type: "string" },
+        { heading: "New Relationship", id: "newRelationship", column_type: "form", data_type: "string" },
+      ]
     };
   </script>
   <script src="../../core/fi.js" defer></script>
