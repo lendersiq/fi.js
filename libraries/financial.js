@@ -99,7 +99,8 @@ window.financial = {
 
     loanProfitGrade: {
       description: "Calculates the grade of a loan based on profit",
-      implementation: function (profit, principal, rate, term, amort = null) {
+      implementation: function (profit, principal, rate, term, amort = nul, existingPrincipal = 0) {
+        console.log('loanProfitGrade: profit, principal, rate, term, amort, existingPrincipal', profit, principal, rate, term, amort, existingPrincipal)
         if (principal <= 0) return "F 0.00%";
         
         const monthlyRate = rate < 1 ? parseFloat(rate) / 12 : parseFloat(rate / 100) / 12;
@@ -113,9 +114,10 @@ window.financial = {
           month++;
         }
         const averagePrincipal = cummulativePrincipal / term;
+        const aggregatePrincipal = existingPrincipal + averagePrincipal;
         
         // Calculate ROE as percentage
-        const roePercentage = (profit / (averagePrincipal * 0.09)) * 100;
+        const roePercentage = (profit / (aggregatePrincipal * 0.09)) * 100;
         const ROE = roePercentage.toFixed(2) + "%";
         
         // Get ROE target from attributes (convert to percentage)
@@ -521,7 +523,8 @@ window.financial = {
 
         let profit = pretaxProfit;
         if (!organization.dictionaries.taxExempt.checking.values.includes(type)) {
-          profit = pretax * taxFactor;
+          const taxFactor = 1 - organization.attributes.taxRate.value;
+          profit = pretaxProfit * taxFactor;
         }
 
         if (window.logger) console.log(`portfolio: ${portfolio}, balance: ${balance}, interest: ${interestExpense}, rate: ${rate}, credit rate: ${creditRate}, credit for funding: ${creditForFunding}, charges: ${charges}, waived: ${waived}, deposits: ${deposits}, withdrawals: ${withdrawals}, nsf: ${nsf}, operating expense: ${operatingExpense}, fraud loss: ${fraudLoss}, pretax income: ${pretaxIncome}, pretax expense: ${pretaxExpense}, profit: ${profit.toFixed(2)}`);
@@ -597,7 +600,8 @@ window.financial = {
         
         let profit = pretaxProfit;
         if (!organization.dictionaries.taxExempt.savings.values.includes(type)) {
-          profit = pretax * taxFactor;
+          const taxFactor = 1 - organization.attributes.taxRate.value;
+          profit = pretaxProfit * taxFactor;
         }
         if (window.logger) console.log(`portfolio: ${portfolio}, balance: ${balance}, interest: ${interestExpense}, rate: ${rate}, credit rate: ${creditRate}, credit for funding: ${creditForFunding}, charges: ${charges}, waived: ${waived}, deposits: ${deposits}, withdrawals: ${withdrawals}, operating expense: ${operatingExpense}, fraud loss: ${fraudLoss}, pretax income: ${pretaxIncome}, pretax expense: ${pretaxExpense}, profit: ${profit.toFixed(2)}`);
         return profit;
@@ -645,7 +649,8 @@ window.financial = {
         const taxFactor = 1 - organization.attributes.taxRate.value;
         let profit = pretaxProfit;
         if (!organization.dictionaries.taxExempt.certificate.values.includes(type)) {
-          profit = pretax * taxFactor;
+          const taxFactor = 1 - organization.attributes.taxRate.value;
+          profit = pretaxProfit * taxFactor;
         }
         if (window.logger) console.log(`portfolio: ${portfolio}, balance: ${balance}, interest: ${interestExpense}, rate: ${rate}, credit rate: ${creditRate}, credit for funding: ${creditForFunding}, deposits: ${deposits}, operating expense: ${operatingExpense}, pretax expense: ${pretaxExpense}, profit: ${profit.toFixed(2)}`);
         return profit;
@@ -1061,12 +1066,7 @@ window.financial = {
 window.financial.api.treasuryCurve()
   .then(treasuryData => {
     console.log('Treasury data loaded successfully:', treasuryData);
-    // Trigger a display update if forms are active
-    if (window.appConfig && window.appConfig.forms && window.processDisplayData) {
-      setTimeout(() => {
-        window.processDisplayData();
-      }, 100);
-    }
+    // Treasury data is now available for use when user interacts with forms
   })
   .catch(error => {
     console.error('Preloading treasury curve data failed:', error);
@@ -1075,9 +1075,7 @@ window.financial.api.treasuryCurve()
       window.financial.api.treasuryCurve()
         .then(treasuryData => {
           console.log('Treasury data loaded on retry:', treasuryData);
-          if (window.appConfig && window.appConfig.forms && window.processDisplayData) {
-            window.processDisplayData();
-          }
+          // Treasury data is now available for use when user interacts with forms
         })
         .catch(retryError => {
           console.error('Treasury data retry also failed:', retryError);
