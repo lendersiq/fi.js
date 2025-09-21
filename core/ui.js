@@ -543,36 +543,48 @@
       window.initializeDisplay();
     }
 
-    // Process initial display data
-    setTimeout(() => {
-      // Collect initial form data
-      const formElement = document.getElementById('fiFormsForm');
-      if (formElement) {
-        const initialFormData = collectFormData(formElement);
-        updateAppConfigWithFormData(initialFormData);
-        processFormData(initialFormData);
-      }
-      
-      if (window.processDisplayData) {
-        window.processDisplayData();
-      }
-    }, 100);
-
     // Add form submission handler
     const formElement = document.getElementById('fiFormsForm');
     if (formElement) {
-      // Add updates on form field blur (when user finishes editing)
-      formElement.addEventListener('blur', (e) => {
-        const formData = collectFormData(formElement);
-        updateAppConfigWithFormData(formData);
-        processFormData(formData);
-      }, true); // Use capture phase to catch blur events from all form elements
+      // Flag to track if user has interacted with the form
+      let userHasInteracted = false;
+      
+      // Function to add event listeners only after user interaction
+      const addEventListeners = () => {
+        // Add updates on form field blur (when user finishes editing)
+        formElement.addEventListener('blur', (e) => {
+          if (e.target.tagName !== 'FORM') {
+            const formData = collectFormData(formElement);
+            updateAppConfigWithFormData(formData);
+            processFormData(formData);
+          }
+        }, true); // Use capture phase to catch blur events from all form elements
 
-      // Keep change event for select, checkbox, radio elements
+        // Keep change event for select, checkbox, radio elements
+        formElement.addEventListener('change', (e) => {
+          if (e.target.tagName !== 'FORM') {
+            const formData = collectFormData(formElement);
+            updateAppConfigWithFormData(formData);
+            processFormData(formData);
+          }
+        });
+      };
+
+      // Add a one-time event listener to detect first user interaction
+      formElement.addEventListener('focusin', () => {
+        if (!userHasInteracted) {
+          userHasInteracted = true;
+          addEventListeners();
+        }
+      }, { once: true });
+
+      // Also add change listeners immediately for select/checkbox/radio (these don't cause blur issues)
       formElement.addEventListener('change', (e) => {
-        const formData = collectFormData(formElement);
-        updateAppConfigWithFormData(formData);
-        processFormData(formData);
+        if (e.target.tagName !== 'FORM') {
+          const formData = collectFormData(formElement);
+          updateAppConfigWithFormData(formData);
+          processFormData(formData);
+        }
       });
     }
   }

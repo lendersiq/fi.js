@@ -13,12 +13,12 @@
     }
   };
 
-  if (!appConfig || typeof appConfig !== 'object' || appConfig === null) {
+  if (!window.appConfig || typeof window.appConfig !== 'object' || window.appConfig === null) {
     console.error("appConfig is not defined or is not a valid object.");
     return;
   }
 
-  if (!validJSON(appConfig)) {
+  if (!validJSON(window.appConfig)) {
     return;
   }
 
@@ -3232,10 +3232,7 @@ function initializeDisplay() {
   window.processDisplayData = processDisplayData;
 
   // Process initial display data
-  setTimeout(() => {
-    console.log('Calling processDisplayData after display initialization');
-    processDisplayData();
-  }, 200);
+  // Display container is now ready for user interaction
 }
 
 function printDisplayContainer() {
@@ -3406,6 +3403,7 @@ function processDisplayData() {
     resultsGrid.innerHTML = '';
   }
 
+  // Add calculated results
   window.appConfig.display.forEach(col => {
     const card = document.createElement('div');
     card.className = 'result-card';
